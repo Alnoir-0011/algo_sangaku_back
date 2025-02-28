@@ -5,4 +5,8 @@ class User < ApplicationRecord
   validates :name, presence: true, length: { maximum: 255 }
   validates :email, presence: true, length: { maximum: 255 }
   validates :nickname, presence: true, length: { maximum: 255 }
+
+  def initialize_nickname
+    self.nickname = self.name
+  end
 end
