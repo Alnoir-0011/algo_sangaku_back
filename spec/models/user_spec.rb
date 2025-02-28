@@ -11,31 +11,31 @@ RSpec.describe User, type: :model do
     it "is invalid without provider" do
       user = build(:user, provider: '')
       expect(user).to be_invalid
-      expect(user.errors[:provider]).to eq ['を入力してください']
+      expect(user.errors[:provider]).to eq [ 'を入力してください' ]
     end
 
     it "is invalid without uid" do
       user = build(:user, uid: '')
       expect(user).to be_invalid
-      expect(user.errors[:uid]).to eq ['を入力してください']
+      expect(user.errors[:uid]).to eq [ 'を入力してください' ]
     end
 
     it "is invalid without name" do
       user = build(:user, name: '')
       expect(user).to be_invalid
-      expect(user.errors[:name]).to eq ['を入力してください']
+      expect(user.errors[:name]).to eq [ 'を入力してください' ]
     end
 
     it "is invalid without email" do
       user = build(:user, name: '')
       expect(user).to be_invalid
-      expect(user.errors[:name]).to eq ['を入力してください']
+      expect(user.errors[:name]).to eq [ 'を入力してください' ]
     end
 
     it "is invalid without nickname" do
       user = build(:user, nickname: '')
       expect(user).to be_invalid
-      expect(user.errors[:nickname]).to eq ['を入力してください']
+      expect(user.errors[:nickname]).to eq [ 'を入力してください' ]
     end
 
     it "is valid with same provider" do
@@ -50,7 +50,7 @@ RSpec.describe User, type: :model do
       user = create(:user, uid: new_uid)
       another_user = build(:user, uid: new_uid)
       expect(another_user).to be_invalid
-      expect(another_user.errors[:uid]).to eq ['はすでに存在します']
+      expect(another_user.errors[:uid]).to eq [ 'はすでに存在します' ]
     end
 
     it "is valid with another uid" do
@@ -82,4 +82,3 @@ RSpec.describe User, type: :model do
     end
   end
 end
-
