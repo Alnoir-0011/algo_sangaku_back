@@ -1,8 +1,11 @@
 module Api
   module V1
-    class UsersController < ApplicationController
+    class UsersController < BaseController
+      skip_before_action :authenticate, only: %i[create]
+
       def create
         user = User.find_by(provider: params[:user][:provider], uid: params[:user][:uid])
+        p user
 
         if user
           render json: UserSerializer.new(user).serializable_hash.to_json, status: :ok
@@ -16,11 +19,7 @@ module Api
             render json: { error: user.errors.full_messages }, status: :unprocessable_entity
           end
         end
-
-      rescue StandardError => e
-        render json: { error: e.message }, status: :internal_server_error
       end
-
 
       private
 

@@ -22,6 +22,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_25_133523) do
     t.string "nickname", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["uid"], name: "index_users_on_uid", unique: true
   end
 end

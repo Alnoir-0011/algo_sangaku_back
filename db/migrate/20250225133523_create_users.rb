@@ -4,7 +4,7 @@ class CreateUsers < ActiveRecord::Migration[8.0]
       t.string :provider, null: false
       t.string :uid, null: false, index: { unique: true }
       t.string :name, null: false
-      t.string :email, null: false
+      t.string :email, null: false, index: { unique: true }
       t.string :nickname, null: false
 
       t.timestamps
