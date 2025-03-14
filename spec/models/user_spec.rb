@@ -60,9 +60,16 @@ RSpec.describe User, type: :model do
       expect(another_user.errors).to be_empty
     end
 
-    it "is valid with same email" do
+    it "is invalid with same email" do
       user = create(:user)
       another_user = build(:user, email: user.email)
+      expect(another_user).to be_invalid
+      expect(another_user.errors[:email]).to eq [ 'はすでに存在します' ]
+    end
+
+    it "is valid with another eamil" do
+      create(:user)
+      another_user = build(:user, email: "another_user@example.com")
       expect(another_user).to be_valid
       expect(another_user.errors).to be_empty
     end
