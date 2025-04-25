@@ -31,7 +31,7 @@ gem "thruster", require: false
 
 gem "rails-i18n"
 gem "jsonapi-serializer"
-gem "dotenv-rails", "~> 3.1", ">= 3.1.7"
+gem "dotenv-rails", "~> 3.1"
 gem "googleauth", "~> 1.14"
 
 group :development, :test do
