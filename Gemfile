@@ -32,7 +32,7 @@ gem "thruster", require: false
 gem "rails-i18n"
 gem "jsonapi-serializer"
 gem "dotenv-rails", "~> 3.1", ">= 3.1.7"
-gem "googleauth", "~> 1.13", ">= 1.13.1"
+gem "googleauth", "~> 1.14"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
