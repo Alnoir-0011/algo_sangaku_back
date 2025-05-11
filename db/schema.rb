@@ -10,9 +10,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_25_133523) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_26_070349) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "shrines", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "address", null: false
+    t.float "latitude", null: false
+    t.float "longitude", null: false
+    t.string "place_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["place_id"], name: "index_shrines_on_place_id", unique: true
+  end
 
   create_table "users", force: :cascade do |t|
     t.string "provider", null: false
