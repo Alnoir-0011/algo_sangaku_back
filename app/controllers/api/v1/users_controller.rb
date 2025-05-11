@@ -5,7 +5,6 @@ module Api
 
       def create
         user = User.find_by(provider: params[:user][:provider], uid: params[:user][:uid])
-        p user
 
         if user
           render json: UserSerializer.new(user).serializable_hash.to_json, status: :ok
