@@ -27,11 +27,12 @@ gem "thruster", require: false
 # gem "image_processing", "~> 1.2"
 
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
-# gem "rack-cors"
+gem "rack-cors", "~> 2.0", ">= 2.0.2"
 
 gem "rails-i18n"
 gem "jsonapi-serializer"
 gem "dotenv-rails", "~> 3.1"
+gem "config", "~> 5.5", ">= 5.5.2"
 gem "googleauth", "~> 1.14"
 
 group :development, :test do
