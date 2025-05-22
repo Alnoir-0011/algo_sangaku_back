@@ -51,5 +51,5 @@ group :development, :test do
 end
 
 group :test do
-  gem 'rspec-openapi'
+  gem "rspec-openapi"
 end
