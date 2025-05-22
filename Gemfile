@@ -49,3 +49,7 @@ group :development, :test do
   gem "factory_bot_rails", "~> 6.4", ">= 6.4.4"
   gem "webmock", "~> 3.25", ">= 3.25.1"
 end
+
+group :test do
+  gem 'rspec-openapi'
+end
