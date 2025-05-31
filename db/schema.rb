@@ -10,9 +10,31 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_26_070349) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_27_062857) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "fixed_inputs", force: :cascade do |t|
+    t.text "content", null: false
+    t.bigint "sangaku_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content", "sangaku_id"], name: "index_fixed_inputs_on_content_and_sangaku_id", unique: true
+    t.index ["sangaku_id"], name: "index_fixed_inputs_on_sangaku_id"
+  end
+
+  create_table "sangakus", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "description", null: false
+    t.text "source", null: false
+    t.integer "difficulty", default: 0, null: false
+    t.bigint "user_id", null: false
+    t.bigint "shrine_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["shrine_id"], name: "index_sangakus_on_shrine_id"
+    t.index ["user_id"], name: "index_sangakus_on_user_id"
+  end
 
   create_table "shrines", force: :cascade do |t|
     t.string "name", null: false
@@ -36,4 +58,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_26_070349) do
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["uid"], name: "index_users_on_uid", unique: true
   end
+
+  add_foreign_key "fixed_inputs", "sangakus"
+  add_foreign_key "sangakus", "shrines"
+  add_foreign_key "sangakus", "users"
 end

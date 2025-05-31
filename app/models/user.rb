@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  has_many :sangakus
+
   validates :provider, presence: true, length: { maximum: 255 }
   validates :uid, presence: true, uniqueness: true
   validates :uid, length: { maximum: 255 }
