@@ -5,6 +5,12 @@ FactoryBot.define do
     source { "put 'Hello world'" }
     difficulty { "easy" }
     association :user
-    association :shrine
+    # shrine_id { nil }
+
+    trait :with_fixed_inputs do
+      after(:build) do
+        build_list(:fixed_inputs, 3)
+      end
+    end
   end
 end

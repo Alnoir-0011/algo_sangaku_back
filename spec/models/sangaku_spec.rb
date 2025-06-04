@@ -11,19 +11,19 @@ RSpec.describe Sangaku, type: :model do
     it 'is invalid without title' do
       sangaku = build(:sangaku, title: "")
       expect(sangaku).to be_invalid
-      expect(sangaku.errors[:title]).to eq ['を入力してください']
+      expect(sangaku.errors[:title]).to eq [ 'を入力してください' ]
     end
 
     it 'is invalid without description' do
       sangaku = build(:sangaku, description: "")
       expect(sangaku).to be_invalid
-      expect(sangaku.errors[:description]).to eq ['を入力してください']
+      expect(sangaku.errors[:description]).to eq [ 'を入力してください' ]
     end
 
     it 'is invalid without source' do
       sangaku = build(:sangaku, source: "")
       expect(sangaku).to be_invalid
-      expect(sangaku.errors[:title]).to eq ['を入力してください']
+      expect(sangaku.errors[:source]).to eq [ 'を入力してください' ]
     end
   end
 end
