@@ -86,7 +86,7 @@ module PaizaioApi
     when Net::HTTPOK
       body = JSON.parse(res.body)
       if body.include?("stdout")
-        return body
+        body
       else
         raise StandardError.new("idが無効です")
       end

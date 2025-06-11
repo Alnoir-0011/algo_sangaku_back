@@ -1,5 +1,5 @@
 class User < ApplicationRecord
-  has_many :sangakus
+  has_many :sangakus, dependent: :destroy
 
   validates :provider, presence: true, length: { maximum: 255 }
   validates :uid, presence: true, uniqueness: true
