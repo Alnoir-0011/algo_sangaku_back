@@ -8,7 +8,6 @@ module Api
         if sangaku.save_with_inputs(inputs)
           render json: SangakuSerializer.new(sangaku).serializable_hash.to_json, status: :ok
         else
-          p sangaku.errors
           render_400(nil, sangaku.errors.full_messages)
         end
       end
