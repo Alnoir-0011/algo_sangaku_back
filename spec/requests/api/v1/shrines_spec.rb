@@ -30,7 +30,7 @@ RSpec.describe "Api::V1::Shrines", type: :request do
       end
 
       context "shrines already created" do
-        let!(:shrine) { create(:shrine) }
+        let!(:shrine) { create(:shrine, place_id: shrine_attributes[:place_id]) }
 
         it "shrines does not create" do
           expect { http_request }.to change(Shrine, :count).by(0)
@@ -63,7 +63,7 @@ RSpec.describe "Api::V1::Shrines", type: :request do
       end
 
       context "shrines already created" do
-        let!(:shrine) { create(:shrine) }
+        let!(:shrine) { create(:shrine, place_id: shrine_attributes[:place_id]) }
 
         it "shrines does not create" do
           expect { http_request }.to change(Shrine, :count).by(0)

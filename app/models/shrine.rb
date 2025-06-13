@@ -1,6 +1,8 @@
 class Shrine < ApplicationRecord
   include PlaceApi
 
+  has_many :sangakus, dependent: :destroy
+
   validates :name, presence: true, length: { maximum: 255 }
   validates :address, presence: true, length: { maximum: 255 }
   validates :latitude, numericality: true

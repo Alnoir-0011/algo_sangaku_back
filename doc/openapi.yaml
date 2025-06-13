@@ -5,56 +5,191 @@ info:
   version: 1.0.0
 servers: []
 paths:
+  "/api/v1/sangakus":
+    post:
+      summary: create
+      tags:
+      - Api::V1::Sangaku
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sangaku:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    source:
+                      type: string
+                    difficulty:
+                      type: string
+                  required:
+                  - title
+                  - description
+                  - source
+                  - difficulty
+                fixed_inputs:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      content:
+                        type: string
+                    required:
+                    - content
+              required:
+              - sangaku
+              - fixed_inputs
+            example:
+              sangaku:
+                title: test_title
+                description: test_description
+                source: put 'Hello world'
+                difficulty: easy
+              fixed_inputs:
+              - content: test_input_3
+      responses:
+        '200':
+          description: return sangaku in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description:
+                            type: string
+                          source:
+                            type: string
+                          difficulty:
+                            type: string
+                          inputs:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                content:
+                                  type: string
+                              required:
+                              - id
+                              - content
+                        required:
+                        - title
+                        - description
+                        - source
+                        - difficulty
+                        - inputs
+                      relationships:
+                        type: object
+                        properties:
+                          user:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                        required:
+                        - user
+                    required:
+                    - id
+                    - type
+                    - attributes
+                    - relationships
+                required:
+                - data
+              example:
+                data:
+                  id: '199'
+                  type: sangaku
+                  attributes:
+                    title: test_title
+                    description: test_description
+                    source: put 'Hello world'
+                    difficulty: easy
+                    inputs:
+                    - id: 26
+                      content: '{"content"=>"test_input_3"}'
+                  relationships:
+                    user:
+                      data:
+                        id: '199'
+                        type: user
   "/api/v1/shrines":
     get:
       summary: index
       tags:
-        - Api::V1::Shrine
+      - Api::V1::Shrine
       parameters:
-        - name: highLat
-          in: query
-          required: false
-          schema:
-            type: string
-          example: "35.5"
-        - name: highLng
-          in: query
-          required: false
-          schema:
-            type: string
-          example: "135.2"
-        - name: lat
-          in: query
-          required: false
-          schema:
-            type: string
-          example: "35.4"
-        - name: lng
-          in: query
-          required: false
-          schema:
-            type: string
-          example: "135.2"
-        - name: lowLat
-          in: query
-          required: false
-          schema:
-            type: string
-          example: "35.4"
-        - name: lowLng
-          in: query
-          required: false
-          schema:
-            type: string
-          example: "135.1"
-        - name: searchType
-          in: query
-          required: true
-          schema:
-            type: string
-          example: List
+      - name: highLat
+        in: query
+        required: false
+        schema:
+          type: string
+        example: '35.5'
+      - name: highLng
+        in: query
+        required: false
+        schema:
+          type: string
+        example: '135.2'
+      - name: lat
+        in: query
+        required: false
+        schema:
+          type: string
+        example: '35.4'
+      - name: lng
+        in: query
+        required: false
+        schema:
+          type: string
+        example: '135.2'
+      - name: lowLat
+        in: query
+        required: false
+        schema:
+          type: string
+        example: '35.4'
+      - name: lowLng
+        in: query
+        required: false
+        schema:
+          type: string
+        example: '135.1'
+      - name: searchType
+        in: query
+        required: false
+        schema:
+          type: string
+        example: List
       responses:
-        "200":
+        '200':
           description: shrines does not create
           content:
             application/json:
@@ -86,28 +221,28 @@ paths:
                             place_id:
                               type: string
                           required:
-                            - name
-                            - address
-                            - latitude
-                            - longitude
-                            - place_id
+                          - name
+                          - address
+                          - latitude
+                          - longitude
+                          - place_id
                       required:
-                        - id
-                        - type
-                        - attributes
+                      - id
+                      - type
+                      - attributes
                 required:
-                  - data
+                - data
               example:
                 data:
-                  - id: "183"
-                    type: shrine
-                    attributes:
-                      name: test_shrine
-                      address: test_address
-                      latitude: 35.70204829610801
-                      longitude: 139.76789333814216
-                      place_id: test_place_id
-        "400":
+                - id: '179'
+                  type: shrine
+                  attributes:
+                    name: test_shrine
+                    address: test_address
+                    latitude: 35.70204829610801
+                    longitude: 139.76789333814216
+                    place_id: test_place_id_14
+        '400':
           description: return 400
           content:
             application/json:
@@ -121,17 +256,17 @@ paths:
                     items:
                       type: string
                 required:
-                  - message
-                  - errors
+                - message
+                - errors
               example:
                 message: Bad Request
                 errors:
-                  - invalid params
+                - invalid params
   "/api/v1/users":
     post:
       summary: create
       tags:
-        - Api::V1::User
+      - Api::V1::User
       requestBody:
         content:
           application/json:
@@ -156,24 +291,24 @@ paths:
                     updated_at:
                       type: string
                   required:
-                    - provider
-                    - uid
-                    - name
-                    - email
-                    - nickname
+                  - provider
+                  - uid
+                  - name
+                  - email
+                  - nickname
               required:
-                - user
+              - user
             example:
               user:
                 provider: google
-                uid: 3261d618-5af7-43ca-b7c7-6389f9ef282d
+                uid: d5c759d0-87a1-4c39-b98a-10a69174bd9e
                 name: test user
-                email: user_19@example.com
+                email: user_27@example.com
                 nickname: test nickname
-                created_at: "2025-05-22T15:40:26.093+09:00"
-                updated_at: "2025-05-22T15:40:26.093+09:00"
+                created_at: '2025-06-13T16:05:08.936+09:00'
+                updated_at: '2025-06-13T16:05:08.936+09:00'
       responses:
-        "200":
+        '200':
           description: user does not create
           content:
             application/json:
@@ -201,34 +336,34 @@ paths:
                           nickname:
                             type: string
                         required:
-                          - provider
-                          - uid
-                          - name
-                          - email
-                          - nickname
+                        - provider
+                        - uid
+                        - name
+                        - email
+                        - nickname
                     required:
-                      - id
-                      - type
-                      - attributes
+                    - id
+                    - type
+                    - attributes
                 required:
-                  - data
+                - data
               example:
                 data:
-                  id: "249"
+                  id: '201'
                   type: user
                   attributes:
                     provider: google
-                    uid: 3261d618-5af7-43ca-b7c7-6389f9ef282d
+                    uid: d5c759d0-87a1-4c39-b98a-10a69174bd9e
                     name: test user
-                    email: user_19@example.com
+                    email: user_27@example.com
                     nickname: test nickname
   "/up":
     get:
       summary: show
       tags:
-        - Rails::Health
+      - Rails::Health
       responses:
-        "200":
+        '200':
           description: works! (now write some real specs)
           content:
             text/html:
