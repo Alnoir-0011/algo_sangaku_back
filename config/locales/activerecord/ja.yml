@@ -1,0 +1,14 @@
+ja:
+  activerecord:
+    models:
+      user: "ユーザー"
+      shrine: "神社"
+      sangaku: "算額"
+      fixed_input: "固定入力"
+    attributes:
+      sangaku:
+        title: "タイトル"
+        description: "説明"
+        source: "ソースコード"
+        difficulty: "難易度"
+        fixed_inputs: "固定入力"
