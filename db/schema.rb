@@ -10,9 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_27_062857) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_17_063429) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "api_keys", force: :cascade do |t|
+    t.string "access_token", null: false
+    t.datetime "expires_at"
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["access_token"], name: "index_api_keys_on_access_token", unique: true
+    t.index ["user_id"], name: "index_api_keys_on_user_id"
+  end
 
   create_table "fixed_inputs", force: :cascade do |t|
     t.text "content", null: false
@@ -59,6 +69,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_27_062857) do
     t.index ["uid"], name: "index_users_on_uid", unique: true
   end
 
+  add_foreign_key "api_keys", "users"
   add_foreign_key "fixed_inputs", "sangakus"
   add_foreign_key "sangakus", "shrines"
   add_foreign_key "sangakus", "users"

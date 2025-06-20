@@ -1,5 +1,6 @@
 class User < ApplicationRecord
   has_many :sangakus, dependent: :destroy
+  has_many :api_keys
 
   validates :provider, presence: true, length: { maximum: 255 }
   validates :uid, presence: true, uniqueness: true
@@ -9,7 +10,8 @@ class User < ApplicationRecord
   validates :email, length: { maximum: 255 }
   validates :nickname, presence: true, length: { maximum: 255 }
 
-  def initialize_nickname
-    self.nickname = self.name
+  def initialize(attributes = {})
+    super
+    self.nickname = self.name if name.present? && !nickname.present?
   end
 end

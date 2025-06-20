@@ -125,7 +125,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '199'
+                  id: '37'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -133,12 +133,12 @@ paths:
                     source: put 'Hello world'
                     difficulty: easy
                     inputs:
-                    - id: 26
+                    - id: 9
                       content: '{"content"=>"test_input_3"}'
                   relationships:
                     user:
                       data:
-                        id: '199'
+                        id: '37'
                         type: user
   "/api/v1/shrines":
     get:
@@ -234,7 +234,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '179'
+                - id: '30'
                   type: shrine
                   attributes:
                     name: test_shrine
@@ -273,40 +273,10 @@ paths:
             schema:
               type: object
               properties:
-                user:
-                  type: object
-                  properties:
-                    provider:
-                      type: string
-                    uid:
-                      type: string
-                    name:
-                      type: string
-                    email:
-                      type: string
-                    nickname:
-                      type: string
-                    created_at:
-                      type: string
-                    updated_at:
-                      type: string
-                  required:
-                  - provider
-                  - uid
-                  - name
-                  - email
-                  - nickname
-              required:
-              - user
+                token:
+                  type: string
             example:
-              user:
-                provider: google
-                uid: d5c759d0-87a1-4c39-b98a-10a69174bd9e
-                name: test user
-                email: user_27@example.com
-                nickname: test nickname
-                created_at: '2025-06-13T16:05:08.936+09:00'
-                updated_at: '2025-06-13T16:05:08.936+09:00'
+              token: dummy_idtoken
       responses:
         '200':
           description: user does not create
@@ -349,11 +319,11 @@ paths:
                 - data
               example:
                 data:
-                  id: '201'
+                  id: '39'
                   type: user
                   attributes:
                     provider: google
-                    uid: d5c759d0-87a1-4c39-b98a-10a69174bd9e
+                    uid: 5e775dbc-f213-4c4d-999e-85e51a3506f5
                     name: test user
                     email: user_27@example.com
                     nickname: test nickname
