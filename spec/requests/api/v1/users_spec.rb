@@ -25,7 +25,7 @@ RSpec.describe "Api::V1::Users", type: :request do
       it 'returns user in json format' do
         expect { http_request }.to change(User, :count).by(1)
         expect(response).to have_http_status(:ok)
-        expect(response.headers.keys).to include 'tokenexpires-at'
+        expect(response.headers.keys).to include 'accesstoken'
       end
     end
 
@@ -45,7 +45,7 @@ RSpec.describe "Api::V1::Users", type: :request do
       it "user does not create" do
         expect { http_request }.to change(User, :count).by(0)
         expect(response).to have_http_status(:ok)
-        expect(response.headers.keys).to include 'tokenexpires-at'
+        expect(response.headers.keys).to include 'accesstoken'
       end
     end
   end
