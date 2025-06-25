@@ -9,7 +9,6 @@ module Api
       def set_token!(user)
         api_key = user.api_keys.create
         response.header["AccessToken"] = api_key.access_token
-        response.header["TokenExpires-at"] = api_key.expires_at
       end
 
       protected
