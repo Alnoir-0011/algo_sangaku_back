@@ -1,29 +1,37 @@
 module Api
   module V1
     class UsersController < BaseController
+      require "googleauth"
       skip_before_action :authenticate, only: %i[create]
 
       def create
-        user = User.find_by(provider: params[:user][:provider], uid: params[:user][:uid])
+          payload = verify_idtoken
+          user = User.find_by(provider: "google", uid: payload["sub"])
 
         if user
+          set_token!(user)
           render json: UserSerializer.new(user).serializable_hash.to_json, status: :ok
         else
-          user = User.new(user_params)
-          user.initialize_nickname
+          user = User.new(provider: "google", uid: payload["sub"], email: payload["email"], name: payload["name"])
 
           if user.save
+            set_token!(user)
             render json: UserSerializer.new(user).serializable_hash.to_json, status: :ok
           else
-            render json: { error: user.errors.full_messages }, status: :unprocessable_entity
+            render_400(nil, user.errors.full_messages)
           end
         end
       end
 
       private
 
-      def user_params
-        params.require(:user).permit(:provider, :uid, :name, :email)
+      def verify_idtoken
+        google_client_id = ENV["GOOGLE_CLIENT_ID"]
+        begin
+          Google::Auth::IDTokens.verify_oidc(params[:token], aud: google_client_id)
+        rescue StandardError => e
+          render_400(nil, "invalid token")
+        end
       end
     end
   end
