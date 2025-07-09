@@ -35,7 +35,7 @@ paths:
                 fixed_inputs:
                   type: array
                   items:
-                    type: object
+                    type: string
                     properties:
                       content:
                         type: string
@@ -51,7 +51,7 @@ paths:
                 source: put 'Hello world'
                 difficulty: easy
               fixed_inputs:
-              - content: test_input_3
+              - test_input_3
       responses:
         '200':
           description: return sangaku in json format
@@ -125,7 +125,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '37'
+                  id: '70'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -133,12 +133,12 @@ paths:
                     source: put 'Hello world'
                     difficulty: easy
                     inputs:
-                    - id: 9
-                      content: '{"content"=>"test_input_3"}'
+                    - id: 15
+                      content: test_input_3
                   relationships:
                     user:
                       data:
-                        id: '37'
+                        id: '70'
                         type: user
   "/api/v1/shrines":
     get:
@@ -234,7 +234,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '30'
+                - id: '48'
                   type: shrine
                   attributes:
                     name: test_shrine
@@ -275,6 +275,8 @@ paths:
               properties:
                 token:
                   type: string
+              required:
+              - token
             example:
               token: dummy_idtoken
       responses:
@@ -319,11 +321,11 @@ paths:
                 - data
               example:
                 data:
-                  id: '39'
+                  id: '72'
                   type: user
                   attributes:
                     provider: google
-                    uid: 5e775dbc-f213-4c4d-999e-85e51a3506f5
+                    uid: e1af92cc-cfa6-4c5b-b161-49cb074351af
                     name: test user
                     email: user_27@example.com
                     nickname: test nickname

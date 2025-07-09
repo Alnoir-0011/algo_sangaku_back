@@ -34,7 +34,7 @@ class Sangaku < ApplicationRecord
     content_ary = fixed_inputs.map(&:content)
 
     if content_ary.uniq.length != content_ary.length
-      errors.add(:base, "固定入力が重複しています")
+      errors.add(:fixed_inputs, "が重複しています")
     end
   end
 end

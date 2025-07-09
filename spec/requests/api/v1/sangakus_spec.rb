@@ -2,9 +2,9 @@ require 'rails_helper'
 
 RSpec.describe "Api::V1::Sangakus", type: :request do
   describe "POST /sangakus" do
-    context "with_id_token" do
+    context "with_accesstoken" do
       let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
-      let(:params) { { sangaku: attributes_for(:sangaku), fixed_inputs: [ attributes_for(:fixed_input) ] } }
+      let(:params) { { sangaku: attributes_for(:sangaku), fixed_inputs: [ attributes_for(:fixed_input)[:content] ] } }
 
       it "return sangaku in json format" do
         authenticate_stub
