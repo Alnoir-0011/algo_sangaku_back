@@ -32,7 +32,7 @@ gem "rack-cors", "~> 3.0"
 gem "rails-i18n"
 gem "jsonapi-serializer"
 gem "dotenv-rails", "~> 3.1"
-gem "config", "~> 5.5", ">= 5.5.2"
+gem "config", "~> 5.6"
 gem "googleauth", "~> 1.14"
 
 group :development, :test do
