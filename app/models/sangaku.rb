@@ -14,6 +14,8 @@ class Sangaku < ApplicationRecord
         { easy: 0, nomal: 10, difficult: 20, very_difficult: 30 },
         prefix: true
 
+  scope :title_contain, ->(title) { where("title LIKE ?", "%#{title}%") }
+
   def save_with_inputs(inputs)
     inputs_invalid = inputs.map(&:invalid?).any?(true)
 
@@ -26,6 +28,24 @@ class Sangaku < ApplicationRecord
     true
   rescue StandardError
     false
+  end
+
+  def self.search(params)
+    relation = self.distinct
+    return relation unless params
+
+    if params[:shrine_id]
+      shrine_id = params[:shrine_id].to_i != 0 ? params[:shrine_id].to_i : nil
+      relation = relation.where(shrine_id: shrine_id)
+    end
+
+    words = params[:title].present? ? params[:title].split(nil) : []
+
+    words.each do |word|
+      relation = relation.title_contain(word)
+    end
+
+    relation
   end
 
   private
