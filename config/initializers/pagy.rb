@@ -73,11 +73,11 @@
 
 # Headers extra: http response headers (and other helpers) useful for API pagination
 # See https://ddnexus.github.io/pagy/docs/extras/headers
-require 'pagy/extras/headers'
-Pagy::DEFAULT[:headers] = { page: 'Current-Page',
-                           limit: 'Page-Items',
-                           count: 'Total-Count',
-                           pages: 'Total-Pages' }     # default
+require "pagy/extras/headers"
+Pagy::DEFAULT[:headers] = { page: "Current-Page",
+                           limit: "Page-Items",
+                           count: "Total-Count",
+                           pages: "Total-Pages" }     # default
 
 # Keyset extra: Paginate with the Pagy keyset pagination technique
 # See https://ddnexus.github.io/pagy/docs/extras/keyset
