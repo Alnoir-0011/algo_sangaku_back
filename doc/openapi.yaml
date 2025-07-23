@@ -114,6 +114,13 @@ paths:
                                 - type
                             required:
                             - data
+                          shrine:
+                            type: object
+                            properties:
+                              data:
+                                nullable: true
+                            required:
+                            - data
                         required:
                         - user
                     required:
@@ -125,7 +132,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '70'
+                  id: '230'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -133,13 +140,15 @@ paths:
                     source: put 'Hello world'
                     difficulty: easy
                     inputs:
-                    - id: 15
+                    - id: 36
                       content: test_input_3
                   relationships:
                     user:
                       data:
-                        id: '70'
+                        id: '313'
                         type: user
+                    shrine:
+                      data:
   "/api/v1/shrines":
     get:
       summary: index
@@ -234,7 +243,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '48'
+                - id: '183'
                   type: shrine
                   attributes:
                     name: test_shrine
@@ -262,6 +271,122 @@ paths:
                 message: Bad Request
                 errors:
                 - invalid params
+  "/api/v1/user/sangakus":
+    get:
+      summary: index
+      tags:
+      - Api::V1::User::Sangaku
+      responses:
+        '200':
+          description: return search result in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            title:
+                              type: string
+                            description:
+                              type: string
+                            source:
+                              type: string
+                            difficulty:
+                              type: string
+                            inputs:
+                              type: array
+                              items: {}
+                          required:
+                          - title
+                          - description
+                          - source
+                          - difficulty
+                          - inputs
+                        relationships:
+                          type: object
+                          properties:
+                            user:
+                              type: object
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                              required:
+                              - data
+                            shrine:
+                              type: object
+                              properties:
+                                data:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                                  nullable: true
+                              required:
+                              - data
+                          required:
+                          - user
+                          - shrine
+                      required:
+                      - id
+                      - type
+                      - attributes
+                      - relationships
+                required:
+                - data
+              example:
+                data:
+                - id: '241'
+                  type: sangaku
+                  attributes:
+                    title: after_dedicate
+                    description: test_description
+                    source: put 'Hello world'
+                    difficulty: easy
+                    inputs: []
+                  relationships:
+                    user:
+                      data:
+                        id: '320'
+                        type: user
+                    shrine:
+                      data:
+      parameters:
+      - name: shrine_id
+        in: query
+        required: false
+        schema:
+          type: string
+        example: ''
+      - name: title
+        in: query
+        required: false
+        schema:
+          type: string
+        example: another
   "/api/v1/users":
     post:
       summary: create
@@ -321,13 +446,13 @@ paths:
                 - data
               example:
                 data:
-                  id: '72'
+                  id: '323'
                   type: user
                   attributes:
                     provider: google
-                    uid: e1af92cc-cfa6-4c5b-b161-49cb074351af
+                    uid: f4bd74e7-8418-41da-ab91-ed2547087b4e
                     name: test user
-                    email: user_27@example.com
+                    email: user_35@example.com
                     nickname: test nickname
   "/up":
     get:

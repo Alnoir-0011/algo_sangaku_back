@@ -6,13 +6,13 @@ module Api
 
       def create
           payload = verify_idtoken
-          user = User.find_by(provider: "google", uid: payload["sub"])
+          user = ::User.find_by(provider: "google", uid: payload["sub"])
 
         if user
           set_token!(user)
           render json: UserSerializer.new(user).serializable_hash.to_json, status: :ok
         else
-          user = User.new(provider: "google", uid: payload["sub"], email: payload["email"], name: payload["name"])
+          user = ::User.new(provider: "google", uid: payload["sub"], email: payload["email"], name: payload["name"])
 
           if user.save
             set_token!(user)
