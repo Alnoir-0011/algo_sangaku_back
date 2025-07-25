@@ -16,17 +16,26 @@ class Sangaku < ApplicationRecord
 
   scope :title_contain, ->(title) { where("title LIKE ?", "%#{title}%") }
 
-  def save_with_inputs(inputs)
-    inputs_invalid = inputs.map(&:invalid?).any?(true)
+  def save_with_inputs(new_contents) # (str[] | nil) => boolean
+    new_contents ||= []
+
+    old_contents = self.fixed_inputs.pluck(:content)
+    delete_contents = old_contents - new_contents
+    add_contents = new_contents - old_contents
+    add_inputs = add_contents.map { |content| self.fixed_inputs.build(content:) }
+
+    inputs_invalid = add_inputs.map(&:invalid?).any?(true)
 
     return false if invalid? || inputs_invalid
 
     ActiveRecord::Base.transaction do
       save!
-      inputs.map(&:save!)
+      fixed_inputs.where(content: delete_contents).destroy_all
+      fixed_inputs << add_inputs
     end
+
     true
-  rescue StandardError
+  rescue StandardError => e
     false
   end
 
