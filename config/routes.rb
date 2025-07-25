@@ -11,10 +11,10 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :users, only: %i[create]
       resources :shrines, only: %i[index]
-      resources :sangakus, only: %i[create]
+      resources :sangakus, only: %i[index show]
 
       namespace :user do
-        resources :sangakus, only: %i[index]
+        resources :sangakus, only: %i[index create update destroy]
       end
     end
   end

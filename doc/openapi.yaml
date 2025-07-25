@@ -5,56 +5,21 @@ info:
   version: 1.0.0
 servers: []
 paths:
-  "/api/v1/sangakus":
-    post:
-      summary: create
+  "/api/v1/sangakus/{id}":
+    get:
+      summary: show
       tags:
       - Api::V1::Sangaku
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                sangaku:
-                  type: object
-                  properties:
-                    title:
-                      type: string
-                    description:
-                      type: string
-                    source:
-                      type: string
-                    difficulty:
-                      type: string
-                  required:
-                  - title
-                  - description
-                  - source
-                  - difficulty
-                fixed_inputs:
-                  type: array
-                  items:
-                    type: string
-                    properties:
-                      content:
-                        type: string
-                    required:
-                    - content
-              required:
-              - sangaku
-              - fixed_inputs
-            example:
-              sangaku:
-                title: test_title
-                description: test_description
-                source: put 'Hello world'
-                difficulty: easy
-              fixed_inputs:
-              - test_input_3
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 1000000
       responses:
         '200':
-          description: return sangaku in json format
+          description: return sangakus in json format
           content:
             application/json:
               schema:
@@ -80,16 +45,7 @@ paths:
                             type: string
                           inputs:
                             type: array
-                            items:
-                              type: object
-                              properties:
-                                id:
-                                  type: integer
-                                content:
-                                  type: string
-                              required:
-                              - id
-                              - content
+                            items: {}
                         required:
                         - title
                         - description
@@ -123,6 +79,7 @@ paths:
                             - data
                         required:
                         - user
+                        - shrine
                     required:
                     - id
                     - type
@@ -132,23 +89,41 @@ paths:
                 - data
               example:
                 data:
-                  id: '230'
+                  id: '550'
                   type: sangaku
                   attributes:
                     title: test_title
                     description: test_description
                     source: put 'Hello world'
                     difficulty: easy
-                    inputs:
-                    - id: 36
-                      content: test_input_3
+                    inputs: []
                   relationships:
                     user:
                       data:
-                        id: '313'
+                        id: '836'
                         type: user
                     shrine:
                       data:
+        '404':
+          description: return 404
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                required:
+                - message
+                - errors
+              example:
+                message: Record Not Found
+                errors:
+                - Couldn't find Sangaku with 'id'=1000000
   "/api/v1/shrines":
     get:
       summary: index
@@ -243,7 +218,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '183'
+                - id: '410'
                   type: shrine
                   attributes:
                     name: test_shrine
@@ -359,7 +334,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '241'
+                - id: '561'
                   type: sangaku
                   attributes:
                     title: after_dedicate
@@ -370,7 +345,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '320'
+                        id: '844'
                         type: user
                     shrine:
                       data:
@@ -387,6 +362,432 @@ paths:
         schema:
           type: string
         example: another
+    post:
+      summary: create
+      tags:
+      - Api::V1::User::Sangaku
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sangaku:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    source:
+                      type: string
+                    difficulty:
+                      type: string
+                  required:
+                  - title
+                  - description
+                  - source
+                  - difficulty
+                fixed_inputs:
+                  type: array
+                  items:
+                    type: string
+              required:
+              - sangaku
+              - fixed_inputs
+            example:
+              sangaku:
+                title: test_title
+                description: test_description
+                source: put 'Hello world'
+                difficulty: easy
+              fixed_inputs:
+              - test_input_3
+      responses:
+        '200':
+          description: success to create sangaku
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description:
+                            type: string
+                          source:
+                            type: string
+                          difficulty:
+                            type: string
+                          inputs:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                content:
+                                  type: string
+                              required:
+                              - id
+                              - content
+                        required:
+                        - title
+                        - description
+                        - source
+                        - difficulty
+                        - inputs
+                      relationships:
+                        type: object
+                        properties:
+                          user:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          shrine:
+                            type: object
+                            properties:
+                              data:
+                                nullable: true
+                            required:
+                            - data
+                        required:
+                        - user
+                        - shrine
+                    required:
+                    - id
+                    - type
+                    - attributes
+                    - relationships
+                required:
+                - data
+              example:
+                data:
+                  id: '562'
+                  type: sangaku
+                  attributes:
+                    title: test_title
+                    description: test_description
+                    source: put 'Hello world'
+                    difficulty: easy
+                    inputs:
+                    - id: 80
+                      content: test_input_3
+                  relationships:
+                    user:
+                      data:
+                        id: '846'
+                        type: user
+                    shrine:
+                      data:
+  "/api/v1/user/sangakus/{id}":
+    delete:
+      summary: destroy
+      tags:
+      - Api::V1::User::Sangaku
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 567
+      responses:
+        '200':
+          description: return sangaku in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description:
+                            type: string
+                          source:
+                            type: string
+                          difficulty:
+                            type: string
+                          inputs:
+                            type: array
+                            items: {}
+                        required:
+                        - title
+                        - description
+                        - source
+                        - difficulty
+                        - inputs
+                      relationships:
+                        type: object
+                        properties:
+                          user:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          shrine:
+                            type: object
+                            properties:
+                              data:
+                                nullable: true
+                            required:
+                            - data
+                        required:
+                        - user
+                        - shrine
+                    required:
+                    - id
+                    - type
+                    - attributes
+                    - relationships
+                required:
+                - data
+              example:
+                data:
+                  id: '565'
+                  type: sangaku
+                  attributes:
+                    title: test_title
+                    description: test_description
+                    source: put 'Hello world'
+                    difficulty: easy
+                    inputs: []
+                  relationships:
+                    user:
+                      data:
+                        id: '851'
+                        type: user
+                    shrine:
+                      data:
+        '404':
+          description: return 404
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                required:
+                - message
+                - errors
+              example:
+                message: Record Not Found
+                errors:
+                - Couldn't find Sangaku with 'id'=567 [WHERE "sangakus"."user_id"
+                  = $1]
+    patch:
+      summary: update
+      tags:
+      - Api::V1::User::Sangaku
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 564
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sangaku:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    source:
+                      type: string
+                    difficulty:
+                      type: string
+                  required:
+                  - title
+                  - description
+                  - source
+                  - difficulty
+                fixed_inputs:
+                  type: array
+                  items:
+                    type: string
+              required:
+              - sangaku
+              - fixed_inputs
+            example:
+              sangaku:
+                title: changed_title
+                description: test_description
+                source: put 'Hello world'
+                difficulty: easy
+              fixed_inputs:
+              - a
+      responses:
+        '200':
+          description: success to update sangaku
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description:
+                            type: string
+                          source:
+                            type: string
+                          difficulty:
+                            type: string
+                          inputs:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                content:
+                                  type: string
+                              required:
+                              - id
+                              - content
+                        required:
+                        - title
+                        - description
+                        - source
+                        - difficulty
+                        - inputs
+                      relationships:
+                        type: object
+                        properties:
+                          user:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          shrine:
+                            type: object
+                            properties:
+                              data:
+                                nullable: true
+                            required:
+                            - data
+                        required:
+                        - user
+                        - shrine
+                    required:
+                    - id
+                    - type
+                    - attributes
+                    - relationships
+                required:
+                - data
+              example:
+                data:
+                  id: '563'
+                  type: sangaku
+                  attributes:
+                    title: changed_title
+                    description: test_description
+                    source: put 'Hello world'
+                    difficulty: easy
+                    inputs:
+                    - id: 81
+                      content: a
+                  relationships:
+                    user:
+                      data:
+                        id: '847'
+                        type: user
+                    shrine:
+                      data:
+        '404':
+          description: return 404
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                required:
+                - message
+                - errors
+              example:
+                message: Record Not Found
+                errors:
+                - Couldn't find Sangaku with 'id'=564 [WHERE "sangakus"."user_id"
+                  = $1]
   "/api/v1/users":
     post:
       summary: create
@@ -446,13 +847,13 @@ paths:
                 - data
               example:
                 data:
-                  id: '323'
+                  id: '856'
                   type: user
                   attributes:
                     provider: google
-                    uid: f4bd74e7-8418-41da-ab91-ed2547087b4e
+                    uid: 50c5e617-4bae-4919-8071-3fc72959f971
                     name: test user
-                    email: user_35@example.com
+                    email: user_45@example.com
                     nickname: test nickname
   "/up":
     get:
