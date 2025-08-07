@@ -89,7 +89,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '550'
+                  id: '599'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -100,7 +100,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '836'
+                        id: '908'
                         type: user
                     shrine:
                       data:
@@ -218,7 +218,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '410'
+                - id: '443'
                   type: shrine
                   attributes:
                     name: test_shrine
@@ -334,7 +334,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '561'
+                - id: '611'
                   type: sangaku
                   attributes:
                     title: after_dedicate
@@ -345,7 +345,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '844'
+                        id: '917'
                         type: user
                     shrine:
                       data:
@@ -484,7 +484,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '562'
+                  id: '612'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -492,12 +492,12 @@ paths:
                     source: put 'Hello world'
                     difficulty: easy
                     inputs:
-                    - id: 80
+                    - id: 86
                       content: test_input_3
                   relationships:
                     user:
                       data:
-                        id: '846'
+                        id: '919'
                         type: user
                     shrine:
                       data:
@@ -512,7 +512,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 567
+        example: 617
       responses:
         '200':
           description: return sangaku in json format
@@ -585,7 +585,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '565'
+                  id: '615'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -596,7 +596,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '851'
+                        id: '924'
                         type: user
                     shrine:
                       data:
@@ -619,7 +619,7 @@ paths:
               example:
                 message: Record Not Found
                 errors:
-                - Couldn't find Sangaku with 'id'=567 [WHERE "sangakus"."user_id"
+                - Couldn't find Sangaku with 'id'=617 [WHERE "sangakus"."user_id"
                   = $1]
     patch:
       summary: update
@@ -631,7 +631,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 564
+        example: 614
       requestBody:
         content:
           application/json:
@@ -750,7 +750,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '563'
+                  id: '613'
                   type: sangaku
                   attributes:
                     title: changed_title
@@ -758,12 +758,12 @@ paths:
                     source: put 'Hello world'
                     difficulty: easy
                     inputs:
-                    - id: 81
+                    - id: 87
                       content: a
                   relationships:
                     user:
                       data:
-                        id: '847'
+                        id: '920'
                         type: user
                     shrine:
                       data:
@@ -786,8 +786,139 @@ paths:
               example:
                 message: Record Not Found
                 errors:
-                - Couldn't find Sangaku with 'id'=564 [WHERE "sangakus"."user_id"
+                - Couldn't find Sangaku with 'id'=614 [WHERE "sangakus"."user_id"
                   = $1]
+  "/api/v1/user/sangakus/{sangaku_id}/dedicate":
+    post:
+      summary: create
+      tags:
+      - Api::V1::User::Dedicate
+      parameters:
+      - name: sangaku_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 600
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shrine_id:
+                  type: integer
+                lat:
+                  type: number
+                  format: float
+                lng:
+                  type: number
+                  format: float
+              required:
+              - shrine_id
+              - lat
+              - lng
+            example:
+              shrine_id: 444
+              lat: 35.70204829610801
+              lng: 139.76789333814216
+      responses:
+        '200':
+          description: return sangaku in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description:
+                            type: string
+                          source:
+                            type: string
+                          difficulty:
+                            type: string
+                          inputs:
+                            type: array
+                            items: {}
+                        required:
+                        - title
+                        - description
+                        - source
+                        - difficulty
+                        - inputs
+                      relationships:
+                        type: object
+                        properties:
+                          user:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          shrine:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                        required:
+                        - user
+                        - shrine
+                    required:
+                    - id
+                    - type
+                    - attributes
+                    - relationships
+                required:
+                - data
+              example:
+                data:
+                  id: '600'
+                  type: sangaku
+                  attributes:
+                    title: test_title
+                    description: test_description
+                    source: put 'Hello world'
+                    difficulty: easy
+                    inputs: []
+                  relationships:
+                    user:
+                      data:
+                        id: '910'
+                        type: user
+                    shrine:
+                      data:
+                        id: '444'
+                        type: shrine
   "/api/v1/users":
     post:
       summary: create
@@ -847,13 +978,13 @@ paths:
                 - data
               example:
                 data:
-                  id: '856'
+                  id: '929'
                   type: user
                   attributes:
                     provider: google
-                    uid: 50c5e617-4bae-4919-8071-3fc72959f971
+                    uid: ec868d8a-07b1-4dfd-b53b-dcca0fe4e4df
                     name: test user
-                    email: user_45@example.com
+                    email: user_46@example.com
                     nickname: test nickname
   "/up":
     get:
