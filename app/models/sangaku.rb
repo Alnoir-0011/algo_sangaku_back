@@ -1,4 +1,8 @@
 class Sangaku < ApplicationRecord
+  include SphericalCosineTheorem
+
+  DEFAULT_DEDICATE_DISTANCE = 0.1 # km
+
   belongs_to :user
   belongs_to :shrine, optional: true
 
@@ -55,6 +59,17 @@ class Sangaku < ApplicationRecord
     end
 
     relation
+  end
+
+  def dedicate(new_shrine, lat, lng)
+    return false if shrine.present? || distance(new_shrine, lat, lng) > DEFAULT_DEDICATE_DISTANCE
+
+    self.shrine = new_shrine
+    save!
+    true
+  rescue StandardError
+    p "rescue"
+    false
   end
 
   private
