@@ -84,4 +84,20 @@ RSpec.describe "Api::V1::Shrines", type: :request do
       end
     end
   end
+
+  describe "GET /shrines/[:id]" do
+    let!(:shrine) { create(:shrine) }
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' } }
+
+    context "with shrine id" do
+      let(:http_request) { get api_v1_shrine_path(shrine.id), headers: }
+      it "return in json format" do
+        http_request
+
+        expect(response).to have_http_status(200)
+        expect(response).to be_successful
+        expect(body["data"]["attributes"]["name"]).to eq shrine.name
+      end
+    end
+  end
 end
