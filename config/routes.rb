@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   namespace :api, format: :json do
     namespace :v1 do
       resources :users, only: %i[create]
-      resources :shrines, only: %i[index]
+      resources :shrines, only: %i[index show]
       resources :sangakus, only: %i[index show]
 
       namespace :user do
