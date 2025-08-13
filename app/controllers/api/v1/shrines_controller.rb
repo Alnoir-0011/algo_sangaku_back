@@ -1,7 +1,7 @@
 module Api
   module V1
     class ShrinesController < BaseController
-      skip_before_action :authenticate, only: %i[index]
+      skip_before_action :authenticate, only: %i[index show]
 
       def index
         shrines = if params[:searchType] == "Map"
@@ -17,6 +17,11 @@ module Api
         else
           render_400(nil, "invalid params")
         end
+      end
+
+      def show
+        shrine = Shrine.find(params[:id])
+        render json: ShrineSerializer.new(shrine).serializable_hash.to_json, status: :ok
       end
     end
   end

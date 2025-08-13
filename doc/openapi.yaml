@@ -89,7 +89,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '599'
+                  id: '699'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -100,7 +100,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '908'
+                        id: '1058'
                         type: user
                     shrine:
                       data:
@@ -218,7 +218,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '443'
+                - id: '507'
                   type: shrine
                   attributes:
                     name: test_shrine
@@ -246,6 +246,70 @@ paths:
                 message: Bad Request
                 errors:
                 - invalid params
+  "/api/v1/shrines/{id}":
+    get:
+      summary: show
+      tags:
+      - Api::V1::Shrine
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 508
+      responses:
+        '200':
+          description: return in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          address:
+                            type: string
+                          latitude:
+                            type: number
+                            format: float
+                          longitude:
+                            type: number
+                            format: float
+                          place_id:
+                            type: string
+                        required:
+                        - name
+                        - address
+                        - latitude
+                        - longitude
+                        - place_id
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '508'
+                  type: shrine
+                  attributes:
+                    name: test_shrine
+                    address: test_address
+                    latitude: 35.70204829610801
+                    longitude: 139.76789333814216
+                    place_id: test_place_id_16
   "/api/v1/user/sangakus":
     get:
       summary: index
@@ -334,7 +398,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '611'
+                - id: '711'
                   type: sangaku
                   attributes:
                     title: after_dedicate
@@ -345,7 +409,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '917'
+                        id: '1067'
                         type: user
                     shrine:
                       data:
@@ -484,7 +548,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '612'
+                  id: '712'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -492,12 +556,12 @@ paths:
                     source: put 'Hello world'
                     difficulty: easy
                     inputs:
-                    - id: 86
+                    - id: 101
                       content: test_input_3
                   relationships:
                     user:
                       data:
-                        id: '919'
+                        id: '1069'
                         type: user
                     shrine:
                       data:
@@ -512,7 +576,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 617
+        example: 717
       responses:
         '200':
           description: return sangaku in json format
@@ -585,7 +649,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '615'
+                  id: '715'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -596,7 +660,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '924'
+                        id: '1074'
                         type: user
                     shrine:
                       data:
@@ -619,7 +683,7 @@ paths:
               example:
                 message: Record Not Found
                 errors:
-                - Couldn't find Sangaku with 'id'=617 [WHERE "sangakus"."user_id"
+                - Couldn't find Sangaku with 'id'=717 [WHERE "sangakus"."user_id"
                   = $1]
     patch:
       summary: update
@@ -631,7 +695,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 614
+        example: 714
       requestBody:
         content:
           application/json:
@@ -750,7 +814,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '613'
+                  id: '713'
                   type: sangaku
                   attributes:
                     title: changed_title
@@ -758,12 +822,12 @@ paths:
                     source: put 'Hello world'
                     difficulty: easy
                     inputs:
-                    - id: 87
+                    - id: 102
                       content: a
                   relationships:
                     user:
                       data:
-                        id: '920'
+                        id: '1070'
                         type: user
                     shrine:
                       data:
@@ -786,7 +850,7 @@ paths:
               example:
                 message: Record Not Found
                 errors:
-                - Couldn't find Sangaku with 'id'=614 [WHERE "sangakus"."user_id"
+                - Couldn't find Sangaku with 'id'=714 [WHERE "sangakus"."user_id"
                   = $1]
   "/api/v1/user/sangakus/{sangaku_id}/dedicate":
     post:
@@ -799,7 +863,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 600
+        example: 700
       requestBody:
         content:
           application/json:
@@ -819,7 +883,7 @@ paths:
               - lat
               - lng
             example:
-              shrine_id: 444
+              shrine_id: 509
               lat: 35.70204829610801
               lng: 139.76789333814216
       responses:
@@ -902,7 +966,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '600'
+                  id: '700'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -913,11 +977,11 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '910'
+                        id: '1060'
                         type: user
                     shrine:
                       data:
-                        id: '444'
+                        id: '509'
                         type: shrine
   "/api/v1/users":
     post:
@@ -978,11 +1042,11 @@ paths:
                 - data
               example:
                 data:
-                  id: '929'
+                  id: '1079'
                   type: user
                   attributes:
                     provider: google
-                    uid: ec868d8a-07b1-4dfd-b53b-dcca0fe4e4df
+                    uid: 5e674014-ec56-4c7a-b0e8-63a8a5ea0b74
                     name: test user
                     email: user_46@example.com
                     nickname: test nickname
