@@ -70,7 +70,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
     end
   end
 
-  describe "POST /sangakus" do
+  describe "POST /user/sangakus" do
     context "with_accesstoken" do
       let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
       let(:params) { { sangaku: attributes_for(:sangaku), fixed_inputs: [ attributes_for(:fixed_input)[:content] ] } }
@@ -85,6 +85,26 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
         }.to change(Sangaku, :count).by(1)
         expect(response).to be_successful
         expect(response).to have_http_status(:ok)
+      end
+    end
+  end
+
+  describe "GET /user/sangakus/[id]" do
+    let(:user) { create(:user) }
+    let(:sangaku) { create(:sangaku, user:) }
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
+    let(:params) { {} }
+    let(:http_request) { get api_v1_user_sangaku_path(sangaku.id), headers:, params: }
+
+    context 'with_accesstoken' do
+      it "return sangaku in json formata" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to be_successful
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["id"]).to eq sangaku.id.to_s
       end
     end
   end

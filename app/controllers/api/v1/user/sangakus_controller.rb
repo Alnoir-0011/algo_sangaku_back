@@ -1,11 +1,15 @@
 module Api
   module V1
     class User::SangakusController < BaseController
-      before_action :set_sangaku, only: %i[update destroy]
+      before_action :set_sangaku, only: %i[show update destroy]
 
       def index
         @pagy, sangakus = pagy(current_user.sangakus.search(search_params).includes(:fixed_inputs))
         render json: SangakuSerializer.new(sangakus).serializable_hash.to_json, status: :ok
+      end
+
+      def show
+        render json: SangakuSerializer.new(@sangaku).serializable_hash.to_json, status: :ok
       end
 
       def create
