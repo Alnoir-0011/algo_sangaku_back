@@ -52,6 +52,10 @@ class Sangaku < ApplicationRecord
       relation = relation.where(shrine_id: shrine_id)
     end
 
+    if params[:difficulty] && Sangaku.difficulties.include?(params[:difficulty])
+      relation = relation.where(difficulty: params[:difficulty])
+    end
+
     words = params[:title].present? ? params[:title].split(nil) : []
 
     words.each do |word|
@@ -68,7 +72,6 @@ class Sangaku < ApplicationRecord
     save!
     true
   rescue StandardError
-    p "rescue"
     false
   end
 

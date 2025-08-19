@@ -41,7 +41,7 @@ module Api
       private
 
       def search_params
-        params.permit(:title, :shrine_id)
+        params.permit(:title, :shrine_id, :difficulty)
       end
 
       def set_sangaku
