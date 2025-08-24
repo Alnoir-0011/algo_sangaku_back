@@ -1,6 +1,8 @@
 class User < ApplicationRecord
   has_many :sangakus, dependent: :destroy
   has_many :api_keys
+  has_many :user_sangaku_saves, dependent: :destroy, class_name: "UserSangakuSave"
+  has_many :saved_sangakus, through: :user_sangaku_saves, source: :sangaku
 
   validates :provider, presence: true, length: { maximum: 255 }
   validates :uid, presence: true, uniqueness: true
@@ -13,5 +15,10 @@ class User < ApplicationRecord
   def initialize(attributes = {})
     super
     self.nickname = self.name if name.present? && !nickname.present?
+  end
+
+
+  def add_saved_sangakus(sangaku)
+    saved_sangakus << sangaku
   end
 end

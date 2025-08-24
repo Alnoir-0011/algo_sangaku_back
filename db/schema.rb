@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_17_063429) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_24_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -57,6 +57,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_17_063429) do
     t.index ["place_id"], name: "index_shrines_on_place_id", unique: true
   end
 
+  create_table "user_sangaku_saves", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "sangaku_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["sangaku_id"], name: "index_user_sangaku_saves_on_sangaku_id"
+    t.index ["user_id", "sangaku_id"], name: "index_user_sangaku_saves_on_user_id_and_sangaku_id", unique: true
+    t.index ["user_id"], name: "index_user_sangaku_saves_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "provider", null: false
     t.string "uid", null: false
@@ -73,4 +83,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_17_063429) do
   add_foreign_key "fixed_inputs", "sangakus"
   add_foreign_key "sangakus", "shrines"
   add_foreign_key "sangakus", "users"
+  add_foreign_key "user_sangaku_saves", "sangakus"
+  add_foreign_key "user_sangaku_saves", "users"
 end
