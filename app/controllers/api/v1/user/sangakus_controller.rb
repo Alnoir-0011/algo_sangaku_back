@@ -4,7 +4,7 @@ module Api
       before_action :set_sangaku, only: %i[show update destroy]
 
       def index
-        @pagy, sangakus = pagy(current_user.sangakus.search(search_params).includes(:fixed_inputs))
+        @pagy, sangakus = pagy(current_user.sangakus.search(search_params).includes(:fixed_inputs, :user))
         render json: SangakuSerializer.new(sangakus).serializable_hash.to_json, status: :ok
       end
 
