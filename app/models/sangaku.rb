@@ -7,6 +7,8 @@ class Sangaku < ApplicationRecord
   belongs_to :shrine, optional: true
 
   has_many :fixed_inputs, dependent: :destroy
+  has_many :user_sangaku_saves, dependent: :destroy, class_name: "UserSangakuSave"
+  has_many :saved_by_users, through: :user_sangaku_saves, source: :user
 
   validates :title, presence: true, length: { maximum: 255 }
   validates :description, presence: true, length: { maximum: 65_535 }
