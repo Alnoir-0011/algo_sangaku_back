@@ -21,6 +21,7 @@ Rails.application.routes.draw do
         resources :sangakus, only: %i[index show create update destroy] do
           resource :dedicate, only: %i[create]
         end
+        resources :sangaku_saves, only: %i[index]
       end
     end
   end
