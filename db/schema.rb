@@ -10,9 +10,29 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_24_160000) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_05_065048) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "answer_results", force: :cascade do |t|
+    t.bigint "fixed_input_id"
+    t.bigint "answer_id", null: false
+    t.text "output"
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["answer_id"], name: "index_answer_results_on_answer_id"
+    t.index ["fixed_input_id", "answer_id"], name: "index_answer_results_on_fixed_input_id_and_answer_id", unique: true
+    t.index ["fixed_input_id"], name: "index_answer_results_on_fixed_input_id"
+  end
+
+  create_table "answers", force: :cascade do |t|
+    t.bigint "user_sangaku_save_id", null: false
+    t.text "source", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_sangaku_save_id"], name: "index_answers_on_user_sangaku_save_id"
+  end
 
   create_table "api_keys", force: :cascade do |t|
     t.string "access_token", null: false
@@ -79,6 +99,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_24_160000) do
     t.index ["uid"], name: "index_users_on_uid", unique: true
   end
 
+  add_foreign_key "answer_results", "answers"
+  add_foreign_key "answer_results", "fixed_inputs"
+  add_foreign_key "answers", "user_sangaku_saves", column: "user_sangaku_save_id"
   add_foreign_key "api_keys", "users"
   add_foreign_key "fixed_inputs", "sangakus"
   add_foreign_key "sangakus", "shrines"

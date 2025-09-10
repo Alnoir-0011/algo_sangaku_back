@@ -11,8 +11,7 @@ RSpec.describe Answer, type: :model do
     it "is invalid without source" do
       answer = build(:answer, source: "")
       expect(answer).to be_invalid
-      expect(answer.errors[:source]).to eq ["を入力してください"]
+      expect(answer.errors[:source]).to eq [ "を入力してください" ]
     end
-
   end
 end
