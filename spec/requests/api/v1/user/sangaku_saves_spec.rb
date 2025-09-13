@@ -1,6 +1,8 @@
 require 'rails_helper'
 
-RSpec.describe "Api::V1::User::SangakuSaves", type: :request do
+RSpec.describe "Api::V1::User::SangakuSaves", type: :request, openapi: {
+  tags: %w[Api::V1::SangakuSave]
+} do
   describe "GET /index" do
     let!(:user) { create(:user) }
     let!(:author) { create(:user, nickname: "author") }
