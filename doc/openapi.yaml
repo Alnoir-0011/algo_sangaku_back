@@ -1,7 +1,7 @@
 ---
 openapi: 3.0.3
 info:
-  title: myapp
+  title: AlgoSangaku
   version: 1.0.0
 servers: []
 paths:
@@ -9,14 +9,14 @@ paths:
     get:
       summary: show
       tags:
-        - Api::V1::Sangakus
+        - Api::V1::Sangaku
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: integer
-          example: 1000000
+          example: 473
       responses:
         "200":
           description: return sangakus in json format
@@ -91,7 +91,7 @@ paths:
                   - data
               example:
                 data:
-                  id: "657"
+                  id: "473"
                   type: sangaku
                   attributes:
                     title: test_title
@@ -103,42 +103,22 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: "980"
+                        id: "753"
                         type: user
                     shrine:
                       data:
-        "404":
-          description: return 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  errors:
-                    type: array
-                    items:
-                      type: string
-                required:
-                  - message
-                  - errors
-              example:
-                message: Record Not Found
-                errors:
-                  - Couldn't find Sangaku with 'id'="1000000"
   "/api/v1/sangakus/{sangaku_id}/save":
     post:
       summary: create
       tags:
-        - Api::V1::SangakuSaves
+        - Api::V1::SangakuSave
       parameters:
         - name: sangaku_id
           in: path
           required: true
           schema:
             type: integer
-          example: 656
+          example: 472
       requestBody:
         content:
           application/json:
@@ -220,7 +200,7 @@ paths:
                   - data
               example:
                 data:
-                  id: "656"
+                  id: "472"
                   type: sangaku
                   attributes:
                     title: test_title
@@ -232,7 +212,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: "979"
+                        id: "752"
                         type: user
                     shrine:
                       data:
@@ -240,7 +220,7 @@ paths:
     get:
       summary: index
       tags:
-        - Api::V1::Shrines
+        - Api::V1::Shrine
       parameters:
         - name: highLat
           in: query
@@ -330,7 +310,7 @@ paths:
                   - data
               example:
                 data:
-                  - id: "399"
+                  - id: "308"
                     type: shrine
                     attributes:
                       name: test_shrine
@@ -338,38 +318,18 @@ paths:
                       latitude: 35.70204829610801
                       longitude: 139.76789333814216
                       place_id: test_place_id_15
-        "400":
-          description: return 400
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  errors:
-                    type: array
-                    items:
-                      type: string
-                required:
-                  - message
-                  - errors
-              example:
-                message: Bad Request
-                errors:
-                  - invalid params
   "/api/v1/shrines/{id}":
     get:
       summary: show
       tags:
-        - Api::V1::Shrines
+        - Api::V1::Shrine
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: integer
-          example: 400
+          example: 309
       responses:
         "200":
           description: return in json format
@@ -414,7 +374,7 @@ paths:
                   - data
               example:
                 data:
-                  id: "400"
+                  id: "309"
                   type: shrine
                   attributes:
                     name: test_shrine
@@ -426,7 +386,7 @@ paths:
     get:
       summary: index
       tags:
-        - Api::V1::ShrinesSangakus
+        - Api::V1::ShrinesSangaku
       parameters:
         - name: difficulty
           in: query
@@ -439,7 +399,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 395
+          example: 304
         - name: title
           in: query
           required: false
@@ -530,7 +490,7 @@ paths:
                   - data
               example:
                 data:
-                  - id: "658"
+                  - id: "474"
                     type: sangaku
                     attributes:
                       title: test_title
@@ -542,17 +502,111 @@ paths:
                     relationships:
                       user:
                         data:
-                          id: "982"
+                          id: "755"
                           type: user
                       shrine:
                         data:
-                          id: "395"
+                          id: "304"
                           type: shrine
+  "/api/v1/user/answers/{id}":
+    get:
+      summary: show
+      tags:
+        - Api::V1::User::Answer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 23
+      responses:
+        "200":
+          description: return answer in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          source:
+                            type: string
+                        required:
+                          - source
+                      relationships:
+                        type: object
+                        properties:
+                          user_sangaku_save:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                  - id
+                                  - type
+                            required:
+                              - data
+                          answer_results:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                  required:
+                                    - id
+                                    - type
+                            required:
+                              - data
+                        required:
+                          - user_sangaku_save
+                          - answer_results
+                    required:
+                      - id
+                      - type
+                      - attributes
+                      - relationships
+                required:
+                  - data
+              example:
+                data:
+                  id: "23"
+                  type: answer
+                  attributes:
+                    source: puts 'Hello world'
+                  relationships:
+                    user_sangaku_save:
+                      data:
+                        id: "89"
+                        type: user_sangaku_save
+                    answer_results:
+                      data:
+                        - id: "23"
+                          type: answer_result
   "/api/v1/user/sangaku_saves":
     get:
       summary: index
       tags:
-        - Api::V1::User::SangakuSaves
+        - Api::V1::SangakuSave
       responses:
         "200":
           description: return sangakus in json format
@@ -630,7 +684,7 @@ paths:
                   - data
               example:
                 data:
-                  - id: "659"
+                  - id: "480"
                     type: sangaku
                     attributes:
                       title: test_title
@@ -642,7 +696,7 @@ paths:
                     relationships:
                       user:
                         data:
-                          id: "984"
+                          id: "767"
                           type: user
                       shrine:
                         data:
@@ -650,7 +704,7 @@ paths:
     get:
       summary: index
       tags:
-        - Api::V1::User::Sangakus
+        - Api::V1::User::Sangaku
       responses:
         "200":
           description: return search result in json format
@@ -736,7 +790,7 @@ paths:
                   - data
               example:
                 data:
-                  - id: "671"
+                  - id: "492"
                     type: sangaku
                     attributes:
                       title: after_dedicate
@@ -748,7 +802,7 @@ paths:
                     relationships:
                       user:
                         data:
-                          id: "992"
+                          id: "775"
                           type: user
                       shrine:
                         data:
@@ -768,7 +822,7 @@ paths:
     post:
       summary: create
       tags:
-        - Api::V1::User::Sangakus
+        - Api::V1::User::Sangaku
       requestBody:
         content:
           application/json:
@@ -805,7 +859,7 @@ paths:
                 source: put 'Hello world'
                 difficulty: easy
               fixed_inputs:
-                - test_input_3
+                - test_input_5
       responses:
         "200":
           description: success to create sangaku
@@ -889,7 +943,7 @@ paths:
                   - data
               example:
                 data:
-                  id: "672"
+                  id: "493"
                   type: sangaku
                   attributes:
                     title: test_title
@@ -897,13 +951,13 @@ paths:
                     source: put 'Hello world'
                     difficulty: easy
                     inputs:
-                      - id: 86
-                        content: test_input_3
+                      - id: 54
+                        content: test_input_5
                     author_name: test nickname
                   relationships:
                     user:
                       data:
-                        id: "994"
+                        id: "777"
                         type: user
                     shrine:
                       data:
@@ -911,14 +965,14 @@ paths:
     delete:
       summary: destroy
       tags:
-        - Api::V1::User::Sangakus
+        - Api::V1::User::Sangaku
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: integer
-          example: 678
+          example: 497
       responses:
         "200":
           description: return sangaku in json format
@@ -993,7 +1047,7 @@ paths:
                   - data
               example:
                 data:
-                  id: "676"
+                  id: "497"
                   type: sangaku
                   attributes:
                     title: test_title
@@ -1005,42 +1059,21 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: "1000"
+                        id: "783"
                         type: user
                     shrine:
                       data:
-        "404":
-          description: return 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  errors:
-                    type: array
-                    items:
-                      type: string
-                required:
-                  - message
-                  - errors
-              example:
-                message: Record Not Found
-                errors:
-                  - Couldn't find Sangaku with 'id'="678" [WHERE "sangakus"."user_id"
-                    = $1]
     get:
       summary: show
       tags:
-        - Api::V1::User::Sangakus
+        - Api::V1::User::Sangaku
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: integer
-          example: 673
+          example: 494
       responses:
         "200":
           description: return sangaku in json formata
@@ -1115,7 +1148,7 @@ paths:
                   - data
               example:
                 data:
-                  id: "673"
+                  id: "494"
                   type: sangaku
                   attributes:
                     title: test_title
@@ -1127,21 +1160,21 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: "995"
+                        id: "778"
                         type: user
                     shrine:
                       data:
     patch:
       summary: update
       tags:
-        - Api::V1::User::Sangakus
+        - Api::V1::User::Sangaku
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: integer
-          example: 675
+          example: 495
       requestBody:
         content:
           application/json:
@@ -1262,7 +1295,7 @@ paths:
                   - data
               example:
                 data:
-                  id: "674"
+                  id: "495"
                   type: sangaku
                   attributes:
                     title: changed_title
@@ -1270,49 +1303,140 @@ paths:
                     source: put 'Hello world'
                     difficulty: easy
                     inputs:
-                      - id: 87
+                      - id: 55
                         content: a
                     author_name: test nickname
                   relationships:
                     user:
                       data:
-                        id: "996"
+                        id: "779"
                         type: user
                     shrine:
                       data:
-        "404":
-          description: return 404
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  errors:
-                    type: array
-                    items:
-                      type: string
-                required:
-                  - message
-                  - errors
-              example:
-                message: Record Not Found
-                errors:
-                  - Couldn't find Sangaku with 'id'="675" [WHERE "sangakus"."user_id"
-                    = $1]
-  "/api/v1/user/sangakus/{sangaku_id}/dedicate":
+  "/api/v1/user/sangakus/{sangaku_id}/answers":
     post:
       summary: create
       tags:
-        - Api::V1::User::Dedicates
+        - Api::V1::User::Answer
       parameters:
         - name: sangaku_id
           in: path
           required: true
           schema:
             type: integer
-          example: 660
+          example: 475
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                answer:
+                  type: object
+                  properties:
+                    source:
+                      type: string
+                  required:
+                    - source
+              required:
+                - answer
+            example:
+              answer:
+                source: puts 'Hello wourld'
+      responses:
+        "200":
+          description: return answer in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          source:
+                            type: string
+                        required:
+                          - source
+                      relationships:
+                        type: object
+                        properties:
+                          user_sangaku_save:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                  - id
+                                  - type
+                            required:
+                              - data
+                          answer_results:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                  required:
+                                    - id
+                                    - type
+                            required:
+                              - data
+                        required:
+                          - user_sangaku_save
+                          - answer_results
+                    required:
+                      - id
+                      - type
+                      - attributes
+                      - relationships
+                required:
+                  - data
+              example:
+                data:
+                  id: "22"
+                  type: answer
+                  attributes:
+                    source: puts 'Hello wourld'
+                  relationships:
+                    user_sangaku_save:
+                      data:
+                        id: "86"
+                        type: user_sangaku_save
+                    answer_results:
+                      data:
+                        - id: "22"
+                          type: answer_result
+  "/api/v1/user/sangakus/{sangaku_id}/dedicate":
+    post:
+      summary: create
+      tags:
+        - Api::V1::User::Dedicate
+      parameters:
+        - name: sangaku_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 481
       requestBody:
         content:
           application/json:
@@ -1332,7 +1456,7 @@ paths:
                 - lat
                 - lng
             example:
-              shrine_id: 401
+              shrine_id: 315
               lat: 35.70204829610801
               lng: 139.76789333814216
       responses:
@@ -1417,7 +1541,7 @@ paths:
                   - data
               example:
                 data:
-                  id: "660"
+                  id: "481"
                   type: sangaku
                   attributes:
                     title: test_title
@@ -1429,17 +1553,17 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: "985"
+                        id: "768"
                         type: user
                     shrine:
                       data:
-                        id: "401"
+                        id: "315"
                         type: shrine
   "/api/v1/users":
     post:
       summary: create
       tags:
-        - Api::V1::Users
+        - Api::V1::User
       requestBody:
         content:
           application/json:
@@ -1494,13 +1618,13 @@ paths:
                   - data
               example:
                 data:
-                  id: "1005"
+                  id: "788"
                   type: user
                   attributes:
                     provider: google
-                    uid: 84df181f-2a87-4d52-b639-8d6f3e3d1089
+                    uid: 8521fe63-5a08-49ea-aa05-c710e7f0b8e4
                     name: test user
-                    email: user_52@example.com
+                    email: user_72@example.com
                     nickname: test nickname
   "/up":
     get:
