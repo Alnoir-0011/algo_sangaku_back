@@ -22,6 +22,7 @@ Rails.application.routes.draw do
           resource :dedicate, only: %i[create]
           resources :answers, only: %i[create show]
         end
+        resources :answer_results, only: %i[show]
         resources :sangaku_saves, only: %i[index]
       end
     end
