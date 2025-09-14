@@ -1,0 +1,110 @@
+---
+openapi: 3.0.3
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/sangakus/{id}":
+    get:
+      summary: show
+      tags:
+      - Api::V1::Sangaku
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 837
+      responses:
+        '200':
+          description: return sangakus in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description:
+                            type: string
+                          source:
+                            type: string
+                          difficulty:
+                            type: string
+                          inputs:
+                            type: array
+                            items: {}
+                          author_name:
+                            type: string
+                        required:
+                        - title
+                        - description
+                        - source
+                        - difficulty
+                        - inputs
+                        - author_name
+                      relationships:
+                        type: object
+                        properties:
+                          user:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          shrine:
+                            type: object
+                            properties:
+                              data:
+                                nullable: true
+                            required:
+                            - data
+                        required:
+                        - user
+                        - shrine
+                    required:
+                    - id
+                    - type
+                    - attributes
+                    - relationships
+                required:
+                - data
+              example:
+                data:
+                  id: '837'
+                  type: sangaku
+                  attributes:
+                    title: test_title
+                    description: test_description
+                    source: puts 'Hello world'
+                    difficulty: easy
+                    inputs: []
+                    author_name: test nickname
+                  relationships:
+                    user:
+                      data:
+                        id: '1334'
+                        type: user
+                    shrine:
+                      data:

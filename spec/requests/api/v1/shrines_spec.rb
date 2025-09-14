@@ -38,7 +38,7 @@ RSpec.describe "Api::V1::Shrines", type: :request do
         end
       end
 
-      context "without params" do
+      context "without params", openapi: false do
         let(:params) { { "searchType" => "Map" } }
 
         it "render 400" do
@@ -71,7 +71,7 @@ RSpec.describe "Api::V1::Shrines", type: :request do
         end
       end
 
-      context "without params" do
+      context "without params", openapi: false do
         let(:params) { { "searchType" => "List" } }
 
         it "return 400" do

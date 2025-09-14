@@ -1,0 +1,74 @@
+---
+openapi: 3.0.3
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/users":
+    post:
+      summary: create
+      tags:
+      - Api::V1::User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+              required:
+              - token
+            example:
+              token: dummy_idtoken
+      responses:
+        '200':
+          description: user does not create
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          provider:
+                            type: string
+                          uid:
+                            type: string
+                          name:
+                            type: string
+                          email:
+                            type: string
+                          nickname:
+                            type: string
+                        required:
+                        - provider
+                        - uid
+                        - name
+                        - email
+                        - nickname
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '1371'
+                  type: user
+                  attributes:
+                    provider: google
+                    uid: eab80efe-515d-44a5-9a6b-3301652f8712
+                    name: test user
+                    email: user_74@example.com
+                    nickname: test nickname

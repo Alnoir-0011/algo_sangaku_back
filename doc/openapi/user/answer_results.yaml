@@ -1,0 +1,99 @@
+---
+openapi: 3.0.3
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/user/answer_results/{id}":
+    get:
+      summary: show
+      tags:
+      - Api::V1::User::AnswerResult
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 74
+      responses:
+        '200':
+          description: return answer_result in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                          output:
+                            type: string
+                          fixed_input_content:
+                            type: string
+                        required:
+                        - status
+                        - output
+                        - fixed_input_content
+                      relationships:
+                        type: object
+                        properties:
+                          answer:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          fixed_input:
+                            type: object
+                            properties:
+                              data:
+                                nullable: true
+                            required:
+                            - data
+                        required:
+                        - answer
+                        - fixed_input
+                    required:
+                    - id
+                    - type
+                    - attributes
+                    - relationships
+                required:
+                - data
+              example:
+                data:
+                  id: '74'
+                  type: answer_result
+                  attributes:
+                    status: correct
+                    output: 'Hello world
+
+                      '
+                    fixed_input_content: ''
+                  relationships:
+                    answer:
+                      data:
+                        id: '71'
+                        type: answer
+                    fixed_input:
+                      data:

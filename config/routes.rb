@@ -18,9 +18,11 @@ Rails.application.routes.draw do
       end
 
       namespace :user do
-        resources :sangakus, only: %i[index show create update destroy] do
+        resources :sangakus, only: %i[index show create update destroy], shallow: true do
           resource :dedicate, only: %i[create]
+          resources :answers, only: %i[create show]
         end
+        resources :answer_results, only: %i[show]
         resources :sangaku_saves, only: %i[index]
       end
     end

@@ -2,7 +2,7 @@ FactoryBot.define do
   factory :sangaku do
     title { "test_title" }
     description { "test_description" }
-    source { "put 'Hello world'" }
+    source { "puts 'Hello world'" }
     difficulty { "easy" }
     association :user
     # shrine_id { nil }

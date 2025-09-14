@@ -1,7 +1,7 @@
 module PaizaioApi
   extend ActiveSupport::Concern
 
-  def run_source(source, language = "ruby", input = "")
+  def run_source(source, input = "", language = "ruby")
     id = create(source, language, input)
     status = "running"
 

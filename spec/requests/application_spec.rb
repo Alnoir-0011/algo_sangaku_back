@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe "application", type: :request do
+RSpec.describe "application", type: :request, openapi: false do
   describe "GET /up" do
     it "works! (now write some real specs)" do
       get rails_health_check_path

@@ -1,0 +1,173 @@
+---
+openapi: 3.0.3
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/shrines":
+    get:
+      summary: index
+      tags:
+      - Api::V1::Shrine
+      parameters:
+      - name: highLat
+        in: query
+        required: false
+        schema:
+          type: string
+        example: '35.5'
+      - name: highLng
+        in: query
+        required: false
+        schema:
+          type: string
+        example: '135.2'
+      - name: lat
+        in: query
+        required: false
+        schema:
+          type: string
+        example: '35.4'
+      - name: lng
+        in: query
+        required: false
+        schema:
+          type: string
+        example: '135.2'
+      - name: lowLat
+        in: query
+        required: false
+        schema:
+          type: string
+        example: '35.4'
+      - name: lowLng
+        in: query
+        required: false
+        schema:
+          type: string
+        example: '135.1'
+      - name: searchType
+        in: query
+        required: false
+        schema:
+          type: string
+        example: List
+      responses:
+        '200':
+          description: shrines does not create
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            address:
+                              type: string
+                            latitude:
+                              type: number
+                              format: float
+                            longitude:
+                              type: number
+                              format: float
+                            place_id:
+                              type: string
+                          required:
+                          - name
+                          - address
+                          - latitude
+                          - longitude
+                          - place_id
+                      required:
+                      - id
+                      - type
+                      - attributes
+                required:
+                - data
+              example:
+                data:
+                - id: '549'
+                  type: shrine
+                  attributes:
+                    name: test_shrine
+                    address: test_address
+                    latitude: 35.70204829610801
+                    longitude: 139.76789333814216
+                    place_id: test_place_id_15
+  "/api/v1/shrines/{id}":
+    get:
+      summary: show
+      tags:
+      - Api::V1::Shrine
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 550
+      responses:
+        '200':
+          description: return in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          address:
+                            type: string
+                          latitude:
+                            type: number
+                            format: float
+                          longitude:
+                            type: number
+                            format: float
+                          place_id:
+                            type: string
+                        required:
+                        - name
+                        - address
+                        - latitude
+                        - longitude
+                        - place_id
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '550'
+                  type: shrine
+                  attributes:
+                    name: test_shrine
+                    address: test_address
+                    latitude: 35.70204829610801
+                    longitude: 139.76789333814216
+                    place_id: test_place_id_17

@@ -1,0 +1,142 @@
+---
+openapi: 3.0.3
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/user/sangakus/{sangaku_id}/dedicate":
+    post:
+      summary: create
+      tags:
+      - Api::V1::User::Dedicate
+      parameters:
+      - name: sangaku_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 846
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shrine_id:
+                  type: integer
+                lat:
+                  type: number
+                  format: float
+                lng:
+                  type: number
+                  format: float
+              required:
+              - shrine_id
+              - lat
+              - lng
+            example:
+              shrine_id: 557
+              lat: 35.70204829610801
+              lng: 139.76789333814216
+      responses:
+        '200':
+          description: return sangaku in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description:
+                            type: string
+                          source:
+                            type: string
+                          difficulty:
+                            type: string
+                          inputs:
+                            type: array
+                            items: {}
+                          author_name:
+                            type: string
+                        required:
+                        - title
+                        - description
+                        - source
+                        - difficulty
+                        - inputs
+                        - author_name
+                      relationships:
+                        type: object
+                        properties:
+                          user:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          shrine:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                        required:
+                        - user
+                        - shrine
+                    required:
+                    - id
+                    - type
+                    - attributes
+                    - relationships
+                required:
+                - data
+              example:
+                data:
+                  id: '846'
+                  type: sangaku
+                  attributes:
+                    title: test_title
+                    description: test_description
+                    source: puts 'Hello world'
+                    difficulty: easy
+                    inputs: []
+                    author_name: test nickname
+                  relationships:
+                    user:
+                      data:
+                        id: '1351'
+                        type: user
+                    shrine:
+                      data:
+                        id: '557'
+                        type: shrine

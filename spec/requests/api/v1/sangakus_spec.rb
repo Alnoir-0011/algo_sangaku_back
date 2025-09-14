@@ -20,7 +20,7 @@ RSpec.describe "Api::V1::Sangakus", type: :request do
       end
     end
 
-    context "with nonexistent id" do
+    context "with nonexistent id", openapi: false do
       let(:http_request) { get api_v1_sangaku_path(1000000) }
 
       it "return 404" do

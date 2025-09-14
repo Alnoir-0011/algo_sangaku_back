@@ -129,7 +129,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       end
     end
 
-    context "with nonexistent id" do
+    context "with nonexistent id", openapi: false do
       let(:params) { { sangaku:  attributes_for(:sangaku, title: "changed_title")  }.to_json }
       let(:http_request) { patch api_v1_user_sangaku_path(1000000), headers:, params: }
 
@@ -142,7 +142,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       end
     end
 
-    context "with anotheruser's sangaku id" do
+    context "with anotheruser's sangaku id", openapi: false do
       let!(:another_user) { create(:user) }
       let!(:another_sangaku) { create(:sangaku, user: another_user) }
       let(:params) { { sangaku:  attributes_for(:sangaku, title: "changed_title") }.to_json }
@@ -178,7 +178,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       end
     end
 
-    context "with nonexistent id" do
+    context "with nonexistent id", openapi: false do
       let!(:sangaku) { create(:sangaku, user:) }
       let(:http_request) { delete api_v1_user_sangaku_path(1000000000), headers: }
 
@@ -193,7 +193,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       end
     end
 
-    context "with another_user sangaku" do
+    context "with another_user sangaku", openapi: false do
       let!(:another_user) { create(:user, name: "another_user") }
       let!(:another_user_sangaku) { create(:sangaku, user: another_user) }
       let(:http_request) { delete api_v1_user_sangaku_path(another_user_sangaku), headers: }
