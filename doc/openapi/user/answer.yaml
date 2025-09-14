@@ -1,0 +1,213 @@
+---
+openapi: 3.0.3
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/user/answers/{id}":
+    get:
+      summary: show
+      tags:
+      - Api::V1::User::Answer
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 73
+      responses:
+        '200':
+          description: return answer in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          source:
+                            type: string
+                        required:
+                        - source
+                      relationships:
+                        type: object
+                        properties:
+                          user_sangaku_save:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          answer_results:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                            required:
+                            - data
+                        required:
+                        - user_sangaku_save
+                        - answer_results
+                    required:
+                    - id
+                    - type
+                    - attributes
+                    - relationships
+                required:
+                - data
+              example:
+                data:
+                  id: '73'
+                  type: answer
+                  attributes:
+                    source: puts 'Hello world'
+                  relationships:
+                    user_sangaku_save:
+                      data:
+                        id: '187'
+                        type: user_sangaku_save
+                    answer_results:
+                      data:
+                      - id: '76'
+                        type: answer_result
+  "/api/v1/user/sangakus/{sangaku_id}/answers":
+    post:
+      summary: create
+      tags:
+      - Api::V1::User::Answer
+      parameters:
+      - name: sangaku_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 840
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                answer:
+                  type: object
+                  properties:
+                    source:
+                      type: string
+                  required:
+                  - source
+              required:
+              - answer
+            example:
+              answer:
+                source: puts 'Hello wourld'
+      responses:
+        '200':
+          description: return answer in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          source:
+                            type: string
+                        required:
+                        - source
+                      relationships:
+                        type: object
+                        properties:
+                          user_sangaku_save:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          answer_results:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                            required:
+                            - data
+                        required:
+                        - user_sangaku_save
+                        - answer_results
+                    required:
+                    - id
+                    - type
+                    - attributes
+                    - relationships
+                required:
+                - data
+              example:
+                data:
+                  id: '72'
+                  type: answer
+                  attributes:
+                    source: puts 'Hello wourld'
+                  relationships:
+                    user_sangaku_save:
+                      data:
+                        id: '184'
+                        type: user_sangaku_save
+                    answer_results:
+                      data:
+                      - id: '75'
+                        type: answer_result
