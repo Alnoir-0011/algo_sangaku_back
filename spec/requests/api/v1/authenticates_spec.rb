@@ -1,12 +1,12 @@
 require 'rails_helper'
 
-RSpec.describe "Api::V1::Users", type: :request do
-  describe "Post /users" do
+RSpec.describe "Api::V1::Authenticates", type: :request do
+  describe "Post /create" do
     let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' } }
     let(:dummy_payload) { {} }
 
     before do
-      allow_any_instance_of(Api::V1::UsersController).to receive(:verify_idtoken).and_return(dummy_payload)
+      allow_any_instance_of(Api::V1::AuthenticatesController).to receive(:verify_idtoken).and_return(dummy_payload)
     end
 
     context 'user not created' do
@@ -20,7 +20,7 @@ RSpec.describe "Api::V1::Users", type: :request do
         "email" => user_attr[:email],
         "name" => user_attr[:name]
       } }
-      let(:http_request) { post api_v1_users_path, params: params, headers: headers }
+      let(:http_request) { post api_v1_authenticate_path, params: params, headers: headers }
 
       it 'returns user in json format' do
         expect { http_request }.to change(User, :count).by(1)
@@ -40,12 +40,31 @@ RSpec.describe "Api::V1::Users", type: :request do
         "name" => user.name
       } }
       let!(:params) { { token: 'dummy_idtoken' }.to_json }
-      let(:http_request) { post api_v1_users_path, params: params, headers: headers }
+      let(:http_request) { post api_v1_authenticate_path, params: params, headers: headers }
 
       it "user does not create" do
         expect { http_request }.to change(User, :count).by(0)
         expect(response).to have_http_status(:ok)
         expect(response.headers.keys).to include 'accesstoken'
+      end
+    end
+  end
+
+  describe "DELETE /destroy" do
+    let!(:user) { create(:user) }
+    let!(:api_key) { create(:api_key, user:) }
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' } }
+    let(:http_request) { delete api_v1_authenticate_path, headers: }
+
+    context "with access_token" do
+      let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer #{api_key.access_token}" } }
+
+      it 'return success message with json format' do
+        expect {
+          http_request
+        }.to change(ApiKey, :count).by(-1)
+        expect(response).to have_http_status(:ok)
+        expect(body["message"]).to eq "signout successful"
       end
     end
   end
