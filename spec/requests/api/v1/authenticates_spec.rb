@@ -49,4 +49,23 @@ RSpec.describe "Api::V1::Authenticates", type: :request do
       end
     end
   end
+
+  describe "DELETE /destroy" do
+    let!(:user) { create(:user) }
+    let!(:api_key) { create(:api_key, user:) }
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' } }
+    let(:http_request) { delete api_v1_authenticate_path, headers: }
+
+    context "with access_token" do
+      let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer #{api_key.access_token}" } }
+
+      it 'return success message with json format' do
+        expect {
+          http_request
+        }.to change(ApiKey, :count).by(-1)
+        expect(response).to have_http_status(:ok)
+        expect(body["message"]).to eq "signout successful"
+      end
+    end
+  end
 end

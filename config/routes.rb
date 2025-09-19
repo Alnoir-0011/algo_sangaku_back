@@ -9,7 +9,7 @@ Rails.application.routes.draw do
   # root "posts#index"
   namespace :api, format: :json do
     namespace :v1 do
-      resource :authenticate, only: %i[create]
+      resource :authenticate, only: %i[create destroy]
       resources :sangakus, only: %i[index show] do
         resource :save, only: %i[create], controller: "sangaku_saves"
       end
