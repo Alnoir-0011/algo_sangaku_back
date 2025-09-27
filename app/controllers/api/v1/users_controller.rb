@@ -1,6 +1,6 @@
 module Api
   module V1
-    class AuthenticatesController < BaseController
+    class UsersController < BaseController
       require "googleauth"
       skip_before_action :authenticate, only: %i[create]
 
@@ -21,13 +21,6 @@ module Api
             render_400(nil, user.errors.full_messages)
           end
         end
-      end
-
-      def destroy
-        token = request.headers["Authorization"].split(" ")[1]
-        key = ApiKey.find_by(access_token: token)
-        key.destroy!
-        render json: { message: "signout successful" }.to_json, status: :ok
       end
 
       private
