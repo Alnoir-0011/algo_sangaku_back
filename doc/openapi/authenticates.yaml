@@ -5,11 +5,29 @@ info:
   version: 1.0.0
 servers: []
 paths:
-  "/api/v1/users":
+  "/api/v1/authenticate":
+    delete:
+      summary: destroy
+      tags:
+      - Api::V1::Authenticate
+      responses:
+        '200':
+          description: return success message with json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                - message
+              example:
+                message: signout successful
     post:
       summary: create
       tags:
-      - Api::V1::User
+      - Api::V1::Authenticate
       requestBody:
         content:
           application/json:
@@ -64,11 +82,11 @@ paths:
                 - data
               example:
                 data:
-                  id: '1371'
+                  id: '53'
                   type: user
                   attributes:
                     provider: google
-                    uid: eab80efe-515d-44a5-9a6b-3301652f8712
+                    uid: 5dbecd5d-7faa-485d-afd4-871960a06e6c
                     name: test user
-                    email: user_74@example.com
+                    email: user_2@example.com
                     nickname: test nickname
