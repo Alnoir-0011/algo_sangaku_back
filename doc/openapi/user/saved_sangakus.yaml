@@ -12,7 +12,7 @@ paths:
       - Api::V1::SangakuSave
       responses:
         '200':
-          description: return sangakus in json format
+          description: return unsolved saved sangakus in json format
           content:
             application/json:
               schema:
@@ -73,6 +73,15 @@ paths:
                               properties:
                                 data:
                                   nullable: true
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
                               required:
                               - data
                           required:
@@ -87,7 +96,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '1019'
+                - id: '41'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -99,10 +108,12 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '1619'
+                        id: '68'
                         type: user
                     shrine:
                       data:
+                        id: '24'
+                        type: shrine
   "/api/v1/user/saved_sangakus/{id}":
     get:
       summary: show
@@ -114,7 +125,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 1020
+        example: 43
       responses:
         '200':
           description: return sangaku in json format
@@ -190,7 +201,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '1020'
+                  id: '43'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -202,7 +213,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '1621'
+                        id: '70'
                         type: user
                     shrine:
                       data:
