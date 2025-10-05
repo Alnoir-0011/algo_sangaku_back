@@ -11,7 +11,7 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: {
     let!(:sangaku_save_relation) { create(:user_sangaku_save, sangaku:, user: user) }
     let!(:answered_sangaku) { create(:sangaku, title: "answerd", user: author, shrine:) }
     let!(:answered_sangaku_save_relation) { create(:user_sangaku_save, sangaku: answered_sangaku, user: user) }
-    let!(:answer) { create(:answer, user_sangaku_save: answered_sangaku_save_relation)}
+    let!(:answer) { create(:answer, user_sangaku_save: answered_sangaku_save_relation) }
     let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
     let(:http_request) { get api_v1_user_saved_sangakus_path, headers: }
 
