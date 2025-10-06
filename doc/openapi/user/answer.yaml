@@ -16,7 +16,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 73
+        example: 13
       responses:
         '200':
           description: return answer in json format
@@ -36,6 +36,8 @@ paths:
                         type: object
                         properties:
                           source:
+                            type: string
+                          status:
                             type: string
                         required:
                         - source
@@ -86,18 +88,19 @@ paths:
                 - data
               example:
                 data:
-                  id: '73'
+                  id: '13'
                   type: answer
                   attributes:
                     source: puts 'Hello world'
+                    status: correct
                   relationships:
                     user_sangaku_save:
                       data:
-                        id: '187'
+                        id: '35'
                         type: user_sangaku_save
                     answer_results:
                       data:
-                      - id: '76'
+                      - id: '13'
                         type: answer_result
   "/api/v1/user/sangakus/{sangaku_id}/answers":
     post:
@@ -110,7 +113,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 840
+        example: 76
       requestBody:
         content:
           application/json:
@@ -149,6 +152,8 @@ paths:
                         properties:
                           source:
                             type: string
+                          status:
+                            type: string
                         required:
                         - source
                       relationships:
@@ -198,16 +203,17 @@ paths:
                 - data
               example:
                 data:
-                  id: '72'
+                  id: '12'
                   type: answer
                   attributes:
                     source: puts 'Hello wourld'
+                    status: incorrect
                   relationships:
                     user_sangaku_save:
                       data:
-                        id: '184'
+                        id: '32'
                         type: user_sangaku_save
                     answer_results:
                       data:
-                      - id: '75'
+                      - id: '12'
                         type: answer_result
