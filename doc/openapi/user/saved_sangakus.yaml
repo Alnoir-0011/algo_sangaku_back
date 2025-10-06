@@ -96,7 +96,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '41'
+                - id: '250'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -108,12 +108,19 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '68'
+                        id: '400'
                         type: user
                     shrine:
                       data:
-                        id: '24'
+                        id: '159'
                         type: shrine
+      parameters:
+      - name: type
+        in: query
+        required: false
+        schema:
+          type: string
+        example: before_answer
   "/api/v1/user/saved_sangakus/{id}":
     get:
       summary: show
@@ -125,7 +132,13 @@ paths:
         required: true
         schema:
           type: integer
-        example: 43
+        example: 252
+      - name: type
+        in: query
+        required: false
+        schema:
+          type: string
+        example: before_answer
       responses:
         '200':
           description: return sangaku in json format
@@ -201,7 +214,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '43'
+                  id: '252'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -213,7 +226,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '70'
+                        id: '402'
                         type: user
                     shrine:
                       data:
