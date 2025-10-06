@@ -36,7 +36,8 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: {
     let!(:sangaku) { create(:sangaku, user: author) }
     let!(:sangaku_save_relation) { create(:user_sangaku_save, sangaku:, user: user) }
     let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
-    let(:http_request) { get api_v1_user_saved_sangaku_path(sangaku.id), headers: }
+    let(:params) { { type: "before_answer" } }
+    let(:http_request) { get api_v1_user_saved_sangaku_path(sangaku.id), headers:, params: }
 
     context "with access_token" do
       it 'return sangaku in json format' do
