@@ -2,7 +2,13 @@ module Api
   module V1
     class User::SavedSangakusController < BaseController
       def index
-        saved_sangakus = current_user.saved_sangakus.left_joins(:answers).where(answers: { id: nil }).search(search_params).includes(:fixed_inputs, :user)
+        if params[:type] == "answered"
+          saved_sangakus = current_user.saved_sangakus.left_joins(:answers).where.not(answers: { id: nil }).search(search_params).includes(:fixed_inputs, :user)
+        elsif params[:type] == "before_answer"
+          saved_sangakus = current_user.saved_sangakus.left_joins(:answers).where(answers: { id: nil }).search(search_params).includes(:fixed_inputs, :user)
+        else
+          saved_sangakus = current_user.saved_sangakus.inculdes(:fixed_inputs, :user)
+        end
         render json: SangakuSerializer.new(saved_sangakus).serializable_hash.to_json
       end
 
