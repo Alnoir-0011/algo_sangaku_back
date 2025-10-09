@@ -23,7 +23,9 @@ Rails.application.routes.draw do
           resources :answers, only: %i[create show]
         end
         resources :answer_results, only: %i[show]
-        resources :saved_sangakus, only: %i[index show]
+        resources :saved_sangakus, only: %i[index show] do
+          get "answer", on: :member
+        end
       end
     end
   end

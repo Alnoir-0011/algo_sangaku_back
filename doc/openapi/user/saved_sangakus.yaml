@@ -96,7 +96,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '250'
+                - id: '360'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -108,11 +108,11 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '400'
+                        id: '577'
                         type: user
                     shrine:
                       data:
-                        id: '159'
+                        id: '224'
                         type: shrine
       parameters:
       - name: type
@@ -132,7 +132,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 252
+        example: 362
       - name: type
         in: query
         required: false
@@ -214,7 +214,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '252'
+                  id: '362'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -226,7 +226,105 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '402'
+                        id: '579'
                         type: user
                     shrine:
                       data:
+  "/api/v1/user/saved_sangakus/{id}/answer":
+    get:
+      summary: answer
+      tags:
+      - Api::V1::SangakuSave
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 363
+      responses:
+        '200':
+          description: return answer in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          source:
+                            type: string
+                          status:
+                            type: string
+                        required:
+                        - source
+                        - status
+                      relationships:
+                        type: object
+                        properties:
+                          user_sangaku_save:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          answer_results:
+                            type: object
+                            properties:
+                              data:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                    type:
+                                      type: string
+                                  required:
+                                  - id
+                                  - type
+                            required:
+                            - data
+                        required:
+                        - user_sangaku_save
+                        - answer_results
+                    required:
+                    - id
+                    - type
+                    - attributes
+                    - relationships
+                required:
+                - data
+              example:
+                data:
+                  id: '69'
+                  type: answer
+                  attributes:
+                    source: puts 'Hello world'
+                    status: correct
+                  relationships:
+                    user_sangaku_save:
+                      data:
+                        id: '143'
+                        type: user_sangaku_save
+                    answer_results:
+                      data:
+                      - id: '69'
+                        type: answer_result

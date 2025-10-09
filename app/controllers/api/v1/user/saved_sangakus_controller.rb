@@ -24,6 +24,11 @@ module Api
         end
       end
 
+      def answer
+        answer = current_user.answers.joins(:user_sangaku_save).find_by!(user_sangaku_save: { sangaku_id: params[:id] })
+        render json: AnswerSerializer.new(answer).serializable_hash.to_json, status: :ok
+      end
+
       private
 
       def search_params
