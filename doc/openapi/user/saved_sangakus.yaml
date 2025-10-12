@@ -96,7 +96,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '360'
+                - id: '397'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -108,11 +108,11 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '577'
+                        id: '636'
                         type: user
                     shrine:
                       data:
-                        id: '224'
+                        id: '246'
                         type: shrine
       parameters:
       - name: type
@@ -132,7 +132,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 362
+        example: 399
       - name: type
         in: query
         required: false
@@ -214,7 +214,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '362'
+                  id: '399'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -226,7 +226,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '579'
+                        id: '638'
                         type: user
                     shrine:
                       data:
@@ -241,7 +241,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 363
+        example: 400
       responses:
         '200':
           description: return answer in json format
@@ -314,7 +314,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '69'
+                  id: '77'
                   type: answer
                   attributes:
                     source: puts 'Hello world'
@@ -322,9 +322,9 @@ paths:
                   relationships:
                     user_sangaku_save:
                       data:
-                        id: '143'
+                        id: '158'
                         type: user_sangaku_save
                     answer_results:
                       data:
-                      - id: '69'
+                      - id: '77'
                         type: answer_result
