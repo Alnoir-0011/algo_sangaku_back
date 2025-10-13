@@ -9,16 +9,16 @@ paths:
     get:
       summary: show
       tags:
-      - Api::V1::Sangaku
+        - Api::V1::Sangaku
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-        example: 837
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 837
       responses:
-        '200':
+        "200":
           description: return sangakus in json format
           content:
             application/json:
@@ -49,12 +49,12 @@ paths:
                           author_name:
                             type: string
                         required:
-                        - title
-                        - description
-                        - source
-                        - difficulty
-                        - inputs
-                        - author_name
+                          - title
+                          - description
+                          - source
+                          - difficulty
+                          - inputs
+                          - author_name
                       relationships:
                         type: object
                         properties:
@@ -69,30 +69,30 @@ paths:
                                   type:
                                     type: string
                                 required:
-                                - id
-                                - type
+                                  - id
+                                  - type
                             required:
-                            - data
+                              - data
                           shrine:
                             type: object
                             properties:
                               data:
                                 nullable: true
                             required:
-                            - data
+                              - data
                         required:
-                        - user
-                        - shrine
+                          - user
+                          - shrine
                     required:
-                    - id
-                    - type
-                    - attributes
-                    - relationships
+                      - id
+                      - type
+                      - attributes
+                      - relationships
                 required:
-                - data
+                  - data
               example:
                 data:
-                  id: '837'
+                  id: "837"
                   type: sangaku
                   attributes:
                     title: test_title
@@ -104,7 +104,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '1334'
+                        id: "1334"
                         type: user
                     shrine:
                       data:

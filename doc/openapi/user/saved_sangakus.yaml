@@ -9,9 +9,9 @@ paths:
     get:
       summary: index
       tags:
-      - Api::V1::SangakuSave
+        - Api::V1::SangakuSave
       responses:
-        '200':
+        "200":
           description: return unsolved saved sangakus in json format
           content:
             application/json:
@@ -44,12 +44,12 @@ paths:
                             author_name:
                               type: string
                           required:
-                          - title
-                          - description
-                          - source
-                          - difficulty
-                          - inputs
-                          - author_name
+                            - title
+                            - description
+                            - source
+                            - difficulty
+                            - inputs
+                            - author_name
                         relationships:
                           type: object
                           properties:
@@ -64,10 +64,10 @@ paths:
                                     type:
                                       type: string
                                   required:
-                                  - id
-                                  - type
+                                    - id
+                                    - type
                               required:
-                              - data
+                                - data
                             shrine:
                               type: object
                               properties:
@@ -80,67 +80,67 @@ paths:
                                     type:
                                       type: string
                                   required:
-                                  - id
-                                  - type
+                                    - id
+                                    - type
                               required:
-                              - data
+                                - data
                           required:
-                          - user
-                          - shrine
+                            - user
+                            - shrine
                       required:
-                      - id
-                      - type
-                      - attributes
-                      - relationships
+                        - id
+                        - type
+                        - attributes
+                        - relationships
                 required:
-                - data
+                  - data
               example:
                 data:
-                - id: '397'
-                  type: sangaku
-                  attributes:
-                    title: test_title
-                    description: test_description
-                    source: puts 'Hello world'
-                    difficulty: easy
-                    inputs: []
-                    author_name: author
-                  relationships:
-                    user:
-                      data:
-                        id: '636'
-                        type: user
-                    shrine:
-                      data:
-                        id: '246'
-                        type: shrine
+                  - id: "397"
+                    type: sangaku
+                    attributes:
+                      title: test_title
+                      description: test_description
+                      source: puts 'Hello world'
+                      difficulty: easy
+                      inputs: []
+                      author_name: author
+                    relationships:
+                      user:
+                        data:
+                          id: "636"
+                          type: user
+                      shrine:
+                        data:
+                          id: "246"
+                          type: shrine
       parameters:
-      - name: type
-        in: query
-        required: false
-        schema:
-          type: string
-        example: before_answer
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+          example: before_answer
   "/api/v1/user/saved_sangakus/{id}":
     get:
       summary: show
       tags:
-      - Api::V1::SangakuSave
+        - Api::V1::SangakuSave
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-        example: 399
-      - name: type
-        in: query
-        required: false
-        schema:
-          type: string
-        example: before_answer
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 399
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+          example: before_answer
       responses:
-        '200':
+        "200":
           description: return sangaku in json format
           content:
             application/json:
@@ -171,12 +171,12 @@ paths:
                           author_name:
                             type: string
                         required:
-                        - title
-                        - description
-                        - source
-                        - difficulty
-                        - inputs
-                        - author_name
+                          - title
+                          - description
+                          - source
+                          - difficulty
+                          - inputs
+                          - author_name
                       relationships:
                         type: object
                         properties:
@@ -191,30 +191,30 @@ paths:
                                   type:
                                     type: string
                                 required:
-                                - id
-                                - type
+                                  - id
+                                  - type
                             required:
-                            - data
+                              - data
                           shrine:
                             type: object
                             properties:
                               data:
                                 nullable: true
                             required:
-                            - data
+                              - data
                         required:
-                        - user
-                        - shrine
+                          - user
+                          - shrine
                     required:
-                    - id
-                    - type
-                    - attributes
-                    - relationships
+                      - id
+                      - type
+                      - attributes
+                      - relationships
                 required:
-                - data
+                  - data
               example:
                 data:
-                  id: '399'
+                  id: "399"
                   type: sangaku
                   attributes:
                     title: test_title
@@ -226,7 +226,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '638'
+                        id: "638"
                         type: user
                     shrine:
                       data:
@@ -234,16 +234,16 @@ paths:
     get:
       summary: answer
       tags:
-      - Api::V1::SangakuSave
+        - Api::V1::SangakuSave
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-        example: 400
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 400
       responses:
-        '200':
+        "200":
           description: return answer in json format
           content:
             application/json:
@@ -265,8 +265,8 @@ paths:
                           status:
                             type: string
                         required:
-                        - source
-                        - status
+                          - source
+                          - status
                       relationships:
                         type: object
                         properties:
@@ -281,10 +281,10 @@ paths:
                                   type:
                                     type: string
                                 required:
-                                - id
-                                - type
+                                  - id
+                                  - type
                             required:
-                            - data
+                              - data
                           answer_results:
                             type: object
                             properties:
@@ -298,23 +298,23 @@ paths:
                                     type:
                                       type: string
                                   required:
-                                  - id
-                                  - type
+                                    - id
+                                    - type
                             required:
-                            - data
+                              - data
                         required:
-                        - user_sangaku_save
-                        - answer_results
+                          - user_sangaku_save
+                          - answer_results
                     required:
-                    - id
-                    - type
-                    - attributes
-                    - relationships
+                      - id
+                      - type
+                      - attributes
+                      - relationships
                 required:
-                - data
+                  - data
               example:
                 data:
-                  id: '77'
+                  id: "77"
                   type: answer
                   attributes:
                     source: puts 'Hello world'
@@ -322,9 +322,9 @@ paths:
                   relationships:
                     user_sangaku_save:
                       data:
-                        id: '158'
+                        id: "158"
                         type: user_sangaku_save
                     answer_results:
                       data:
-                      - id: '77'
-                        type: answer_result
+                        - id: "77"
+                          type: answer_result

@@ -9,9 +9,9 @@ paths:
     delete:
       summary: destroy
       tags:
-      - Api::V1::Authenticate
+        - Api::V1::Authenticate
       responses:
-        '200':
+        "200":
           description: return success message with json format
           content:
             application/json:
@@ -21,13 +21,13 @@ paths:
                   message:
                     type: string
                 required:
-                - message
+                  - message
               example:
                 message: signout successful
     post:
       summary: create
       tags:
-      - Api::V1::Authenticate
+        - Api::V1::Authenticate
       requestBody:
         content:
           application/json:
@@ -37,11 +37,11 @@ paths:
                 token:
                   type: string
               required:
-              - token
+                - token
             example:
               token: dummy_idtoken
       responses:
-        '200':
+        "200":
           description: user does not create
           content:
             application/json:
@@ -69,20 +69,20 @@ paths:
                           nickname:
                             type: string
                         required:
-                        - provider
-                        - uid
-                        - name
-                        - email
-                        - nickname
+                          - provider
+                          - uid
+                          - name
+                          - email
+                          - nickname
                     required:
-                    - id
-                    - type
-                    - attributes
+                      - id
+                      - type
+                      - attributes
                 required:
-                - data
+                  - data
               example:
                 data:
-                  id: '53'
+                  id: "53"
                   type: user
                   attributes:
                     provider: google

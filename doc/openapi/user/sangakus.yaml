@@ -9,9 +9,9 @@ paths:
     get:
       summary: index
       tags:
-      - Api::V1::User::Sangaku
+        - Api::V1::User::Sangaku
       responses:
-        '200':
+        "200":
           description: return search result in json format
           content:
             application/json:
@@ -44,12 +44,12 @@ paths:
                             author_name:
                               type: string
                           required:
-                          - title
-                          - description
-                          - source
-                          - difficulty
-                          - inputs
-                          - author_name
+                            - title
+                            - description
+                            - source
+                            - difficulty
+                            - inputs
+                            - author_name
                         relationships:
                           type: object
                           properties:
@@ -64,10 +64,10 @@ paths:
                                     type:
                                       type: string
                                   required:
-                                  - id
-                                  - type
+                                    - id
+                                    - type
                               required:
-                              - data
+                                - data
                             shrine:
                               type: object
                               properties:
@@ -79,56 +79,56 @@ paths:
                                     type:
                                       type: string
                                   required:
-                                  - id
-                                  - type
+                                    - id
+                                    - type
                                   nullable: true
                               required:
-                              - data
+                                - data
                           required:
-                          - user
-                          - shrine
+                            - user
+                            - shrine
                       required:
-                      - id
-                      - type
-                      - attributes
-                      - relationships
+                        - id
+                        - type
+                        - attributes
+                        - relationships
                 required:
-                - data
+                  - data
               example:
                 data:
-                - id: '857'
-                  type: sangaku
-                  attributes:
-                    title: after_dedicate
-                    description: test_description
-                    source: puts 'Hello world'
-                    difficulty: easy
-                    inputs: []
-                    author_name: test nickname
-                  relationships:
-                    user:
-                      data:
-                        id: '1358'
-                        type: user
-                    shrine:
-                      data:
+                  - id: "857"
+                    type: sangaku
+                    attributes:
+                      title: after_dedicate
+                      description: test_description
+                      source: puts 'Hello world'
+                      difficulty: easy
+                      inputs: []
+                      author_name: test nickname
+                    relationships:
+                      user:
+                        data:
+                          id: "1358"
+                          type: user
+                      shrine:
+                        data:
       parameters:
-      - name: shrine_id
-        in: query
-        required: false
-        schema:
-          type: string
-        example: ''
-      - name: title
-        in: query
-        required: false
-        schema:
-          type: string
-        example: another
+        - name: shrine_id
+          in: query
+          required: false
+          schema:
+            type: string
+          example: ""
+        - name: title
+          in: query
+          required: false
+          schema:
+            type: string
+          example: another
     post:
       summary: create
       tags:
-      - Api::V1::User::Sangaku
+        - Api::V1::User::Sangaku
       requestBody:
         content:
           application/json:
@@ -147,17 +147,17 @@ paths:
                     difficulty:
                       type: string
                   required:
-                  - title
-                  - description
-                  - source
-                  - difficulty
+                    - title
+                    - description
+                    - source
+                    - difficulty
                 fixed_inputs:
                   type: array
                   items:
                     type: string
               required:
-              - sangaku
-              - fixed_inputs
+                - sangaku
+                - fixed_inputs
             example:
               sangaku:
                 title: test_title
@@ -165,9 +165,9 @@ paths:
                 source: puts 'Hello world'
                 difficulty: easy
               fixed_inputs:
-              - test_input_5
+                - test_input_5
       responses:
-        '200':
+        "200":
           description: success to create sangaku
           content:
             application/json:
@@ -202,17 +202,17 @@ paths:
                                 content:
                                   type: string
                               required:
-                              - id
-                              - content
+                                - id
+                                - content
                           author_name:
                             type: string
                         required:
-                        - title
-                        - description
-                        - source
-                        - difficulty
-                        - inputs
-                        - author_name
+                          - title
+                          - description
+                          - source
+                          - difficulty
+                          - inputs
+                          - author_name
                       relationships:
                         type: object
                         properties:
@@ -227,30 +227,30 @@ paths:
                                   type:
                                     type: string
                                 required:
-                                - id
-                                - type
+                                  - id
+                                  - type
                             required:
-                            - data
+                              - data
                           shrine:
                             type: object
                             properties:
                               data:
                                 nullable: true
                             required:
-                            - data
+                              - data
                         required:
-                        - user
-                        - shrine
+                          - user
+                          - shrine
                     required:
-                    - id
-                    - type
-                    - attributes
-                    - relationships
+                      - id
+                      - type
+                      - attributes
+                      - relationships
                 required:
-                - data
+                  - data
               example:
                 data:
-                  id: '858'
+                  id: "858"
                   type: sangaku
                   attributes:
                     title: test_title
@@ -258,13 +258,13 @@ paths:
                     source: puts 'Hello world'
                     difficulty: easy
                     inputs:
-                    - id: 93
-                      content: test_input_5
+                      - id: 93
+                        content: test_input_5
                     author_name: test nickname
                   relationships:
                     user:
                       data:
-                        id: '1360'
+                        id: "1360"
                         type: user
                     shrine:
                       data:
@@ -272,16 +272,16 @@ paths:
     delete:
       summary: destroy
       tags:
-      - Api::V1::User::Sangaku
+        - Api::V1::User::Sangaku
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-        example: 862
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 862
       responses:
-        '200':
+        "200":
           description: return sangaku in json format
           content:
             application/json:
@@ -312,12 +312,12 @@ paths:
                           author_name:
                             type: string
                         required:
-                        - title
-                        - description
-                        - source
-                        - difficulty
-                        - inputs
-                        - author_name
+                          - title
+                          - description
+                          - source
+                          - difficulty
+                          - inputs
+                          - author_name
                       relationships:
                         type: object
                         properties:
@@ -332,30 +332,30 @@ paths:
                                   type:
                                     type: string
                                 required:
-                                - id
-                                - type
+                                  - id
+                                  - type
                             required:
-                            - data
+                              - data
                           shrine:
                             type: object
                             properties:
                               data:
                                 nullable: true
                             required:
-                            - data
+                              - data
                         required:
-                        - user
-                        - shrine
+                          - user
+                          - shrine
                     required:
-                    - id
-                    - type
-                    - attributes
-                    - relationships
+                      - id
+                      - type
+                      - attributes
+                      - relationships
                 required:
-                - data
+                  - data
               example:
                 data:
-                  id: '862'
+                  id: "862"
                   type: sangaku
                   attributes:
                     title: test_title
@@ -367,23 +367,23 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '1366'
+                        id: "1366"
                         type: user
                     shrine:
                       data:
     get:
       summary: show
       tags:
-      - Api::V1::User::Sangaku
+        - Api::V1::User::Sangaku
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-        example: 859
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 859
       responses:
-        '200':
+        "200":
           description: return sangaku in json formata
           content:
             application/json:
@@ -414,12 +414,12 @@ paths:
                           author_name:
                             type: string
                         required:
-                        - title
-                        - description
-                        - source
-                        - difficulty
-                        - inputs
-                        - author_name
+                          - title
+                          - description
+                          - source
+                          - difficulty
+                          - inputs
+                          - author_name
                       relationships:
                         type: object
                         properties:
@@ -434,30 +434,30 @@ paths:
                                   type:
                                     type: string
                                 required:
-                                - id
-                                - type
+                                  - id
+                                  - type
                             required:
-                            - data
+                              - data
                           shrine:
                             type: object
                             properties:
                               data:
                                 nullable: true
                             required:
-                            - data
+                              - data
                         required:
-                        - user
-                        - shrine
+                          - user
+                          - shrine
                     required:
-                    - id
-                    - type
-                    - attributes
-                    - relationships
+                      - id
+                      - type
+                      - attributes
+                      - relationships
                 required:
-                - data
+                  - data
               example:
                 data:
-                  id: '859'
+                  id: "859"
                   type: sangaku
                   attributes:
                     title: test_title
@@ -469,21 +469,21 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '1361'
+                        id: "1361"
                         type: user
                     shrine:
                       data:
     patch:
       summary: update
       tags:
-      - Api::V1::User::Sangaku
+        - Api::V1::User::Sangaku
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-        example: 860
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 860
       requestBody:
         content:
           application/json:
@@ -502,17 +502,17 @@ paths:
                     difficulty:
                       type: string
                   required:
-                  - title
-                  - description
-                  - source
-                  - difficulty
+                    - title
+                    - description
+                    - source
+                    - difficulty
                 fixed_inputs:
                   type: array
                   items:
                     type: string
               required:
-              - sangaku
-              - fixed_inputs
+                - sangaku
+                - fixed_inputs
             example:
               sangaku:
                 title: changed_title
@@ -520,9 +520,9 @@ paths:
                 source: puts 'Hello world'
                 difficulty: easy
               fixed_inputs:
-              - a
+                - a
       responses:
-        '200':
+        "200":
           description: success to update sangaku
           content:
             application/json:
@@ -557,17 +557,17 @@ paths:
                                 content:
                                   type: string
                               required:
-                              - id
-                              - content
+                                - id
+                                - content
                           author_name:
                             type: string
                         required:
-                        - title
-                        - description
-                        - source
-                        - difficulty
-                        - inputs
-                        - author_name
+                          - title
+                          - description
+                          - source
+                          - difficulty
+                          - inputs
+                          - author_name
                       relationships:
                         type: object
                         properties:
@@ -582,30 +582,30 @@ paths:
                                   type:
                                     type: string
                                 required:
-                                - id
-                                - type
+                                  - id
+                                  - type
                             required:
-                            - data
+                              - data
                           shrine:
                             type: object
                             properties:
                               data:
                                 nullable: true
                             required:
-                            - data
+                              - data
                         required:
-                        - user
-                        - shrine
+                          - user
+                          - shrine
                     required:
-                    - id
-                    - type
-                    - attributes
-                    - relationships
+                      - id
+                      - type
+                      - attributes
+                      - relationships
                 required:
-                - data
+                  - data
               example:
                 data:
-                  id: '860'
+                  id: "860"
                   type: sangaku
                   attributes:
                     title: changed_title
@@ -613,13 +613,13 @@ paths:
                     source: puts 'Hello world'
                     difficulty: easy
                     inputs:
-                    - id: 94
-                      content: a
+                      - id: 94
+                        content: a
                     author_name: test nickname
                   relationships:
                     user:
                       data:
-                        id: '1362'
+                        id: "1362"
                         type: user
                     shrine:
                       data:
