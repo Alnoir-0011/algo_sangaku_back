@@ -55,7 +55,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
     end
 
     context "search befoer dedicate" do
-      let!(:another_sangaku) { create(:sangaku, title: "after_dedicate", user:) }
+      let!(:another_sangaku) { create(:sangaku, title: "before_dedicate", user:) }
       let(:params) { { shrine_id: "" } }
 
       it "return search result in json format" do
@@ -66,6 +66,21 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
         expect(body["data"].count).to eq 1
         expect(body["data"][0]["id"]).to eq another_sangaku.id.to_s
         expect(body["data"][0]["attributes"]["title"]).to eq another_sangaku.title
+      end
+    end
+
+    context "search after dedicate" do
+      let!(:another_sangaku) { create(:sangaku, title: "before_dedicate", user:) }
+      let(:params) { { shrine_id: "any" } }
+
+      it "return search result in json format" do
+        authenticate_stub(user)
+
+        http_request
+        expect(response).to have_http_status(:ok)
+        expect(body["data"].count).to eq 1
+        expect(body["data"][0]["id"]).to eq sangaku.id.to_s
+        expect(body["data"][0]["attributes"]["title"]).to eq sangaku.title
       end
     end
   end

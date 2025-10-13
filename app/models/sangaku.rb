@@ -51,8 +51,12 @@ class Sangaku < ApplicationRecord
     return relation unless params
 
     if params[:shrine_id]
-      shrine_id = params[:shrine_id].to_i != 0 ? params[:shrine_id].to_i : nil
-      relation = relation.where(shrine_id: shrine_id)
+      if params[:shrine_id] == "any"
+        relation = relation.where.not(shrine_id: nil)
+      else
+        shrine_id = params[:shrine_id].to_i != 0 ? params[:shrine_id].to_i : nil
+        relation = relation.where(shrine_id: shrine_id)
+      end
     end
 
     if params[:difficulty] && Sangaku.difficulties.include?(params[:difficulty])
