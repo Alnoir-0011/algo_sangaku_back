@@ -9,28 +9,28 @@ paths:
     get:
       summary: index
       tags:
-      - Api::V1::ShrinesSangaku
+        - Api::V1::ShrinesSangaku
       parameters:
-      - name: difficulty
-        in: query
-        required: false
-        schema:
-          type: string
-        example: nomal
-      - name: shrine_id
-        in: path
-        required: true
-        schema:
-          type: integer
-        example: 545
-      - name: title
-        in: query
-        required: false
-        schema:
-          type: string
-        example: test_title
+        - name: difficulty
+          in: query
+          required: false
+          schema:
+            type: string
+          example: nomal
+        - name: shrine_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 545
+        - name: title
+          in: query
+          required: false
+          schema:
+            type: string
+          example: test_title
       responses:
-        '200':
+        "200":
           description: return sangakus in json format
           content:
             application/json:
@@ -63,12 +63,12 @@ paths:
                             author_name:
                               type: string
                           required:
-                          - title
-                          - description
-                          - source
-                          - difficulty
-                          - inputs
-                          - author_name
+                            - title
+                            - description
+                            - source
+                            - difficulty
+                            - inputs
+                            - author_name
                         relationships:
                           type: object
                           properties:
@@ -83,10 +83,10 @@ paths:
                                     type:
                                       type: string
                                   required:
-                                  - id
-                                  - type
+                                    - id
+                                    - type
                               required:
-                              - data
+                                - data
                             shrine:
                               type: object
                               properties:
@@ -98,37 +98,37 @@ paths:
                                     type:
                                       type: string
                                   required:
-                                  - id
-                                  - type
+                                    - id
+                                    - type
                               required:
-                              - data
+                                - data
                           required:
-                          - user
-                          - shrine
+                            - user
+                            - shrine
                       required:
-                      - id
-                      - type
-                      - attributes
-                      - relationships
+                        - id
+                        - type
+                        - attributes
+                        - relationships
                 required:
-                - data
+                  - data
               example:
                 data:
-                - id: '838'
-                  type: sangaku
-                  attributes:
-                    title: test_title
-                    description: test_description
-                    source: puts 'Hello world'
-                    difficulty: nomal
-                    inputs: []
-                    author_name: test nickname
-                  relationships:
-                    user:
-                      data:
-                        id: '1336'
-                        type: user
-                    shrine:
-                      data:
-                        id: '545'
-                        type: shrine
+                  - id: "838"
+                    type: sangaku
+                    attributes:
+                      title: test_title
+                      description: test_description
+                      source: puts 'Hello world'
+                      difficulty: nomal
+                      inputs: []
+                      author_name: test nickname
+                    relationships:
+                      user:
+                        data:
+                          id: "1336"
+                          type: user
+                      shrine:
+                        data:
+                          id: "545"
+                          type: shrine
