@@ -1,0 +1,80 @@
+---
+openapi: 3.0.3
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/user/profile":
+    patch:
+      summary: update
+      tags:
+      - Api::V1::User::Profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    nickname:
+                      type: string
+                  required:
+                  - nickname
+              required:
+              - user
+            example:
+              user:
+                nickname: changed_name
+      responses:
+        '200':
+          description: return user in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          provider:
+                            type: string
+                          uid:
+                            type: string
+                          name:
+                            type: string
+                          email:
+                            type: string
+                          nickname:
+                            type: string
+                        required:
+                        - provider
+                        - uid
+                        - name
+                        - email
+                        - nickname
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '943'
+                  type: user
+                  attributes:
+                    provider: google
+                    uid: 5dfae13d-6f47-4efd-a442-35c8fedb0c53
+                    name: test user
+                    email: user_1@example.com
+                    nickname: changed_name
