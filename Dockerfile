@@ -31,4 +31,4 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]
 
 # 最終的に Puma を起動
-CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
+# CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
