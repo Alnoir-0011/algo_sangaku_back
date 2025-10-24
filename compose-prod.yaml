@@ -1,20 +1,11 @@
 services:
-  db:
-    image: postgres:18.0-alpine
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    networks:
-      - algo_sangaku_back-network
   web:
     build:
       context: .
       dockerfile: Dockerfile
-    command: bundle exec puma -C config/puma.rb
+    command: bundle exec puma -C config/puma.rb -e production
     volumes:
-      - .:/algo_sangaku_back
+      - .:/algo_sangaku
       - public-data:/algo_sangaku_back/public
       - tmp-data:/algo_sangaku_back/tmp
       - log-data:/algo_sangaku_back/log
@@ -22,11 +13,9 @@ services:
       TZ: Asia/Tokyo
     networks:
       - algo_sangaku_back-network
-    depends_on:
-      - db
   nginx:
     build:
-      context: ./nginx_docker_dev
+      context: ./nginx_docker_prod
     volumes:
       - public-data:/algo_sangaku_back/public
       - tmp-data:/algo_sangaku_back/tmp
