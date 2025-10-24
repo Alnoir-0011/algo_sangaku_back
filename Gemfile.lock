@@ -337,11 +337,6 @@ GEM
       multi_json (~> 1.10)
     stringio (3.1.7)
     thor (1.4.0)
-    thruster (0.1.15)
-    thruster (0.1.15-aarch64-linux)
-    thruster (0.1.15-arm64-darwin)
-    thruster (0.1.15-x86_64-darwin)
-    thruster (0.1.15-x86_64-linux)
     timeout (0.4.3)
     tsort (0.2.0)
     tzinfo (2.0.6)
@@ -394,7 +389,6 @@ DEPENDENCIES
   rspec-openapi
   rspec-rails (~> 8.0)
   rubocop-rails-omakase
-  thruster
   tzinfo-data
   webmock (~> 3.25, >= 3.25.1)
 
