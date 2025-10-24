@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - RAILS_ENV=development
+        - RAILS_ENV=production
     command: bundle exec puma -C config/puma.rb -e production
     volumes:
       - .:/algo_sangaku
