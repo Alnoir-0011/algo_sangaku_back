@@ -15,6 +15,8 @@ services:
       args:
         - RAILS_ENV=development
     command: bundle exec puma -C config/puma.rb
+    env_file:
+      - .env
     volumes:
       - .:/algo_sangaku_back
       - public-data:/algo_sangaku_back/public
