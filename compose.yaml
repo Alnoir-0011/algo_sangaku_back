@@ -12,6 +12,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - RAILS_ENV=development
     command: bundle exec puma -C config/puma.rb
     volumes:
       - .:/algo_sangaku_back

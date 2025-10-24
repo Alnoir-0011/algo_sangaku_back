@@ -7,7 +7,7 @@ RUN apk update && \
 
 RUN gem install bundler
 COPY Gemfile Gemfile.lock ./
-ENV RAILS_ENV=development
+ARG RAILS_ENV
 RUN RAILS_ENV=${RAILS_ENV} bundle install
 
 FROM ruby:3.3.6-alpine AS app
