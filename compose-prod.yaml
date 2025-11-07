@@ -17,6 +17,24 @@ services:
       TZ: Asia/Tokyo
     networks:
       - algo_sangaku_back-network
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - RAILS_ENV=production
+    command: bin/jobs -e production
+    env_file:
+      - .env
+    volumes:
+      - .:/algo_sangaku
+      - public-data:/algo_sangaku_back/public
+      - tmp-data:/algo_sangaku_back/tmp
+      - log-data:/algo_sangaku_back/log
+    environment:
+      TZ: Asia/Tokyo
+    networks:
+      - algo_sangaku_back-network
   nginx:
     build:
       context: ./nginx_docker_prod

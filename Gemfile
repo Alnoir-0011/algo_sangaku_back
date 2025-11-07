@@ -35,6 +35,7 @@ gem "dotenv-rails", "~> 3.1"
 gem "config", "~> 5.5", ">= 5.5.2"
 gem "googleauth", "~> 1.15"
 gem "pagy", "~> 9.4"
+gem "solid_queue", "~> 1.2", ">= 1.2.4"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -52,6 +53,9 @@ group :development, :test do
   gem "pry-rails", "~> 0.3.11"
   gem "pry-byebug", "~> 3.11"
   gem "pry-doc", "~> 1.6"
+
+  gem "propshaft"
+  gem "mission_control-jobs", "~> 1.1"
 end
 
 group :test do
