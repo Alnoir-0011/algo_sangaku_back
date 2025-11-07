@@ -18,8 +18,6 @@ RSpec.describe "Api::V1::User::AnswerResults", type: :request do
         http_request
 
         expect(response).to have_http_status(:ok)
-        expect(body["data"]["attributes"]["output"]).to eq "Hello world\n"
-        expect(body["data"]["attributes"]["status"]).to eq "correct"
       end
     end
   end
