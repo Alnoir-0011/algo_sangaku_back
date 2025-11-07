@@ -1,7 +1,7 @@
 class AnswerResult < ApplicationRecord
   include PaizaioApi
 
-  after_commit :update_status, on: :create
+  after_commit :check_later, on: :create
 
   belongs_to :answer
   belongs_to :fixed_input, optional: true
@@ -10,9 +10,6 @@ class AnswerResult < ApplicationRecord
   validates :fixed_input_id, uniqueness: { scope: :answer_id }
 
   enum :status, { pending: 0, correct: 10, incorrect: 20 }, prefix: true
-
-
-  private
 
   def update_status
     source = answer.source
@@ -34,5 +31,11 @@ class AnswerResult < ApplicationRecord
     end
 
     update!(status: new_status, output:)
+  end
+
+  private
+
+  def check_later
+    CorrectnessCheckJob.perform_later(self)
   end
 end
