@@ -214,9 +214,7 @@ GEM
       racc (~> 1.4)
     os (1.1.4)
     ostruct (0.6.1)
-    pagy (43.0.0)
-      json
-      yaml
+    pagy (9.4.0)
     parallel (1.27.0)
     parser (3.3.8.0)
       ast (~> 2.4.1)
@@ -396,7 +394,6 @@ GEM
       base64
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
-    yaml (0.4.0)
     yard (0.9.37)
     zeitwerk (2.7.3)
 
@@ -421,7 +418,7 @@ DEPENDENCIES
   googleauth (~> 1.15)
   jsonapi-serializer
   mission_control-jobs (~> 1.1)
-  pagy (~> 43.0)
+  pagy (~> 9.4)
   pg (~> 1.6)
   propshaft
   pry-byebug (~> 3.11)
