@@ -3,10 +3,10 @@ module Api
     class BaseController < ApplicationController
       include Api::ExceptionHandler
       include ActionController::HttpAuthentication::Token::ControllerMethods
-      include Pagy::Backend
+      include Pagy::Method
 
       before_action :authenticate
-      after_action { pagy_headers_merge(@pagy) if @pagy }
+      after_action { response.headers.merge!(@pagy.headers_hash) if @pagy }
 
       def set_token!(user)
         api_key = user.api_keys.create
