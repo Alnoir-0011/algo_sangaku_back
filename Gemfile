@@ -33,7 +33,7 @@ gem "rails-i18n"
 gem "jsonapi-serializer"
 gem "dotenv-rails", "~> 3.1"
 gem "config", "~> 5.5", ">= 5.5.2"
-gem "googleauth", "~> 1.15"
+gem "googleauth", "~> 1.16"
 gem "pagy", "~> 9.4"
 gem "solid_queue", "~> 1.2", ">= 1.2.4"
 
