@@ -46,7 +46,7 @@ jobs:
           # SSH接続して、git pull, コンテナの再起動
           echo "${{ secrets.GIT_PRIVATE_KEY }}" > private_key
           chmod 600 private_key
-          ssh -oStrictHostKeyChecking=no  -i private_key ${{ secrets.EC2_USER_NAME }}@${{ secrets.EC2_HOST_NAME }} "cd /algo_sangaku_back && git fetch --prune && git checkout main && git pull origin main && docker compose down && docker compose -f compose-prod.yaml up -d --build && docker rmi -f `docker images -f "dangling=true" -q`"
+          ssh -oStrictHostKeyChecking=no  -i private_key ${{ secrets.EC2_USER_NAME }}@${{ secrets.EC2_HOST_NAME }} "cd /algo_sangaku_back && git fetch --prune && git checkout main && git pull origin main && docker compose down && docker compose -f compose-prod.yaml up -d --build && docker rmi -f `docker images -f 'dangling=true' -q`"
 
           # SSHのセキュリティグループを閉じる
           aws ec2 revoke-security-group-ingress --group-id ${{ secrets.EC2_SECURITY_GROUP_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
