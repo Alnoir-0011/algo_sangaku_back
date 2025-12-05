@@ -18,7 +18,7 @@ jobs:
 
       # BranchをCheckout
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
 
       # AWS CLIをインストールする
       - name: AWS CLI install
