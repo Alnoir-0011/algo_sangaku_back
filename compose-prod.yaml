@@ -23,7 +23,7 @@ services:
       dockerfile: Dockerfile
       args:
         - RAILS_ENV=production
-    command: bin/jobs -e production
+    command: bin/jobs
     env_file:
       - .env
     volumes:
