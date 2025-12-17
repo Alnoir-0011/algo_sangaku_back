@@ -6,6 +6,8 @@ class Answer < ApplicationRecord
 
   validates :source, presence: true, length: { maximum: 65_535 }
 
+  scope :is_status, ->(status) { where.not(id: AnswerResult.where.not(status:).select(:answer_id)) }
+
   private
 
   def create_results
