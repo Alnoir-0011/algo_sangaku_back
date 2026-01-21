@@ -53,7 +53,7 @@ group :development, :test do
   gem "webmock", "~> 3.26"
   gem "pry-rails", "~> 0.3.11"
   gem "pry-byebug", "~> 3.12"
-  gem "pry-doc", "~> 1.6"
+  gem "pry-doc", "~> 1.7"
 
   gem "propshaft"
   gem "mission_control-jobs", "~> 1.1"
