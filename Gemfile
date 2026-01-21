@@ -52,7 +52,7 @@ group :development, :test do
   gem "factory_bot_rails", "~> 6.5"
   gem "webmock", "~> 3.26"
   gem "pry-rails", "~> 0.3.11"
-  gem "pry-byebug", "~> 3.11"
+  gem "pry-byebug", "~> 3.12"
   gem "pry-doc", "~> 1.6"
 
   gem "propshaft"
