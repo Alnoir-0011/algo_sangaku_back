@@ -217,8 +217,9 @@ GEM
       racc (~> 1.4)
     os (1.1.4)
     ostruct (0.6.1)
-    pagy (43.2.9)
+    pagy (43.3.0)
       json
+      uri
       yaml
     parallel (1.27.0)
     parser (3.3.8.0)
@@ -425,7 +426,7 @@ DEPENDENCIES
   googleauth (~> 1.16)
   jsonapi-serializer
   mission_control-jobs (~> 1.1)
-  pagy (~> 43.2)
+  pagy (~> 43.3)
   pg (~> 1.6)
   propshaft
   pry-byebug (~> 3.12)
