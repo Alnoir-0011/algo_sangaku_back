@@ -36,7 +36,7 @@ gem "config", "~> 5.5", ">= 5.5.2"
 gem "pagy", "~> 43.4"
 gem "googleauth", "~> 1.16"
 
-gem "solid_queue", "~> 1.3"
+gem "solid_queue", "~> 1.4"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
