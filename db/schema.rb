@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_05_021242) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_26_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -37,9 +37,11 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_05_021242) do
   create_table "api_keys", force: :cascade do |t|
     t.string "access_token", null: false
     t.datetime "created_at", null: false
+    t.datetime "expires_at", default: -> { "(now() + 'P7D'::interval)" }, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["access_token"], name: "index_api_keys_on_access_token", unique: true
+    t.index ["expires_at"], name: "index_api_keys_on_expires_at"
     t.index ["user_id"], name: "index_api_keys_on_user_id"
   end
 
