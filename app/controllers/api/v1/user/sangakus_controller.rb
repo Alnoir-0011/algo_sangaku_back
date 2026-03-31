@@ -38,6 +38,39 @@ module Api
         render json: SangakuSerializer.new(@sangaku).serializable_hash.to_json, status: :ok
       end
 
+      def generate_source
+        description = params.require(:description)
+
+        client = OpenAI::Client.new
+        response = client.chat(
+          parameters: {
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content: <<~PROMPT
+                  あなたはRubyプログラミングの専門家です。
+                  与えられたアルゴリズム問題の問題文から、その問題を解くRubyコードを生成してください。
+                  - 標準入力（STDIN）から値を読み取り、標準出力（STDOUT）に結果を出力するコードを書いてください
+                  - コードの先頭に `# 対応言語: Ruby` というコメントを追加してください
+                  - コードのみを返し、説明文やマークダウンのコードブロック記法（```）は含めないでください
+                PROMPT
+              },
+              {
+                role: "user",
+                content: description
+              }
+            ],
+            max_tokens: 1000
+          }
+        )
+
+        source = response.dig("choices", 0, "message", "content")
+        render json: { source: source }, status: :ok
+      rescue OpenAI::Error => e
+        render json: { error: e.message }, status: :unprocessable_entity
+      end
+
       private
 
       def search_params
