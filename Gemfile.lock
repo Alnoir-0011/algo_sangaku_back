@@ -112,6 +112,7 @@ GEM
     erubi (1.13.1)
     et-orbi (1.4.0)
       tzinfo
+    event_stream_parser (1.0.0)
     factory_bot (6.5.5)
       activesupport (>= 6.1.0)
     factory_bot_rails (6.5.1)
@@ -121,6 +122,8 @@ GEM
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
+    faraday-multipart (1.2.0)
+      multipart-post (~> 2.0)
     faraday-net_http (3.4.2)
       net-http (~> 0.5)
     fugit (1.12.1)
@@ -189,6 +192,7 @@ GEM
     msgpack (1.8.0)
     multi_json (1.19.1)
     net-http (0.9.1)
+    multipart-post (2.4.1)
       uri (>= 0.11.1)
     net-imap (0.6.3)
       date
@@ -364,6 +368,10 @@ GEM
       rubocop (>= 1.72)
       rubocop-performance (>= 1.24)
       rubocop-rails (>= 2.30)
+    ruby-openai (7.4.0)
+      event_stream_parser (>= 0.3.0, < 2.0.0)
+      faraday (>= 1)
+      faraday-multipart (>= 1)
     ruby-progressbar (1.13.0)
     securerandom (0.4.1)
     signet (0.21.0)
@@ -441,6 +449,7 @@ DEPENDENCIES
   rspec-rails (~> 8.0)
   rubocop-rails-omakase
   solid_queue (~> 1.4)
+  ruby-openai (~> 7.0)
   tzinfo-data
   webmock (~> 3.26)
 
