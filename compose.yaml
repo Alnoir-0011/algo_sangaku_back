@@ -20,11 +20,9 @@ services:
     volumes:
       - .:/algo_sangaku_back
       - public-data:/algo_sangaku_back/public
-      - tmp-data:/algo_sangaku_back/tmp
       - log-data:/algo_sangaku_back/log
     environment:
       TZ: Asia/Tokyo
-      RAILS_ENV: development
     networks:
       - algo_sangaku_back-network
     depends_on:
@@ -41,11 +39,9 @@ services:
     volumes:
       - .:/algo_sangaku_back
       - public-data:/algo_sangaku_back/public
-      - tmp-data:/algo_sangaku_back/tmp
       - log-data:/algo_sangaku_back/log
     environment:
       TZ: Asia/Tokyo
-      RAILS_ENV: development
     networks:
       - algo_sangaku_back-network
     depends_on:
@@ -63,8 +59,6 @@ services:
       - algo_sangaku_back-network
 volumes:
   public-data:
-
-  tmp-data:
   log-data:
   db-data:
 
