@@ -52,6 +52,9 @@ jobs:
           gem install bundler
           bundle install
 
+      - name: Set up environment variables
+        run: cp .env.template .env
+
       - name: Database create and migrate
         run: |
           cp config/database.yml.ci config/database.yml

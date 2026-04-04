@@ -224,4 +224,80 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       end
     end
   end
+
+  describe "POST /user/sangakus/generate_source" do
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
+    let!(:user) { create(:user) }
+    let(:description) { "1からnまでの合計を計算して出力してください" }
+    let(:params) { { description: description }.to_json }
+    let(:http_request) { post generate_source_api_v1_user_sangakus_path, params: params, headers: headers }
+    let(:generated_source) { "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs (1..n).sum" }
+    let(:openai_response) do
+      {
+        "choices" => [
+          {
+            "message" => {
+              "content" => generated_source
+            }
+          }
+        ]
+      }
+    end
+
+    before do
+      allow_any_instance_of(OpenAI::Client).to receive(:chat).and_return(openai_response)
+    end
+
+    context "with valid token" do
+      it "returns generated source code" do
+        authenticate_stub(user)
+        http_request
+        expect(response).to have_http_status(:ok)
+        expect(body["source"]).to eq generated_source
+      end
+
+      it "calls OpenAI API with description" do
+        authenticate_stub(user)
+        expect_any_instance_of(OpenAI::Client).to receive(:chat).with(
+          parameters: hash_including(
+            messages: array_including(
+              hash_including(role: "user", content: description)
+            )
+          )
+        ).and_return(openai_response)
+        http_request
+      end
+    end
+
+    context "without token", openapi: false do
+      let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' } }
+
+      it "returns 401" do
+        http_request
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "when description is missing", openapi: false do
+      let(:params) { {}.to_json }
+
+      it "returns 400" do
+        authenticate_stub(user)
+        http_request
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
+
+    context "when OpenAI API raises an error", openapi: false do
+      before do
+        allow_any_instance_of(OpenAI::Client).to receive(:chat).and_raise(OpenAI::Error)
+      end
+
+      it "returns 422" do
+        authenticate_stub(user)
+        http_request
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+  end
 end

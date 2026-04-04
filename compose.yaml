@@ -14,13 +14,12 @@ services:
       dockerfile: Dockerfile
       args:
         - RAILS_ENV=development
-    command: bundle exec puma -C config/puma.rb
+    command: bundle exec rails s -b 0.0.0.0
     env_file:
       - .env
     volumes:
       - .:/algo_sangaku_back
       - public-data:/algo_sangaku_back/public
-      - tmp-data:/algo_sangaku_back/tmp
       - log-data:/algo_sangaku_back/log
     environment:
       TZ: Asia/Tokyo
@@ -40,7 +39,6 @@ services:
     volumes:
       - .:/algo_sangaku_back
       - public-data:/algo_sangaku_back/public
-      - tmp-data:/algo_sangaku_back/tmp
       - log-data:/algo_sangaku_back/log
     environment:
       TZ: Asia/Tokyo
@@ -53,7 +51,6 @@ services:
       context: ./nginx_docker_dev
     volumes:
       - public-data:/algo_sangaku_back/public
-      - tmp-data:/algo_sangaku_back/tmp
     ports:
       - 80:80
     depends_on:
@@ -62,8 +59,6 @@ services:
       - algo_sangaku_back-network
 volumes:
   public-data:
-
-  tmp-data:
   log-data:
   db-data:
 
