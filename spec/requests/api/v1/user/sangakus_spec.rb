@@ -256,16 +256,27 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
         expect(body["source"]).to eq generated_source
       end
 
-      it "calls OpenAI API with description" do
+      it "calls OpenAI API with wrapped description" do
         authenticate_stub(user)
         expect_any_instance_of(OpenAI::Client).to receive(:chat).with(
           parameters: hash_including(
             messages: array_including(
-              hash_including(role: "user", content: description)
+              hash_including(role: "user", content: "---問題文開始---\n#{description}\n---問題文終了---")
             )
           )
         ).and_return(openai_response)
         http_request
+      end
+    end
+
+    context "when description exceeds max length", openapi: false do
+      let(:description) { "a" * 2001 }
+
+      it "returns 422 without calling OpenAI API" do
+        authenticate_stub(user)
+        expect_any_instance_of(OpenAI::Client).not_to receive(:chat)
+        http_request
+        expect(response).to have_http_status(:unprocessable_entity)
       end
     end
 
