@@ -39,7 +39,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           SHORT_SHA="${IMAGE_TAG::7}"
-          docker build --build-arg RAILS_ENV=production -t "$ECR_RAILS_URL:latest" -t "$ECR_RAILS_URL:$SHORT_SHA" .
+          docker build --platform linux/amd64 --build-arg RAILS_ENV=production -t "$ECR_RAILS_URL:latest" -t "$ECR_RAILS_URL:$SHORT_SHA" .
           docker push "$ECR_RAILS_URL:latest"
           docker push "$ECR_RAILS_URL:$SHORT_SHA"
 
@@ -50,7 +50,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           SHORT_SHA="${IMAGE_TAG::7}"
-          docker build -f nginx_docker_prod/Dockerfile -t "$ECR_NGINX_URL:latest" -t "$ECR_NGINX_URL:$SHORT_SHA" nginx_docker_prod/
+          docker build --platform linux/amd64 -f nginx_docker_prod/Dockerfile -t "$ECR_NGINX_URL:latest" -t "$ECR_NGINX_URL:$SHORT_SHA" nginx_docker_prod/
           docker push "$ECR_NGINX_URL:latest"
           docker push "$ECR_NGINX_URL:$SHORT_SHA"
 
@@ -72,6 +72,15 @@ jobs:
             --task-definition "$TASK_FAMILY" \
             --query 'taskDefinition' \
             --output json)
+
+          # コンテナ名の存在確認（名前が変わった場合に無音でスキップされるのを防ぐ）
+          for name in web queue nginx; do
+            count=$(echo "$TASK_DEF" | jq --arg n "$name" '[.containerDefinitions[] | select(.name == $n)] | length')
+            if [ "$count" -eq 0 ]; then
+              echo "ERROR: container '$name' not found in task definition" >&2
+              exit 1
+            fi
+          done
 
           # イメージタグを新しいコミット SHA に書き換え
           NEW_TASK_DEF=$(echo "$TASK_DEF" | \
@@ -104,9 +113,21 @@ jobs:
             --force-new-deployment
 
           echo "Waiting for service to stabilize..."
-          # デプロイ完了 (stable) を待機。失敗時はワークフローを FAIL させる
-          aws ecs wait services-stable \
-            --cluster "$ECS_CLUSTER" \
-            --services "$ECS_SERVICE"
+          # デフォルトの wait は最大 10 分 (40回 × 15秒) のため、最大 20 分のカスタムポーリングに変更
+          TIMEOUT=1200
+          INTERVAL=15
+          ELAPSED=0
+          until [ "$(aws ecs describe-services \
+              --cluster "$ECS_CLUSTER" \
+              --services "$ECS_SERVICE" \
+              --query 'services[0].deployments | length' \
+              --output text)" -eq 1 ]; do
+            if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+              echo "ERROR: service did not stabilize within ${TIMEOUT}s" >&2
+              exit 1
+            fi
+            sleep "$INTERVAL"
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
 
           echo "Deploy succeeded."
