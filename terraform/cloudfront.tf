@@ -11,7 +11,10 @@ resource "aws_cloudfront_distribution" "main" {
   aliases = [var.domain_name]
 
   origin {
-    domain_name = aws_eip.main.public_ip
+    # CloudFront はオリジンに IP アドレスを指定できないため、
+    # Elastic IP の AWS 自動割り当て DNS ホスト名を使用する
+    # 形式: ec2-<ip-with-dashes>.ap-northeast-1.compute.amazonaws.com
+    domain_name = "ec2-${replace(aws_eip.main.public_ip, ".", "-")}.ap-northeast-1.compute.amazonaws.com"
     origin_id   = "EC2-ECS"
 
     custom_origin_config {

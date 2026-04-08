@@ -90,7 +90,7 @@ module PlaceApi
       }
 
       req = Net::HTTP::Post.new(uri.path)
-      # p req.body = params.to_json
+      req.body = params.to_json
       req.initialize_http_header(headers)
       response = http.request(req)
 

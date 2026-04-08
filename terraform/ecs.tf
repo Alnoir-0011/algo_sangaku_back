@@ -144,7 +144,8 @@ resource "aws_ecs_task_definition" "main" {
         { name = "POSTGRES_USER",           valueFrom = aws_ssm_parameter.postgres_user.arn },
         { name = "POSTGRES_PASSWORD",       valueFrom = aws_ssm_parameter.postgres_password.arn },
         { name = "POSTGRES_DB",             valueFrom = aws_ssm_parameter.postgres_db.arn },
-        { name = "PAIZAIO_API_KEY",           valueFrom = aws_ssm_parameter.paizaio_api_key.arn },
+        { name = "PAIZAIO_API_KEY",         valueFrom = aws_ssm_parameter.paizaio_api_key.arn },
+        { name = "OPENAI_API_KEY",          valueFrom = aws_ssm_parameter.openai_api_key.arn },
       ]
 
       environment = [

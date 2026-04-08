@@ -77,16 +77,6 @@ data "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
 }
 
-# OIDC プロバイダーが存在しない場合は以下で作成
-# (既存の場合は data source を使う)
-resource "aws_iam_openid_connect_provider" "github" {
-  count = 0   # 既に OIDC プロバイダーが存在する場合は 0、存在しない場合は 1 に変更
-
-  url             = "https://token.actions.githubusercontent.com"
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
-}
-
 data "aws_iam_policy_document" "github_oidc_assume_role" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]

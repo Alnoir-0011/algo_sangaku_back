@@ -17,7 +17,8 @@ RUN apk update && \
   tzdata \
   nodejs \
   postgresql-client \
-  vim
+  vim \
+  curl
 
 WORKDIR /algo_sangaku_back
 
