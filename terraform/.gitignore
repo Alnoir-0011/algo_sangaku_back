@@ -1,0 +1,19 @@
+# Terraform State (ローカル管理 - 機密情報を含む)
+terraform.tfstate
+terraform.tfstate.backup
+
+# 実際の変数値 (機密情報を含む)
+terraform.tfvars
+
+# Terraform キャッシュ (.terraform.lock.hcl はプロバイダーバージョンを固定するためリポジトリ管理)
+.terraform/
+
+# クラッシュログ
+crash.log
+crash.*.log
+
+# Override ファイル
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json

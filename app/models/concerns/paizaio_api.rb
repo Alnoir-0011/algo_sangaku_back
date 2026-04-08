@@ -22,7 +22,7 @@ module PaizaioApi
 
     headers = { "Content-Type" => "application/json" }
     params = {
-      "api_key" => "guest",
+      "api_key" => ENV.fetch("PAIZAIO_API_KEY", "guest"),
       "source_code" => source,
       "language" => language,
       "input" => input
@@ -51,7 +51,7 @@ module PaizaioApi
     api_url = "https://api.paiza.io:443/runners/get_status.json"
     uri = URI(api_url)
     params = {
-      "api_key" => "guest",
+      "api_key" => ENV.fetch("PAIZAIO_API_KEY", "guest"),
       "id" => id
     }
 
@@ -75,7 +75,7 @@ module PaizaioApi
     api_url = "https://api.paiza.io:443/runners/get_details.json"
     uri = URI(api_url)
     params = {
-      "api_key" => "guest",
+      "api_key" => ENV.fetch("PAIZAIO_API_KEY", "guest"),
       "id" => id
     }
 
