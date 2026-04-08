@@ -39,7 +39,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           SHORT_SHA="${IMAGE_TAG::7}"
-          docker build -t "$ECR_RAILS_URL:latest" -t "$ECR_RAILS_URL:$SHORT_SHA" .
+          docker build --build-arg RAILS_ENV=production -t "$ECR_RAILS_URL:latest" -t "$ECR_RAILS_URL:$SHORT_SHA" .
           docker push "$ECR_RAILS_URL:latest"
           docker push "$ECR_RAILS_URL:$SHORT_SHA"
 
