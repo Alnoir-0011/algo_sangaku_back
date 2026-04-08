@@ -1,4 +1,4 @@
-name: EC2 auto deploy
+name: ECS deploy
 
 on:
   pull_request:
@@ -7,46 +7,106 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  id-token: write   # OIDC トークン取得に必要
+  contents: read
+
 jobs:
-  build:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+
     steps:
-      # IP取得ライブラリをインストール
-      - name: Public IP Install
-        id: ip
-        uses: haythem/public-ip@v1.3
-
-      # BranchをCheckout
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
-      # AWS CLIをインストールする
-      - name: AWS CLI install
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install --update
-          aws --version
-
-      # AWS CLIにキーを設定をする
-      - name: AWS set Credentials
-        uses: aws-actions/configure-aws-credentials@v6
+      # OIDC で AWS 認証 (長期クレデンシャル不要)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
           aws-region: ap-northeast-1
 
-      # デプロイする
-      - name: Deploy
+      # ECR ログイン
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Rails イメージをビルド & push
+      - name: Build and push Rails image
+        env:
+          ECR_RAILS_URL: ${{ secrets.ECR_RAILS_URL }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
+          SHORT_SHA="${IMAGE_TAG::7}"
+          docker build -t "$ECR_RAILS_URL:latest" -t "$ECR_RAILS_URL:$SHORT_SHA" .
+          docker push "$ECR_RAILS_URL:latest"
+          docker push "$ECR_RAILS_URL:$SHORT_SHA"
 
-          # SSHのセキュリティグループを開放する
-          aws ec2 authorize-security-group-ingress --group-id ${{ secrets.EC2_SECURITY_GROUP_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
+      # nginx イメージをビルド & push
+      - name: Build and push nginx image
+        env:
+          ECR_NGINX_URL: ${{ secrets.ECR_NGINX_URL }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          SHORT_SHA="${IMAGE_TAG::7}"
+          docker build -f nginx_docker_prod/Dockerfile -t "$ECR_NGINX_URL:latest" -t "$ECR_NGINX_URL:$SHORT_SHA" nginx_docker_prod/
+          docker push "$ECR_NGINX_URL:latest"
+          docker push "$ECR_NGINX_URL:$SHORT_SHA"
 
-          # SSH接続して、git pull, コンテナの再起動
-          echo "${{ secrets.GIT_PRIVATE_KEY }}" > private_key
-          chmod 600 private_key
-          ssh -oStrictHostKeyChecking=no -i private_key ${{ secrets.EC2_USER_NAME }}@${{ secrets.EC2_HOST_NAME }} "cd /algo_sangaku_back && git fetch --prune && git checkout main && git pull origin main && docker compose down && docker compose -f compose-prod.yaml up -d --build && docker image prune -f"
+      # 新しいイメージタグを含むタスク定義リビジョンを登録
+      - name: Register new ECS task definition
+        id: register-task-def
+        env:
+          ECR_RAILS_URL: ${{ secrets.ECR_RAILS_URL }}
+          ECR_NGINX_URL: ${{ secrets.ECR_NGINX_URL }}
+          IMAGE_TAG: ${{ github.sha }}
+          ECS_CLUSTER: ${{ secrets.ECS_CLUSTER_NAME }}
+          ECS_SERVICE: ${{ secrets.ECS_SERVICE_NAME }}
+          TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY }}
+        run: |
+          SHORT_SHA="${IMAGE_TAG::7}"
 
-          # SSHのセキュリティグループを閉じる
-          aws ec2 revoke-security-group-ingress --group-id ${{ secrets.EC2_SECURITY_GROUP_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
+          # 現在のタスク定義を取得
+          TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition "$TASK_FAMILY" \
+            --query 'taskDefinition' \
+            --output json)
+
+          # イメージタグを新しいコミット SHA に書き換え
+          NEW_TASK_DEF=$(echo "$TASK_DEF" | \
+            jq --arg rails "$ECR_RAILS_URL:$SHORT_SHA" \
+               --arg nginx "$ECR_NGINX_URL:$SHORT_SHA" \
+            '(.containerDefinitions[] | select(.name == "web")  | .image) |= $rails |
+             (.containerDefinitions[] | select(.name == "queue") | .image) |= $rails |
+             (.containerDefinitions[] | select(.name == "nginx") | .image) |= $nginx |
+             del(.taskDefinitionArn, .revision, .status, .requiresAttributes,
+                 .compatibilities, .registeredAt, .registeredBy)')
+
+          # 新しいリビジョンを登録
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json "$NEW_TASK_DEF" \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          echo "task_def_arn=$NEW_TASK_DEF_ARN" >> "$GITHUB_OUTPUT"
+
+      # ECS サービスを新しいタスク定義でデプロイ
+      - name: Deploy to ECS
+        env:
+          ECS_CLUSTER: ${{ secrets.ECS_CLUSTER_NAME }}
+          ECS_SERVICE: ${{ secrets.ECS_SERVICE_NAME }}
+        run: |
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --task-definition "${{ steps.register-task-def.outputs.task_def_arn }}" \
+            --force-new-deployment
+
+          echo "Waiting for service to stabilize..."
+          # デプロイ完了 (stable) を待機。失敗時はワークフローを FAIL させる
+          aws ecs wait services-stable \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE"
+
+          echo "Deploy succeeded."
