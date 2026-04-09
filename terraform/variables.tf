@@ -38,6 +38,7 @@ variable "db_snapshot_identifier" {
   }
 }
 
+# db.t4g は PostgreSQL 12.0 以上が必要。スナップショット元のエンジンバージョンを事前に確認すること。
 variable "db_instance_class" {
   description = "RDS インスタンスクラス"
   type        = string
