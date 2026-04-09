@@ -20,6 +20,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      # arm64 クロスビルドに必要な QEMU・Buildx のセットアップ
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       # OIDC で AWS 認証 (長期クレデンシャル不要)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
