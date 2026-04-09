@@ -120,7 +120,7 @@ jobs:
           until [ "$(aws ecs describe-services \
               --cluster "$ECS_CLUSTER" \
               --services "$ECS_SERVICE" \
-              --query 'services[0].deployments | length' \
+              --query 'length(services[0].deployments)' \
               --output text)" -eq 1 ]; do
             if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
               echo "ERROR: service did not stabilize within ${TIMEOUT}s" >&2
