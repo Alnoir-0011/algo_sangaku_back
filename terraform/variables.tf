@@ -41,7 +41,7 @@ variable "db_snapshot_identifier" {
 variable "db_instance_class" {
   description = "RDS インスタンスクラス"
   type        = string
-  default     = "db.t3.micro"
+  default     = "db.t4g.micro"
 }
 
 variable "db_name" {
@@ -60,7 +60,7 @@ variable "db_username" {
 variable "ec2_instance_type" {
   description = "EC2 インスタンスタイプ"
   type        = string
-  default     = "t3.micro"
+  default     = "t4g.micro"
 }
 
 variable "ec2_key_name" {
