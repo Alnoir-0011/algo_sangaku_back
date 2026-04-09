@@ -39,7 +39,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           SHORT_SHA="${IMAGE_TAG::7}"
-          docker build --platform linux/amd64 --build-arg RAILS_ENV=production -t "$ECR_RAILS_URL:latest" -t "$ECR_RAILS_URL:$SHORT_SHA" .
+          docker build --platform linux/arm64 --build-arg RAILS_ENV=production -t "$ECR_RAILS_URL:latest" -t "$ECR_RAILS_URL:$SHORT_SHA" .
           docker push "$ECR_RAILS_URL:latest"
           docker push "$ECR_RAILS_URL:$SHORT_SHA"
 
@@ -50,7 +50,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           SHORT_SHA="${IMAGE_TAG::7}"
-          docker build --platform linux/amd64 -f nginx_docker_prod/Dockerfile -t "$ECR_NGINX_URL:latest" -t "$ECR_NGINX_URL:$SHORT_SHA" nginx_docker_prod/
+          docker build --platform linux/arm64 -f nginx_docker_prod/Dockerfile -t "$ECR_NGINX_URL:latest" -t "$ECR_NGINX_URL:$SHORT_SHA" nginx_docker_prod/
           docker push "$ECR_NGINX_URL:latest"
           docker push "$ECR_NGINX_URL:$SHORT_SHA"
 
@@ -131,3 +131,28 @@ jobs:
           done
 
           echo "Deploy succeeded."
+
+      # 古いタスク定義リビジョンを deregister（直近 3 件を残す）
+      - name: Deregister old task definition revisions
+        env:
+          TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY }}
+          KEEP: 3
+        run: |
+          REVISIONS=$(aws ecs list-task-definitions \
+            --family-prefix "$TASK_FAMILY" \
+            --sort ASC \
+            --query 'taskDefinitionArns' \
+            --output json | jq -r '.[]')
+
+          TOTAL=$(echo "$REVISIONS" | wc -l | tr -d ' ')
+          DELETE_COUNT=$(( TOTAL - KEEP ))
+
+          if [ "$DELETE_COUNT" -le 0 ]; then
+            echo "Nothing to deregister (total=$TOTAL, keep=$KEEP)."
+            exit 0
+          fi
+
+          echo "$REVISIONS" | head -n "$DELETE_COUNT" | while read -r arn; do
+            echo "Deregistering: $arn"
+            aws ecs deregister-task-definition --task-definition "$arn" --query 'taskDefinition.taskDefinitionArn' --output text
+          done
