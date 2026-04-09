@@ -13,10 +13,10 @@
 # Pagy.options[:max_pages] = 200          # Allow only 200 pages
 # Pagy.options[:jsonapi] = true           # Use JSON:API compliant URLs
 
-Pagy.options[:headers_map] = { page: "Current-Page",
-                           limit: "Page-Items",
-                           count: "Total-Count",
-                           pages: "Total-Pages" }
+Pagy::OPTIONS[:headers_map] = { page: "Current-Page",
+                            limit: "Page-Items",
+                            count: "Total-Count",
+                            pages: "Total-Pages" }
 
 ############ JavaScript ####################################################################
 # See https://ddnexus.github.io/pagy/resources/javascript/ for details.
