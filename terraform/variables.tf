@@ -28,15 +28,6 @@ variable "vpc_cidr" {
 }
 
 # --- RDS ---
-variable "db_snapshot_identifier" {
-  description = "既存 RDS から取得したスナップショットの識別子"
-  type        = string
-
-  validation {
-    condition     = length(var.db_snapshot_identifier) > 0
-    error_message = "db_snapshot_identifier は空にできません。既存 RDS のスナップショット識別子を指定してください。"
-  }
-}
 
 # db.t4g は PostgreSQL 12.0 以上が必要。スナップショット元のエンジンバージョンを事前に確認すること。
 variable "db_instance_class" {
