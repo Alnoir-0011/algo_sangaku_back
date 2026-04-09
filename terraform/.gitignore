@@ -1,6 +1,7 @@
 # Terraform State (ローカル管理 - 機密情報を含む)
 terraform.tfstate
 terraform.tfstate.backup
+terraform.tfstate.*.backup
 
 # 実際の変数値 (機密情報を含む)
 terraform.tfvars
