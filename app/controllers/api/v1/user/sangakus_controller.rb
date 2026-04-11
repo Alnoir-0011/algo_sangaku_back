@@ -47,6 +47,13 @@ module Api
           return render json: { error: "問題文は#{GENERATE_SOURCE_MAX_LENGTH}文字以内で入力してください" }, status: :unprocessable_entity
         end
 
+        if current_user.generate_source_daily_remaining <= 0
+          return render json: {
+            error: "本日の利用回数上限に達しました",
+            reset_at: current_user.generate_source_daily_reset_at.iso8601
+          }, status: :too_many_requests
+        end
+
         client = OpenAI::Client.new
         response = client.chat(
           parameters: {
@@ -76,9 +83,34 @@ module Api
         )
 
         source = response.dig("choices", 0, "message", "content")
-        render json: { source: source }, status: :ok
+        if source.blank?
+          return render json: { error: "コードの生成に失敗しました" }, status: :unprocessable_entity
+        end
+
+        now = Time.current
+        current_user.generate_source_call_logs.create!(called_at: now)
+
+        render json: {
+          source: source,
+          usage: {
+            used: current_user.generate_source_daily_used_count(now),
+            limit: current_user.generate_source_daily_limit,
+            remaining: current_user.generate_source_daily_remaining(now),
+            reset_at: current_user.generate_source_daily_reset_at(now).iso8601
+          }
+        }, status: :ok
       rescue OpenAI::Error => e
         render json: { error: e.message }, status: :unprocessable_entity
+      end
+
+      def generate_source_usage
+        now = Time.current
+        render json: {
+          used: current_user.generate_source_daily_used_count(now),
+          limit: current_user.generate_source_daily_limit,
+          remaining: current_user.generate_source_daily_remaining(now),
+          reset_at: current_user.generate_source_daily_reset_at(now).iso8601
+        }, status: :ok
       end
 
       private

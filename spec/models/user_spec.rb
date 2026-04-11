@@ -27,9 +27,9 @@ RSpec.describe User, type: :model do
     end
 
     it "is invalid without email" do
-      user = build(:user, name: '')
+      user = build(:user, email: '')
       expect(user).to be_invalid
-      expect(user.errors[:name]).to eq [ 'を入力してください' ]
+      expect(user.errors[:email]).to eq [ 'を入力してください' ]
     end
 
     it "is invalid without nickname" do
@@ -86,6 +86,83 @@ RSpec.describe User, type: :model do
       another_user = build(:user, email: user.nickname)
       expect(another_user).to be_valid
       expect(another_user.errors).to be_empty
+    end
+  end
+
+  describe "generate_source rate limit methods" do
+    let(:user) { create(:user) }
+
+    describe "#generate_source_daily_limit" do
+      it "returns the default daily limit" do
+        expect(user.generate_source_daily_limit).to eq User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT
+      end
+    end
+
+    describe "#generate_source_daily_used_count" do
+      context "when no logs exist" do
+        it "returns 0" do
+          expect(user.generate_source_daily_used_count).to eq 0
+        end
+      end
+
+      context "when logs exist within the current day range" do
+        before do
+          travel_to Time.zone.local(2026, 4, 10, 10, 0, 0) do
+            create(:generate_source_call_log, user: user, called_at: Time.current)
+            create(:generate_source_call_log, user: user, called_at: Time.current - 1.hour)
+          end
+        end
+
+        it "counts only logs within the current day range" do
+          travel_to Time.zone.local(2026, 4, 10, 11, 0, 0) do
+            expect(user.generate_source_daily_used_count).to eq 2
+          end
+        end
+      end
+
+      context "when logs exist outside the current day range" do
+        before do
+          create(:generate_source_call_log, user: user, called_at: Time.zone.local(2026, 4, 9, 10, 0, 0))
+        end
+
+        it "does not count logs from previous day" do
+          travel_to Time.zone.local(2026, 4, 10, 10, 0, 0) do
+            expect(user.generate_source_daily_used_count).to eq 0
+          end
+        end
+      end
+    end
+
+    describe "#generate_source_daily_remaining" do
+      context "when used count is below limit" do
+        before do
+          create(:generate_source_call_log, user: user, called_at: Time.current)
+        end
+
+        it "returns limit minus used count" do
+          expect(user.generate_source_daily_remaining).to eq User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT - 1
+        end
+      end
+
+      context "when used count equals limit" do
+        before do
+          User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT.times do
+            create(:generate_source_call_log, user: user, called_at: Time.current)
+          end
+        end
+
+        it "returns 0" do
+          expect(user.generate_source_daily_remaining).to eq 0
+        end
+      end
+    end
+
+    describe "#generate_source_daily_reset_at" do
+      it "returns the end of the current day range" do
+        travel_to Time.zone.local(2026, 4, 10, 10, 0, 0) do
+          expect(user.generate_source_daily_reset_at).to eq Time.zone.local(2026, 4, 11, 3, 0, 0)
+        end
+      end
     end
   end
 end

@@ -27,6 +27,7 @@ Rails.application.routes.draw do
         resources :sangakus, only: %i[index show create update destroy], shallow: true do
           collection do
             post :generate_source
+            get :generate_source_usage
           end
           resource :result, only: %i[show]
           resource :dedicate, only: %i[create]
