@@ -18,7 +18,7 @@ class User < ApplicationRecord
   end
 
   def generate_source_daily_remaining(now = Time.current)
-    [generate_source_daily_limit - generate_source_daily_used_count(now), 0].max
+    [ generate_source_daily_limit - generate_source_daily_used_count(now), 0 ].max
   end
 
   def generate_source_daily_reset_at(now = Time.current)
