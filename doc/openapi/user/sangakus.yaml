@@ -96,7 +96,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '33'
+                - id: '116'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -108,18 +108,20 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '34'
+                        id: '240'
                         type: user
                     shrine:
                       data:
-                        id: '12'
+                        id: '47'
                         type: shrine
       parameters:
       - name: shrine_id
         in: query
         required: false
         schema:
-          type: string
+          oneOf:
+          - type: string
+          - type: integer
         example: any
       - name: title
         in: query
@@ -252,7 +254,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '36'
+                  id: '119'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -260,13 +262,13 @@ paths:
                     source: puts 'Hello world'
                     difficulty: easy
                     inputs:
-                    - id: 3
+                    - id: 12
                       content: test_input_1
                     author_name: test nickname
                   relationships:
                     user:
                       data:
-                        id: '36'
+                        id: '242'
                         type: user
                     shrine:
                       data:
@@ -289,7 +291,7 @@ paths:
               description: 1からnまでの合計を計算して出力してください
       responses:
         '200':
-          description: calls OpenAI API with description
+          description: calls OpenAI API with wrapped description
           content:
             application/json:
               schema:
@@ -297,6 +299,22 @@ paths:
                 properties:
                   source:
                     type: string
+                  usage:
+                    type: object
+                    properties:
+                      used:
+                        type: integer
+                      limit:
+                        type: integer
+                      remaining:
+                        type: integer
+                      reset_at:
+                        type: string
+                    required:
+                    - used
+                    - limit
+                    - remaining
+                    - reset_at
                 required:
                 - source
               example:
@@ -304,6 +322,42 @@ paths:
                   # 対応言語: Ruby
                   n = gets.chomp.to_i
                   puts (1..n).sum
+                usage:
+                  used: 1
+                  limit: 5
+                  remaining: 4
+                  reset_at: '2026-04-12T03:00:00+09:00'
+  "/api/v1/user/sangakus/generate_source_usage":
+    get:
+      summary: generate_source_usage
+      tags:
+      - Api::V1::User::Sangaku
+      responses:
+        '200':
+          description: does not count other users' logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  used:
+                    type: integer
+                  limit:
+                    type: integer
+                  remaining:
+                    type: integer
+                  reset_at:
+                    type: string
+                required:
+                - used
+                - limit
+                - remaining
+                - reset_at
+              example:
+                used: 0
+                limit: 5
+                remaining: 5
+                reset_at: '2026-04-12T03:00:00+09:00'
   "/api/v1/user/sangakus/{id}":
     delete:
       summary: destroy
@@ -315,7 +369,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 40
+        example: 123
       responses:
         '200':
           description: return sangaku in json format
@@ -391,7 +445,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '40'
+                  id: '123'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -403,7 +457,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '42'
+                        id: '248'
                         type: user
                     shrine:
                       data:
@@ -417,7 +471,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 37
+        example: 120
       responses:
         '200':
           description: return sangaku in json formata
@@ -493,7 +547,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '37'
+                  id: '120'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -505,7 +559,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '37'
+                        id: '243'
                         type: user
                     shrine:
                       data:
@@ -519,7 +573,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 38
+        example: 121
       requestBody:
         content:
           application/json:
@@ -641,7 +695,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '38'
+                  id: '121'
                   type: sangaku
                   attributes:
                     title: changed_title
@@ -649,13 +703,13 @@ paths:
                     source: puts 'Hello world'
                     difficulty: easy
                     inputs:
-                    - id: 4
+                    - id: 13
                       content: a
                     author_name: test nickname
                   relationships:
                     user:
                       data:
-                        id: '38'
+                        id: '244'
                         type: user
                     shrine:
                       data:
