@@ -7,6 +7,6 @@ class CreateGenerateSourceCallLogs < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :generate_source_call_logs, [:user_id, :called_at]
+    add_index :generate_source_call_logs, [ :user_id, :called_at ]
   end
 end
