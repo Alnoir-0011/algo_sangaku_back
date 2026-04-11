@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_26_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_10_225255) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -52,6 +52,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_26_000000) do
     t.datetime "updated_at", null: false
     t.index ["content", "sangaku_id"], name: "index_fixed_inputs_on_content_and_sangaku_id", unique: true
     t.index ["sangaku_id"], name: "index_fixed_inputs_on_sangaku_id"
+  end
+
+  create_table "generate_source_call_logs", force: :cascade do |t|
+    t.datetime "called_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "called_at"], name: "index_generate_source_call_logs_on_user_id_and_called_at"
+    t.index ["user_id"], name: "index_generate_source_call_logs_on_user_id"
   end
 
   create_table "sangakus", force: :cascade do |t|
@@ -226,6 +235,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_26_000000) do
   add_foreign_key "answers", "user_sangaku_saves", column: "user_sangaku_save_id"
   add_foreign_key "api_keys", "users"
   add_foreign_key "fixed_inputs", "sangakus"
+  add_foreign_key "generate_source_call_logs", "users"
   add_foreign_key "sangakus", "shrines"
   add_foreign_key "sangakus", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

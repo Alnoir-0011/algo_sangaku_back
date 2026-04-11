@@ -249,11 +249,17 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
     end
 
     context "with valid token" do
-      it "returns generated source code" do
+      it "returns generated source code with usage" do
         authenticate_stub(user)
-        http_request
+        expect {
+          http_request
+        }.to change(GenerateSourceCallLog, :count).by(1)
         expect(response).to have_http_status(:ok)
         expect(body["source"]).to eq generated_source
+        expect(body["usage"]["used"]).to eq 1
+        expect(body["usage"]["limit"]).to eq User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT
+        expect(body["usage"]["remaining"]).to eq User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT - 1
+        expect(body["usage"]["reset_at"]).to be_present
       end
 
       it "calls OpenAI API with wrapped description" do
@@ -269,13 +275,33 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       end
     end
 
+    context "when daily limit is reached", openapi: false do
+      before do
+        User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT.times do
+          create(:generate_source_call_log, user: user, called_at: Time.current)
+        end
+      end
+
+      it "returns 429 without creating a log" do
+        authenticate_stub(user)
+        expect {
+          http_request
+        }.not_to change(GenerateSourceCallLog, :count)
+        expect(response).to have_http_status(:too_many_requests)
+        expect(body["error"]).to be_present
+        expect(body["reset_at"]).to be_present
+      end
+    end
+
     context "when description exceeds max length", openapi: false do
       let(:description) { "a" * 2001 }
 
-      it "returns 422 without calling OpenAI API" do
+      it "returns 422 without calling OpenAI API and without creating a log" do
         authenticate_stub(user)
         expect_any_instance_of(OpenAI::Client).not_to receive(:chat)
-        http_request
+        expect {
+          http_request
+        }.not_to change(GenerateSourceCallLog, :count)
         expect(response).to have_http_status(:unprocessable_entity)
       end
     end
@@ -304,10 +330,72 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
         allow_any_instance_of(OpenAI::Client).to receive(:chat).and_raise(OpenAI::Error)
       end
 
-      it "returns 422" do
+      it "returns 422 without creating a log" do
+        authenticate_stub(user)
+        expect {
+          http_request
+        }.not_to change(GenerateSourceCallLog, :count)
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+
+    context "JST 3:00 boundary behavior", openapi: false do
+      it "counts logs only within the current JST day window" do
+        authenticate_stub(user)
+        travel_to Time.zone.local(2026, 4, 10, 2, 59, 59) do
+          create(:generate_source_call_log, user: user, called_at: Time.current)
+        end
+
+        travel_to Time.zone.local(2026, 4, 10, 3, 0, 0) do
+          http_request
+          expect(response).to have_http_status(:ok)
+          expect(body["usage"]["used"]).to eq 1
+        end
+      end
+    end
+  end
+
+  describe "GET /user/sangakus/generate_source_usage" do
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
+    let!(:user) { create(:user) }
+    let(:http_request) { get generate_source_usage_api_v1_user_sangakus_path, headers: headers }
+
+    context "with valid token" do
+      it "returns usage information" do
         authenticate_stub(user)
         http_request
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:ok)
+        expect(body["used"]).to eq 0
+        expect(body["limit"]).to eq User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT
+        expect(body["remaining"]).to eq User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT
+        expect(body["reset_at"]).to be_present
+      end
+
+      it "reflects existing call logs" do
+        create(:generate_source_call_log, user: user, called_at: Time.current)
+        authenticate_stub(user)
+        http_request
+        expect(response).to have_http_status(:ok)
+        expect(body["used"]).to eq 1
+        expect(body["remaining"]).to eq User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT - 1
+      end
+
+      it "does not count other users' logs" do
+        another_user = create(:user)
+        create(:generate_source_call_log, user: another_user, called_at: Time.current)
+        authenticate_stub(user)
+        http_request
+        expect(response).to have_http_status(:ok)
+        expect(body["used"]).to eq 0
+      end
+    end
+
+    context "without token", openapi: false do
+      let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' } }
+
+      it "returns 401" do
+        http_request
+        expect(response).to have_http_status(:unauthorized)
       end
     end
   end
