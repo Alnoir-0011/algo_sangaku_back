@@ -58,6 +58,7 @@ resource "aws_ecs_task_definition" "main" {
         { name = "PAIZAIO_API_KEY",           valueFrom = aws_ssm_parameter.paizaio_api_key.arn },
         { name = "OPENAI_API_KEY",          valueFrom = aws_ssm_parameter.openai_api_key.arn },
         { name = "FRONTEND_URL",            valueFrom = aws_ssm_parameter.frontend_url.arn },
+        { name = "CLIENT_SECRET",           valueFrom = aws_ssm_parameter.client_secret.arn },
       ]
 
       environment = [

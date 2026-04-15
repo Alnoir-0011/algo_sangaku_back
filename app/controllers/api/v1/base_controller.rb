@@ -5,6 +5,7 @@ module Api
       include ActionController::HttpAuthentication::Token::ControllerMethods
       include Pagy::Method
 
+      before_action :verify_client_secret
       before_action :authenticate
       after_action { response.headers.merge!(@pagy.headers_hash) if @pagy }
 
@@ -14,6 +15,17 @@ module Api
       end
 
       protected
+
+      def verify_client_secret
+        return if Rails.env.test?
+
+        expected = ENV["CLIENT_SECRET"]
+        actual = request.headers["X-Client-Secret"]
+
+        unless expected.present? && ActiveSupport::SecurityUtils.secure_compare(expected, actual.to_s)
+          render_error(403, "Forbidden")
+        end
+      end
 
       def authenticate
         authenticate_or_request_with_http_token do |token, _options|
