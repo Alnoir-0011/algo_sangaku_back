@@ -22,6 +22,14 @@ resource "aws_ssm_parameter" "cloudfront_secret" {
   tags = { Name = "${var.app_name}-cloudfront-secret" }
 }
 
+resource "aws_ssm_parameter" "client_secret" {
+  name  = "${local.ssm_prefix}/CLIENT_SECRET"
+  type  = "SecureString"
+  value = var.client_secret
+
+  tags = { Name = "${var.app_name}-client-secret" }
+}
+
 resource "aws_ssm_parameter" "postgres_host" {
   name  = "${local.ssm_prefix}/POSTGRES_HOST"
   type  = "SecureString"

@@ -103,6 +103,18 @@ variable "frontend_url" {
   type        = string
 }
 
+# --- フロントエンド起源証明 ---
+variable "client_secret" {
+  description = "フロントエンドからのリクエスト証明用シークレット (X-Client-Secret ヘッダー値。例: openssl rand -hex 32)"
+  type        = string
+  sensitive   = true
+
+  validation {
+    condition     = length(var.client_secret) >= 32
+    error_message = "client_secret は 32 文字以上のランダムな文字列を使用してください。"
+  }
+}
+
 # --- CloudFront カスタムヘッダー ---
 variable "cloudfront_secret_header_value" {
   description = "CloudFront → EC2 間のカスタムヘッダー値。ランダムな文字列を生成して設定すること (例: openssl rand -hex 32)"
