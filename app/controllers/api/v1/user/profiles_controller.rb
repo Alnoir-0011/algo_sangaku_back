@@ -14,7 +14,7 @@ module Api
       private
 
       def user_params
-        params.require(:user).permit(:nickname)
+        params.require(:user).permit(:nickname, :show_answer_count)
       end
     end
   end

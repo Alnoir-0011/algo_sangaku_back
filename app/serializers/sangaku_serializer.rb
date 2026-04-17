@@ -10,6 +10,11 @@ class SangakuSerializer
   attribute :author_name do |sangaku|
     sangaku.user.nickname
   end
+
+  attribute :shrine_name do |sangaku|
+    sangaku.shrine&.name
+  end
+
   # has_many :fixed_inputs
   belongs_to :user
   belongs_to :shrine

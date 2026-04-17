@@ -42,4 +42,8 @@ class User < ApplicationRecord
   def add_saved_sangakus(sangaku)
     saved_sangakus << sangaku
   end
+
+  def dedicated_sangakus_with_shrine
+    @dedicated_sangakus_with_shrine ||= sangakus.where.not(shrine_id: nil).includes(:shrine).to_a
+  end
 end

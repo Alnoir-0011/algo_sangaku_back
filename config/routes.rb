@@ -23,6 +23,8 @@ Rails.application.routes.draw do
         resources :sangakus, only: %i[index], controller: "shrines_sangakus"
       end
 
+      resources :profiles, only: %i[show]
+
       namespace :user do
         resources :sangakus, only: %i[index show create update destroy], shallow: true do
           collection do
