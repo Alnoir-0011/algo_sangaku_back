@@ -56,16 +56,6 @@ paths:
                             type: string
                           nickname:
                             type: string
-                          show_answer_count:
-                            type: boolean
-                          sangaku_count:
-                            type: integer
-                          dedicated_sangaku_count:
-                            type: integer
-                          saved_sangaku_count:
-                            type: integer
-                          answer_count:
-                            type: integer
                         required:
                         - provider
                         - uid
@@ -80,16 +70,11 @@ paths:
                 - data
               example:
                 data:
-                  id: '151'
+                  id: '77'
                   type: user
                   attributes:
                     provider: google
-                    uid: ff985742-07a0-4f00-99f7-e28ec73ee6ec
+                    uid: 82cb0bb7-8ea9-4149-98f3-a8ad36fcaf6a
                     name: test user
-                    email: user_32@example.com
+                    email: user_1@example.com
                     nickname: changed_name
-                    show_answer_count: false
-                    sangaku_count: 0
-                    dedicated_sangaku_count: 0
-                    saved_sangaku_count: 0
-                    answer_count: 0
