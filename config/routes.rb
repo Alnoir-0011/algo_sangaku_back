@@ -39,7 +39,7 @@ Rails.application.routes.draw do
         resources :saved_sangakus, only: %i[index show] do
           get "answer", on: :member
         end
-        resource :profile, only: %i[update]
+        resource :profile, only: %i[show update]
       end
     end
   end
