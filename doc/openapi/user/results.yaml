@@ -1,0 +1,53 @@
+---
+openapi: 3.0.3
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/user/sangakus/{sangaku_id}/result":
+    get:
+      summary: show
+      tags:
+      - Api::V1::User::Result
+      parameters:
+      - name: sangaku_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 148
+      responses:
+        '200':
+          description: return result in json format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      attributes:
+                        type: object
+                        properties:
+                          user_sangaku_save_count:
+                            type: integer
+                          correct_count:
+                            type: integer
+                          incorrect_count:
+                            type: integer
+                        required:
+                        - user_sangaku_save_count
+                        - correct_count
+                        - incorrect_count
+                    required:
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  attributes:
+                    user_sangaku_save_count: 1
+                    correct_count: 1
+                    incorrect_count: 0
