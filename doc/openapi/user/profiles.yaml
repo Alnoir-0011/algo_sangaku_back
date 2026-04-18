@@ -61,13 +61,13 @@ paths:
                 - data
               example:
                 data:
-                  id: '82'
+                  id: '85'
                   type: my_profile
                   attributes:
                     email: user_1@example.com
                     nickname: test nickname
                     show_answer_count: false
-                    created_at: '2026-04-17T14:59:30.299+09:00'
+                    created_at: '2026-04-18T13:50:41.563+09:00'
                     sangaku_count: 2
                     dedicated_sangaku_count: 1
                     saved_sangaku_count: 0
@@ -87,16 +87,17 @@ paths:
                   properties:
                     nickname:
                       type: string
-                  required:
-                  - nickname
+                    show_answer_count:
+                      type: boolean
               required:
               - user
             example:
               user:
                 nickname: changed_name
+                show_answer_count: true
       responses:
         '200':
-          description: return user in json format
+          description: show_answer_count を true に更新できる
           content:
             application/json:
               schema:
@@ -136,11 +137,11 @@ paths:
                 - data
               example:
                 data:
-                  id: '83'
+                  id: '87'
                   type: user
                   attributes:
                     provider: google
-                    uid: 8c1db078-aeed-43a3-9a24-e5e4a1b4189f
+                    uid: eb1d9b56-7370-43c1-b813-6ade816c1e0a
                     name: test user
-                    email: user_2@example.com
-                    nickname: changed_name
+                    email: user_3@example.com
+                    nickname: test nickname

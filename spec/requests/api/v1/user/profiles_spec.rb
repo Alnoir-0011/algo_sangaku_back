@@ -42,7 +42,7 @@ RSpec.describe "Api::V1::User::Profiles", type: :request do
       end
     end
 
-    context "show_answer_count を更新する", openapi: false do
+    context "show_answer_count を更新する" do
       let(:params) { { user: { show_answer_count: true } }.to_json }
 
       it "show_answer_count を true に更新できる" do
