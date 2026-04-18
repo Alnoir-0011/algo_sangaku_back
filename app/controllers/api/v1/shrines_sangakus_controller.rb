@@ -5,7 +5,7 @@ module Api
 
       def index
         shrine = Shrine.find(params[:shrine_id])
-        @pagy, sangakus = pagy(shrine.sangakus.search(search_params).includes(:fixed_inputs, :user))
+        @pagy, sangakus = pagy(shrine.sangakus.search(search_params).includes(:fixed_inputs, :user, :shrine))
         render json: SangakuSerializer.new(sangakus).serializable_hash.to_json, status: :ok
       end
 

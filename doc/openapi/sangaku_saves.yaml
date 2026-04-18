@@ -16,7 +16,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 836
+          example: 138
       requestBody:
         content:
           application/json:
@@ -55,6 +55,8 @@ paths:
                             items: {}
                           author_name:
                             type: string
+                          shrine_name:
+                            nullable: true
                         required:
                           - title
                           - description
@@ -99,7 +101,7 @@ paths:
                   - data
               example:
                 data:
-                  id: "836"
+                  id: "138"
                   type: sangaku
                   attributes:
                     title: test_title
@@ -108,10 +110,11 @@ paths:
                     difficulty: easy
                     inputs: []
                     author_name: test nickname
+                    shrine_name:
                   relationships:
                     user:
                       data:
-                        id: "1333"
+                        id: "134"
                         type: user
                     shrine:
                       data:

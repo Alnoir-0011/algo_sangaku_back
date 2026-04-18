@@ -22,7 +22,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 545
+          example: 72
         - name: title
           in: query
           required: false
@@ -61,6 +61,8 @@ paths:
                               type: array
                               items: {}
                             author_name:
+                              type: string
+                            shrine_name:
                               type: string
                           required:
                             - title
@@ -114,7 +116,7 @@ paths:
                   - data
               example:
                 data:
-                  - id: "838"
+                  - id: "140"
                     type: sangaku
                     attributes:
                       title: test_title
@@ -123,12 +125,13 @@ paths:
                       difficulty: nomal
                       inputs: []
                       author_name: test nickname
+                      shrine_name: test_shrine
                     relationships:
                       user:
                         data:
-                          id: "1336"
+                          id: "137"
                           type: user
                       shrine:
                         data:
-                          id: "545"
+                          id: "72"
                           type: shrine
