@@ -1,0 +1,89 @@
+---
+openapi: 3.0.3
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/profiles/{id}":
+    get:
+      summary: show
+      tags:
+      - Api::V1::Profile
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 128
+      responses:
+        '200':
+          description: 奉納済み算額一覧を返す（タイトル・神社名を含む）
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          nickname:
+                            type: string
+                          created_at:
+                            type: string
+                          sangaku_count:
+                            type: integer
+                          dedicated_sangaku_count:
+                            type: integer
+                          answer_count:
+                            nullable: true
+                          dedicated_sangakus:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                title:
+                                  type: string
+                                shrine_name:
+                                  type: string
+                              required:
+                              - id
+                              - title
+                              - shrine_name
+                        required:
+                        - nickname
+                        - created_at
+                        - sangaku_count
+                        - dedicated_sangaku_count
+                        - answer_count
+                        - dedicated_sangakus
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '128'
+                  type: profile
+                  attributes:
+                    nickname: test nickname
+                    created_at: '2026-04-17T12:08:47.942+09:00'
+                    sangaku_count: 2
+                    dedicated_sangaku_count: 1
+                    answer_count:
+                    dedicated_sangakus:
+                    - id: 128
+                      title: test_title
+                      shrine_name: test_shrine

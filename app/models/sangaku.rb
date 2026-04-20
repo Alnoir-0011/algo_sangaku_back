@@ -18,7 +18,7 @@ class Sangaku < ApplicationRecord
   validate :fixed_inputs_uniqueness
 
   enum :difficulty,
-        { easy: 0, nomal: 10, difficult: 20, very_difficult: 30 },
+        { easy: 0, normal: 10, difficult: 20, very_difficult: 30 },
         prefix: true
 
   scope :title_contain, ->(title) { where("title LIKE ?", "%#{title}%") }

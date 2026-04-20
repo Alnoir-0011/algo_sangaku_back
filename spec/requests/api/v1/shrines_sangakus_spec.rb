@@ -3,13 +3,13 @@ require 'rails_helper'
 RSpec.describe "Api::V1::ShrinesSangakus", type: :request do
   describe "GET /api/v1/shrine/{id}/sangakus" do
     let!(:shrine) { create(:shrine) }
-    let!(:sangaku) { create(:sangaku, title: "test_title", difficulty: "nomal", shrine: shrine) }
+    let!(:sangaku) { create(:sangaku, title: "test_title", difficulty: "normal", shrine: shrine) }
     let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' } }
     let(:params) { {} }
     let(:http_request) { get api_v1_shrine_sangakus_path(shrine.id), headers:, params: }
 
     context "with access_token" do
-      let(:params) { { title: "test_title", difficulty: "nomal" } }
+      let(:params) { { title: "test_title", difficulty: "normal" } }
       it "return sangakus in json format" do
         http_request
 

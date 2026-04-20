@@ -43,6 +43,9 @@ paths:
                               items: {}
                             author_name:
                               type: string
+                            shrine_name:
+                              type: string
+                              nullable: true
                           required:
                           - title
                           - description
@@ -96,7 +99,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '116'
+                - id: '160'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -105,14 +108,15 @@ paths:
                     difficulty: easy
                     inputs: []
                     author_name: test nickname
+                    shrine_name: test_shrine
                   relationships:
                     user:
                       data:
-                        id: '240'
+                        id: '164'
                         type: user
                     shrine:
                       data:
-                        id: '47'
+                        id: '91'
                         type: shrine
       parameters:
       - name: shrine_id
@@ -210,6 +214,8 @@ paths:
                               - content
                           author_name:
                             type: string
+                          shrine_name:
+                            nullable: true
                         required:
                         - title
                         - description
@@ -254,7 +260,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '119'
+                  id: '163'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -262,13 +268,14 @@ paths:
                     source: puts 'Hello world'
                     difficulty: easy
                     inputs:
-                    - id: 12
+                    - id: 3
                       content: test_input_1
                     author_name: test nickname
+                    shrine_name:
                   relationships:
                     user:
                       data:
-                        id: '242'
+                        id: '166'
                         type: user
                     shrine:
                       data:
@@ -326,7 +333,7 @@ paths:
                   used: 1
                   limit: 5
                   remaining: 4
-                  reset_at: '2026-04-12T03:00:00+09:00'
+                  reset_at: '2026-04-18T03:00:00+09:00'
   "/api/v1/user/sangakus/generate_source_usage":
     get:
       summary: generate_source_usage
@@ -357,7 +364,7 @@ paths:
                 used: 0
                 limit: 5
                 remaining: 5
-                reset_at: '2026-04-12T03:00:00+09:00'
+                reset_at: '2026-04-18T03:00:00+09:00'
   "/api/v1/user/sangakus/{id}":
     delete:
       summary: destroy
@@ -369,7 +376,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 123
+        example: 167
       responses:
         '200':
           description: return sangaku in json format
@@ -401,6 +408,8 @@ paths:
                             items: {}
                           author_name:
                             type: string
+                          shrine_name:
+                            nullable: true
                         required:
                         - title
                         - description
@@ -445,7 +454,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '123'
+                  id: '167'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -454,10 +463,11 @@ paths:
                     difficulty: easy
                     inputs: []
                     author_name: test nickname
+                    shrine_name:
                   relationships:
                     user:
                       data:
-                        id: '248'
+                        id: '172'
                         type: user
                     shrine:
                       data:
@@ -471,7 +481,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 120
+        example: 164
       responses:
         '200':
           description: return sangaku in json formata
@@ -503,6 +513,8 @@ paths:
                             items: {}
                           author_name:
                             type: string
+                          shrine_name:
+                            nullable: true
                         required:
                         - title
                         - description
@@ -547,7 +559,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '120'
+                  id: '164'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -556,10 +568,11 @@ paths:
                     difficulty: easy
                     inputs: []
                     author_name: test nickname
+                    shrine_name:
                   relationships:
                     user:
                       data:
-                        id: '243'
+                        id: '167'
                         type: user
                     shrine:
                       data:
@@ -573,7 +586,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 121
+        example: 165
       requestBody:
         content:
           application/json:
@@ -651,6 +664,8 @@ paths:
                               - content
                           author_name:
                             type: string
+                          shrine_name:
+                            nullable: true
                         required:
                         - title
                         - description
@@ -695,7 +710,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '121'
+                  id: '165'
                   type: sangaku
                   attributes:
                     title: changed_title
@@ -703,13 +718,14 @@ paths:
                     source: puts 'Hello world'
                     difficulty: easy
                     inputs:
-                    - id: 13
+                    - id: 4
                       content: a
                     author_name: test nickname
+                    shrine_name:
                   relationships:
                     user:
                       data:
-                        id: '244'
+                        id: '168'
                         type: user
                     shrine:
                       data:

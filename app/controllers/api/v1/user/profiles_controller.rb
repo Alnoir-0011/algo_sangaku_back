@@ -1,6 +1,10 @@
 module Api
   module V1
     class User::ProfilesController < BaseController
+      def show
+        render json: MyProfileSerializer.new(current_user).serializable_hash.to_json
+      end
+
       def update
         user = ::User.find(current_user.id)
 
@@ -14,7 +18,7 @@ module Api
       private
 
       def user_params
-        params.require(:user).permit(:nickname)
+        params.require(:user).permit(:nickname, :show_answer_count)
       end
     end
   end
