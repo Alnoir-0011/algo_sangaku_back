@@ -14,11 +14,12 @@ module Api::ExceptionHandler
   end
 
   def render_500(exception = nil, messages = nil)
-    render_error(500, "Internal Server Error", exception&.message, *messages)
+    detail = Rails.env.production? ? nil : exception&.message
+    render_error(500, "Internal Server Error", detail, *messages)
   end
 
   def render_404(exception = nil, messages = nil)
-    render_error(404, "Record Not Found", exception&.message, *messages)
+    render_error(404, "Record Not Found")
   end
 
   def render_error(code, message, *error_messages)
