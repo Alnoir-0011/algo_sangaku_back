@@ -22,9 +22,15 @@ module Api
             return render_400(nil, [ "最後の管理者を降格することはできません" ])
           end
 
-          was_admin = @user.admin?
+          new_role = params.dig(:user, :role).to_s
+          unless ::User.roles.key?(new_role)
+            return render_400(nil, [ "無効なロールです" ])
+          end
 
-          if @user.update(user_params)
+          was_admin = @user.admin?
+          @user.role = new_role
+
+          if @user.save
             @user.api_keys.destroy_all if was_admin && @user.general?
             render json: ::Admin::UserSerializer.new(@user).serializable_hash.to_json, status: :ok
           else
@@ -36,10 +42,6 @@ module Api
 
         def set_user
           @user = ::User.find(params[:id])
-        end
-
-        def user_params
-          params.require(:user).permit(:role)
         end
       end
     end
