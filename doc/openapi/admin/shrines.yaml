@@ -1,0 +1,501 @@
+---
+openapi: 3.0.3
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/admin/shrines":
+    get:
+      summary: index
+      tags:
+      - Api::V1::Admin::Shrine
+      responses:
+        '200':
+          description: returns 200 with shrines list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            address:
+                              type: string
+                            latitude:
+                              type: number
+                              format: float
+                            longitude:
+                              type: number
+                              format: float
+                            sangaku_count:
+                              type: integer
+                          required:
+                          - name
+                          - address
+                          - latitude
+                          - longitude
+                          - sangaku_count
+                      required:
+                      - id
+                      - type
+                      - attributes
+                required:
+                - data
+              example:
+                data:
+                - id: '168'
+                  type: shrine
+                  attributes:
+                    name: test_shrine
+                    address: test_address
+                    latitude: 35.70204829610801
+                    longitude: 139.76789333814216
+                    sangaku_count: 0
+        '401':
+          description: returns 401
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'HTTP Token: Access denied.
+
+                '
+        '403':
+          description: returns 403
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors: []
+    post:
+      summary: create
+      tags:
+      - Api::V1::Admin::Shrine
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shrine:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    address:
+                      type: string
+                    latitude:
+                      type: number
+                      format: float
+                    longitude:
+                      type: number
+                      format: float
+                    place_id:
+                      type: string
+                  required:
+                  - name
+                  - address
+                  - latitude
+                  - longitude
+                  - place_id
+              required:
+              - shrine
+            example:
+              shrine:
+                name: 新しい神社
+                address: 東京都千代田区1-1
+                latitude: 35.681236
+                longitude: 139.767125
+                place_id: ChIJAAAAAAAAAAAARuMgFzkAAAAA
+      responses:
+        '201':
+          description: returns 201 and creates shrine with valid params
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          address:
+                            type: string
+                          latitude:
+                            type: number
+                            format: float
+                          longitude:
+                            type: number
+                            format: float
+                          sangaku_count:
+                            type: integer
+                        required:
+                        - name
+                        - address
+                        - latitude
+                        - longitude
+                        - sangaku_count
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '176'
+                  type: shrine
+                  attributes:
+                    name: 新しい神社
+                    address: 東京都千代田区1-1
+                    latitude: 35.681236
+                    longitude: 139.767125
+                    sangaku_count: 0
+        '401':
+          description: returns 401
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'HTTP Token: Access denied.
+
+                '
+        '403':
+          description: returns 403
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors: []
+  "/api/v1/admin/shrines/{id}":
+    delete:
+      summary: destroy
+      tags:
+      - Api::V1::Admin::Shrine
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 192
+      responses:
+        '200':
+          description: returns 200 and deletes shrine
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          address:
+                            type: string
+                          latitude:
+                            type: number
+                            format: float
+                          longitude:
+                            type: number
+                            format: float
+                          sangaku_count:
+                            type: integer
+                        required:
+                        - name
+                        - address
+                        - latitude
+                        - longitude
+                        - sangaku_count
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '189'
+                  type: shrine
+                  attributes:
+                    name: test_shrine
+                    address: test_address
+                    latitude: 35.70204829610801
+                    longitude: 139.76789333814216
+                    sangaku_count: 0
+        '401':
+          description: returns 401
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'HTTP Token: Access denied.
+
+                '
+        '403':
+          description: returns 403
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors: []
+    get:
+      summary: show
+      tags:
+      - Api::V1::Admin::Shrine
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 174
+      responses:
+        '200':
+          description: returns 200 with shrine attributes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          address:
+                            type: string
+                          latitude:
+                            type: number
+                            format: float
+                          longitude:
+                            type: number
+                            format: float
+                          sangaku_count:
+                            type: integer
+                        required:
+                        - name
+                        - address
+                        - latitude
+                        - longitude
+                        - sangaku_count
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '171'
+                  type: shrine
+                  attributes:
+                    name: test_shrine
+                    address: test_address
+                    latitude: 35.70204829610801
+                    longitude: 139.76789333814216
+                    sangaku_count: 0
+        '401':
+          description: returns 401
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'HTTP Token: Access denied.
+
+                '
+        '403':
+          description: returns 403
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors: []
+    patch:
+      summary: update
+      tags:
+      - Api::V1::Admin::Shrine
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 188
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shrine:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                  required:
+                  - name
+              required:
+              - shrine
+            example:
+              shrine:
+                name: 更新後の神社名
+      responses:
+        '200':
+          description: returns 200 and updates shrine
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          address:
+                            type: string
+                          latitude:
+                            type: number
+                            format: float
+                          longitude:
+                            type: number
+                            format: float
+                          sangaku_count:
+                            type: integer
+                        required:
+                        - name
+                        - address
+                        - latitude
+                        - longitude
+                        - sangaku_count
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '183'
+                  type: shrine
+                  attributes:
+                    name: 更新後の神社名
+                    address: test_address
+                    latitude: 35.70204829610801
+                    longitude: 139.76789333814216
+                    sangaku_count: 0
+        '401':
+          description: returns 401
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'HTTP Token: Access denied.
+
+                '
+        '403':
+          description: returns 403
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors: []

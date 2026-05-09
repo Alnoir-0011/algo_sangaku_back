@@ -1,0 +1,71 @@
+---
+openapi: 3.0.3
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/admin/stats":
+    get:
+      summary: show
+      tags:
+      - Api::V1::Admin::Stat
+      responses:
+        '200':
+          description: reflects correct counts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      users_count:
+                        type: integer
+                      sangakus_count:
+                        type: integer
+                      shrines_count:
+                        type: integer
+                      answers_count:
+                        type: integer
+                    required:
+                    - users_count
+                    - sangakus_count
+                    - shrines_count
+                    - answers_count
+                required:
+                - data
+              example:
+                data:
+                  users_count: 3
+                  sangakus_count: 1
+                  shrines_count: 1
+                  answers_count: 0
+        '401':
+          description: returns 401
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'HTTP Token: Access denied.
+
+                '
+        '403':
+          description: returns 403
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors: []
