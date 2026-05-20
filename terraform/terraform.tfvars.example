@@ -22,6 +22,9 @@ ec2_key_name      = ""   # SSH 不要なら空のまま
 # CloudFront カスタムヘッダー (32文字以上のランダムな文字列: openssl rand -hex 32)
 cloudfront_secret_header_value = ""
 
+# フロントエンド起源証明用シークレット (32文字以上のランダムな文字列: openssl rand -hex 32)
+client_secret = ""
+
 # Secrets (SSM Parameter Store に保存される)
 rails_master_key           = ""
 db_password                = ""   # 既存 RDS のパスワードと一致させる
