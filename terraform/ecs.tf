@@ -145,8 +145,12 @@ resource "aws_ecs_task_definition" "main" {
         { name = "POSTGRES_USER",           valueFrom = aws_ssm_parameter.postgres_user.arn },
         { name = "POSTGRES_PASSWORD",       valueFrom = aws_ssm_parameter.postgres_password.arn },
         { name = "POSTGRES_DB",             valueFrom = aws_ssm_parameter.postgres_db.arn },
+        { name = "GOOGLE_CLIENT_ID",        valueFrom = aws_ssm_parameter.google_client_id.arn },
+        { name = "GOOGLE_MAP_API_KEY",      valueFrom = aws_ssm_parameter.google_map_api_key.arn },
         { name = "PAIZAIO_API_KEY",         valueFrom = aws_ssm_parameter.paizaio_api_key.arn },
         { name = "OPENAI_API_KEY",          valueFrom = aws_ssm_parameter.openai_api_key.arn },
+        { name = "FRONTEND_URL",            valueFrom = aws_ssm_parameter.frontend_url.arn },
+        { name = "CLIENT_SECRET",           valueFrom = aws_ssm_parameter.client_secret.arn },
       ]
 
       environment = [
