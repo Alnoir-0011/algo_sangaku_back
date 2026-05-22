@@ -27,7 +27,7 @@ Rails.application.routes.draw do
 
       namespace :admin do
         resources :users, only: %i[index show update]
-        resources :sangakus, only: %i[index show destroy]
+        resources :sangakus, only: %i[index show update destroy]
         resources :shrines, only: %i[index show create update destroy]
         get :stats, to: "stats#show"
       end

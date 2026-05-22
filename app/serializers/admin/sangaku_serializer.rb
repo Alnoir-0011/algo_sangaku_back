@@ -1,7 +1,7 @@
 class Admin::SangakuSerializer
   include JSONAPI::Serializer
 
-  attributes :title, :difficulty, :created_at
+  attributes :title, :description, :source, :difficulty, :created_at
 
   attribute :user_name do |sangaku|
     sangaku.user.nickname

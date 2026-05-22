@@ -72,6 +72,86 @@ RSpec.describe "Api::V1::Admin::Sangakus", type: :request do
     end
   end
 
+  describe "PATCH /api/v1/admin/sangakus/:id" do
+    let(:new_params) do
+      {
+        sangaku: {
+          title: "更新タイトル",
+          difficulty: "normal",
+          description: "更新説明文",
+          source: "puts 'updated'"
+        }
+      }
+    end
+
+    context "as admin" do
+      it "returns 200 and updates the sangaku" do
+        # Arrange
+        authenticate_stub(admin_user)
+
+        # Act
+        patch api_v1_admin_sangaku_path(sangaku.id),
+              params: new_params.to_json,
+              headers: headers
+
+        # Assert
+        expect(response).to have_http_status(:ok)
+        attrs = body["data"]["attributes"]
+        expect(attrs["title"]).to eq("更新タイトル")
+        expect(attrs["difficulty"]).to eq("normal")
+        expect(attrs["description"]).to eq("更新説明文")
+        expect(attrs["source"]).to eq("puts 'updated'")
+      end
+
+      it "returns 400 when title is blank", openapi: false do
+        # Arrange
+        authenticate_stub(admin_user)
+
+        # Act
+        patch api_v1_admin_sangaku_path(sangaku.id),
+              params: { sangaku: { title: "" } }.to_json,
+              headers: headers
+
+        # Assert
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 404 for nonexistent sangaku", openapi: false do
+        # Arrange
+        authenticate_stub(admin_user)
+
+        # Act
+        patch api_v1_admin_sangaku_path(0),
+              params: new_params.to_json,
+              headers: headers
+
+        # Assert
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "as general user" do
+      it "returns 403" do
+        authenticate_stub(general_user)
+        patch api_v1_admin_sangaku_path(sangaku.id),
+              params: new_params.to_json,
+              headers: headers
+
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "unauthenticated" do
+      it "returns 401" do
+        patch api_v1_admin_sangaku_path(sangaku.id),
+              params: new_params.to_json,
+              headers: headers
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
+
   describe "DELETE /api/v1/admin/sangakus/:id" do
     context "as admin" do
       it "returns 200 and deletes the sangaku" do
