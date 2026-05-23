@@ -29,7 +29,7 @@ module Api
         private
 
         def set_sangaku
-          @sangaku = ::Sangaku.find(params[:id])
+          @sangaku = ::Sangaku.includes(:user, :shrine).find(params[:id])
         end
 
         def sangaku_params

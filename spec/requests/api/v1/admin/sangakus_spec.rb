@@ -43,7 +43,7 @@ RSpec.describe "Api::V1::Admin::Sangakus", type: :request do
 
         expect(response).to have_http_status(:ok)
         attrs = body["data"]["attributes"]
-        expect(attrs).to include("title", "difficulty", "created_at")
+        expect(attrs).to include("title", "description", "source", "difficulty", "created_at")
       end
 
       it "returns 404 for nonexistent sangaku", openapi: false do
@@ -110,6 +110,19 @@ RSpec.describe "Api::V1::Admin::Sangakus", type: :request do
         # Act
         patch api_v1_admin_sangaku_path(sangaku.id),
               params: { sangaku: { title: "" } }.to_json,
+              headers: headers
+
+        # Assert
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 400 when difficulty is invalid", openapi: false do
+        # Arrange
+        authenticate_stub(admin_user)
+
+        # Act
+        patch api_v1_admin_sangaku_path(sangaku.id),
+              params: { sangaku: { difficulty: "invalid_value" } }.to_json,
               headers: headers
 
         # Assert

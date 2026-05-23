@@ -4,6 +4,8 @@ module Api
       class BaseController < Api::V1::BaseController
         before_action :authorize_admin!
 
+        rescue_from ArgumentError, with: :render_400
+
         private
 
         def authorize_admin!
