@@ -14,6 +14,7 @@ resource "aws_ecs_task_definition" "main" {
   network_mode             = "bridge"
   requires_compatibilities = ["EC2"]
   execution_role_arn       = aws_iam_role.ecs_task_execution.arn
+  task_role_arn            = aws_iam_role.ecs_task.arn
 
   # unix socket を nginx と web で共有するためのボリューム
   volume {
@@ -186,11 +187,12 @@ resource "aws_ecs_task_definition" "main" {
 # ECS サービス
 # ============================================================
 resource "aws_ecs_service" "main" {
-  name            = "${var.app_name}-service"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.main.arn
-  desired_count   = 1
-  launch_type     = "EC2"
+  name                   = "${var.app_name}-service"
+  cluster                = aws_ecs_cluster.main.id
+  task_definition        = aws_ecs_task_definition.main.arn
+  desired_count          = 1
+  launch_type            = "EC2"
+  enable_execute_command = true
 
   # 単一 EC2 のためダウンタイムを許容してデプロイ (ASG なし構成の制約)
   deployment_minimum_healthy_percent = 0
