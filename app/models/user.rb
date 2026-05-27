@@ -7,6 +7,8 @@ class User < ApplicationRecord
   has_many :answer_results, through: :answers
   has_many :generate_source_call_logs, dependent: :destroy
 
+  enum :role, { general: 0, admin: 1 }
+
   GENERATE_SOURCE_DAILY_LIMIT_DEFAULT = 5
 
   def generate_source_daily_limit

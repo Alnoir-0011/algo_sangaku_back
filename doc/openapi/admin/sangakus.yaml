@@ -1,0 +1,268 @@
+---
+openapi: 3.0.3
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/admin/sangakus":
+    get:
+      summary: index
+      tags:
+      - Api::V1::Admin::Sangaku
+      responses:
+        '200':
+          description: returns 200 with sangakus list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            title:
+                              type: string
+                            difficulty:
+                              type: string
+                            created_at:
+                              type: string
+                            user_name:
+                              type: string
+                            shrine_name:
+                              nullable: true
+                          required:
+                          - title
+                          - difficulty
+                          - created_at
+                          - user_name
+                          - shrine_name
+                      required:
+                      - id
+                      - type
+                      - attributes
+                required:
+                - data
+              example:
+                data:
+                - id: '91'
+                  type: sangaku
+                  attributes:
+                    title: test_title
+                    difficulty: easy
+                    created_at: '2026-05-08T00:15:50.908+09:00'
+                    user_name: test nickname
+                    shrine_name:
+        '401':
+          description: returns 401
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'HTTP Token: Access denied.
+
+                '
+        '403':
+          description: returns 403
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors: []
+  "/api/v1/admin/sangakus/{id}":
+    delete:
+      summary: destroy
+      tags:
+      - Api::V1::Admin::Sangaku
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 101
+      responses:
+        '200':
+          description: returns 200 and deletes the sangaku
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          difficulty:
+                            type: string
+                          created_at:
+                            type: string
+                          user_name:
+                            type: string
+                          shrine_name:
+                            nullable: true
+                        required:
+                        - title
+                        - difficulty
+                        - created_at
+                        - user_name
+                        - shrine_name
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '98'
+                  type: sangaku
+                  attributes:
+                    title: test_title
+                    difficulty: easy
+                    created_at: '2026-05-08T00:15:51.247+09:00'
+                    user_name: test nickname
+                    shrine_name:
+        '401':
+          description: returns 401
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'HTTP Token: Access denied.
+
+                '
+        '403':
+          description: returns 403
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors: []
+    get:
+      summary: show
+      tags:
+      - Api::V1::Admin::Sangaku
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 97
+      responses:
+        '200':
+          description: returns 200 with sangaku attributes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          difficulty:
+                            type: string
+                          created_at:
+                            type: string
+                          user_name:
+                            type: string
+                          shrine_name:
+                            nullable: true
+                        required:
+                        - title
+                        - difficulty
+                        - created_at
+                        - user_name
+                        - shrine_name
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '94'
+                  type: sangaku
+                  attributes:
+                    title: test_title
+                    difficulty: easy
+                    created_at: '2026-05-08T00:15:51.118+09:00'
+                    user_name: test nickname
+                    shrine_name:
+        '401':
+          description: returns 401
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'HTTP Token: Access denied.
+
+                '
+        '403':
+          description: returns 403
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors: []

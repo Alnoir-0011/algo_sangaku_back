@@ -25,6 +25,13 @@ Rails.application.routes.draw do
 
       resources :profiles, only: %i[show]
 
+      namespace :admin do
+        resources :users, only: %i[index show update]
+        resources :sangakus, only: %i[index show update destroy]
+        resources :shrines, only: %i[index show create update destroy]
+        get :stats, to: "stats#show"
+      end
+
       namespace :user do
         resources :sangakus, only: %i[index show create update destroy], shallow: true do
           collection do

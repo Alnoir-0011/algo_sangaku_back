@@ -1,0 +1,326 @@
+---
+openapi: 3.0.3
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/admin/users":
+    get:
+      summary: index
+      tags:
+      - Api::V1::Admin::User
+      responses:
+        '200':
+          description: returns 200 with users list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            email:
+                              type: string
+                            nickname:
+                              type: string
+                            role:
+                              type: string
+                            created_at:
+                              type: string
+                            sangaku_count:
+                              type: integer
+                            answer_count:
+                              type: integer
+                          required:
+                          - name
+                          - email
+                          - nickname
+                          - role
+                          - created_at
+                          - sangaku_count
+                          - answer_count
+                      required:
+                      - id
+                      - type
+                      - attributes
+                required:
+                - data
+              example:
+                data:
+                - id: '788'
+                  type: user
+                  attributes:
+                    name: test user
+                    email: user_82@example.com
+                    nickname: test nickname
+                    role: admin
+                    created_at: '2026-05-08T00:15:51.970+09:00'
+                    sangaku_count: 0
+                    answer_count: 0
+                - id: '789'
+                  type: user
+                  attributes:
+                    name: test user
+                    email: user_83@example.com
+                    nickname: test nickname
+                    role: general
+                    created_at: '2026-05-08T00:15:51.971+09:00'
+                    sangaku_count: 0
+                    answer_count: 0
+        '401':
+          description: returns 401
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'HTTP Token: Access denied.
+
+                '
+        '403':
+          description: returns 403
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors: []
+  "/api/v1/admin/users/{id}":
+    get:
+      summary: show
+      tags:
+      - Api::V1::Admin::User
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 801
+      responses:
+        '200':
+          description: returns 200 with user attributes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          email:
+                            type: string
+                          nickname:
+                            type: string
+                          role:
+                            type: string
+                          created_at:
+                            type: string
+                          sangaku_count:
+                            type: integer
+                          answer_count:
+                            type: integer
+                        required:
+                        - name
+                        - email
+                        - nickname
+                        - role
+                        - created_at
+                        - sangaku_count
+                        - answer_count
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '795'
+                  type: user
+                  attributes:
+                    name: test user
+                    email: user_89@example.com
+                    nickname: test nickname
+                    role: general
+                    created_at: '2026-05-08T00:15:52.037+09:00'
+                    sangaku_count: 0
+                    answer_count: 0
+        '401':
+          description: returns 401
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'HTTP Token: Access denied.
+
+                '
+        '403':
+          description: returns 403
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors: []
+    patch:
+      summary: update
+      tags:
+      - Api::V1::Admin::User
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 822
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    role:
+                      type: string
+                    name:
+                      type: string
+                    email:
+                      type: string
+                  required:
+                  - role
+              required:
+              - user
+            example:
+              user:
+                role: admin
+                name: hacked
+                email: hacked@example.com
+      responses:
+        '200':
+          description: does not change name or email even if passed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          email:
+                            type: string
+                          nickname:
+                            type: string
+                          role:
+                            type: string
+                          created_at:
+                            type: string
+                          sangaku_count:
+                            type: integer
+                          answer_count:
+                            type: integer
+                        required:
+                        - name
+                        - email
+                        - nickname
+                        - role
+                        - created_at
+                        - sangaku_count
+                        - answer_count
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '810'
+                  type: user
+                  attributes:
+                    name: test user
+                    email: user_104@example.com
+                    nickname: test nickname
+                    role: admin
+                    created_at: '2026-05-08T00:15:52.156+09:00'
+                    sangaku_count: 0
+                    answer_count: 0
+        '401':
+          description: returns 401
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'HTTP Token: Access denied.
+
+                '
+        '403':
+          description: returns 403
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors: []

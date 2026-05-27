@@ -5,5 +5,9 @@ FactoryBot.define do
     name { "test user" }
     sequence(:email) { |n| "user_#{n}@example.com" }
     nickname { "test nickname" }
+
+    trait :admin do
+      role { :admin }
+    end
   end
 end
