@@ -34,7 +34,7 @@ gem "jsonapi-serializer"
 gem "dotenv-rails", "~> 3.2"
 gem "config", "~> 5.5", ">= 5.5.2"
 gem "pagy", "~> 43.5"
-gem "googleauth", "~> 1.16"
+gem "googleauth", "~> 1.17"
 
 gem "solid_queue", "~> 1.4"
 gem "ruby-openai", "~> 8.3"
