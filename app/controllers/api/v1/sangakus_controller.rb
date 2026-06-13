@@ -3,7 +3,7 @@ module Api
     class SangakusController < BaseController
       def show
         sangaku = Sangaku.find(params[:id])
-        render json: SangakuSerializer.new(sangaku).serializable_hash.to_json, status: :ok
+        render json: PublicSangakuSerializer.new(sangaku).serializable_hash.to_json, status: :ok
       end
     end
   end

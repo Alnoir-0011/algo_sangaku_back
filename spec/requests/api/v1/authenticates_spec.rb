@@ -9,6 +9,20 @@ RSpec.describe "Api::V1::Authenticates", type: :request do
       allow_any_instance_of(Api::V1::AuthenticatesController).to receive(:verify_idtoken).and_return(dummy_payload)
     end
 
+    context 'with invalid token' do
+      let!(:params) { { token: 'invalid_token' }.to_json }
+      let(:http_request) { post api_v1_authenticate_path, params: params, headers: headers }
+
+      before do
+        allow_any_instance_of(Api::V1::AuthenticatesController).to receive(:verify_idtoken).and_return(nil)
+      end
+
+      it 'returns 400 bad request' do
+        http_request
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
+
     context 'user not created' do
       let!(:params) { { token: 'dummy_idtoken' }.to_json }
       let!(:user_attr) { attributes_for(:user) }
