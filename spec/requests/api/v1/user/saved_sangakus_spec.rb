@@ -25,6 +25,13 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
         expect(body["data"][0]["attributes"]["title"]).to eq sangaku.title
         expect(body["data"][0]["attributes"]["author_name"]).to eq author.nickname
       end
+
+      it "does not include source in response" do
+        authenticate_stub(user)
+        http_request
+
+        expect(body["data"][0]["attributes"].keys).not_to include("source")
+      end
     end
   end
 
@@ -45,6 +52,13 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
         expect(response).to have_http_status(:ok)
         expect(body["data"]["attributes"]["title"]).to eq sangaku.title
         expect(body["data"]["attributes"]["author_name"]).to eq author.nickname
+      end
+
+      it "does not include source in response" do
+        authenticate_stub(user)
+        http_request
+
+        expect(body["data"]["attributes"].keys).not_to include("source")
       end
     end
   end

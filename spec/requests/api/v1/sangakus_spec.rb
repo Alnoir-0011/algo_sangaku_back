@@ -18,6 +18,13 @@ RSpec.describe "Api::V1::Sangakus", type: :request do
         expect(response).to be_successful
         expect(body["data"]["attributes"]["title"]).to eq sangaku.title
       end
+
+      it "does not include source in response" do
+        authenticate_stub(user)
+
+        http_request
+        expect(body["data"]["attributes"].keys).not_to include("source")
+      end
     end
 
     context "with nonexistent id", openapi: false do

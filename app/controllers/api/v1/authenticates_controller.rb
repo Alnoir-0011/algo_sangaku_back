@@ -6,6 +6,8 @@ module Api
 
       def create
           payload = verify_idtoken
+          return render_400(nil, "invalid token") if payload.nil?
+
           user = ::User.find_by(provider: "google", uid: payload["sub"])
 
         if user
@@ -34,11 +36,9 @@ module Api
 
       def verify_idtoken
         google_client_id = ENV["GOOGLE_CLIENT_ID"]
-        begin
-          Google::Auth::IDTokens.verify_oidc(params[:token], aud: google_client_id)
-        rescue StandardError => e
-          render_400(nil, "invalid token")
-        end
+        Google::Auth::IDTokens.verify_oidc(params[:token], aud: google_client_id)
+      rescue StandardError
+        nil
       end
     end
   end

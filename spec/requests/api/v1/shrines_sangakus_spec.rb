@@ -18,6 +18,12 @@ RSpec.describe "Api::V1::ShrinesSangakus", type: :request do
         expect(body["data"][0]["id"]).to eq sangaku.id.to_s
         expect(body["data"][0]["attributes"]["title"]).to eq sangaku.title
       end
+
+      it "does not include source in response" do
+        http_request
+
+        expect(body["data"][0]["attributes"].keys).not_to include("source")
+      end
     end
   end
 end
