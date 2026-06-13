@@ -39,8 +39,6 @@ paths:
                             type: string
                           description:
                             type: string
-                          source:
-                            type: string
                           difficulty:
                             type: string
                           inputs:
@@ -53,7 +51,6 @@ paths:
                         required:
                         - title
                         - description
-                        - source
                         - difficulty
                         - inputs
                         - author_name
@@ -99,7 +96,6 @@ paths:
                   attributes:
                     title: test_title
                     description: test_description
-                    source: puts 'Hello world'
                     difficulty: easy
                     inputs: []
                     author_name: test nickname
