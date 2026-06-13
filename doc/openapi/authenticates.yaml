@@ -90,3 +90,16 @@ paths:
                     name: test user
                     email: user_2@example.com
                     nickname: test nickname
+        "400":
+          description: invalid or expired token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+              example:
+                message: invalid token
