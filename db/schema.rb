@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_07_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_14_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -31,7 +31,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_07_000000) do
     t.text "source", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_sangaku_save_id", null: false
-    t.index [ "user_sangaku_save_id" ], name: "index_answers_on_user_sangaku_save_id"
+    t.index [ "user_sangaku_save_id" ], name: "index_answers_on_user_sangaku_save_id_unique", unique: true
   end
 
   create_table "api_keys", force: :cascade do |t|
@@ -48,6 +48,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_07_000000) do
   create_table "fixed_inputs", force: :cascade do |t|
     t.text "content", null: false
     t.datetime "created_at", null: false
+    t.text "expected_output"
     t.bigint "sangaku_id", null: false
     t.datetime "updated_at", null: false
     t.index [ "content", "sangaku_id" ], name: "index_fixed_inputs_on_content_and_sangaku_id", unique: true

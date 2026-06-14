@@ -32,6 +32,9 @@
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 
+# Ignore SimpleCov coverage reports (generated artifact).
+/coverage/
+
 config/settings.local.yml
 config/settings/*.local.yml
 config/environments/*.local.yml

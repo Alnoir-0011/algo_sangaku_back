@@ -5,6 +5,7 @@ module Api::ExceptionHandler
     rescue_from StandardError, with: :render_500
     rescue_from ActiveRecord::RecordNotFound, with: :render_404
     rescue_from ActionController::ParameterMissing, with: :render_400
+    rescue_from ActiveRecord::RecordNotUnique, with: :render_409
   end
 
   private
@@ -20,6 +21,10 @@ module Api::ExceptionHandler
 
   def render_404(exception = nil, messages = nil)
     render_error(404, "Record Not Found")
+  end
+
+  def render_409(exception = nil, messages = nil)
+    render_error(409, "Conflict")
   end
 
   def render_error(code, message, *error_messages)

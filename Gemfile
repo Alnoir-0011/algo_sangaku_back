@@ -38,6 +38,7 @@ gem "googleauth", "~> 1.17"
 
 gem "solid_queue", "~> 1.4"
 gem "ruby-openai", "~> 8.3"
+gem "rack-attack", "~> 6.7"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -62,4 +63,5 @@ end
 
 group :test do
   gem "rspec-openapi"
+  gem "simplecov", require: false
 end

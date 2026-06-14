@@ -2,7 +2,7 @@ module Api
   module V1
     class User::ResultsController < BaseController
       def show
-        sangaku = current_user.sangakus.find_by(id: params[:sangaku_id])
+        sangaku = current_user.sangakus.find(params[:sangaku_id])
 
         user_sangaku_save_count = sangaku.user_sangaku_saves.count
         correct_count = sangaku.answers.is_status("correct").count
