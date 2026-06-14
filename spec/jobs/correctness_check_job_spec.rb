@@ -17,13 +17,12 @@ RSpec.describe CorrectnessCheckJob, type: :job do
     end
 
     it 'sets status to error after exhausting retries' do
-      allow(answer_result).to receive(:update_status).and_raise(StandardError, "PaizaIO error")
-      allow_any_instance_of(CorrectnessCheckJob).to receive(:executions).and_return(3)
+      allow_any_instance_of(AnswerResult).to receive(:update_status).and_raise(StandardError, "PaizaIO error")
 
-      expect {
-        CorrectnessCheckJob.perform_now(answer_result)
-      }.to raise_error(StandardError)
+      job = CorrectnessCheckJob.new
+      allow(job).to receive(:executions).and_return(3)
 
+      expect { job.perform(answer_result) }.to raise_error(StandardError)
       expect(answer_result.reload.status).to eq("error")
     end
   end
