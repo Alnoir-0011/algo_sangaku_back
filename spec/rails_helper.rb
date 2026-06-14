@@ -1,4 +1,12 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
+require 'simplecov'
+SimpleCov.start 'rails' do
+  minimum_coverage 80
+  add_filter '/spec/'
+  add_filter '/config/'
+  add_filter '/db/'
+end
+
 require 'spec_helper'
 ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
@@ -12,8 +20,8 @@ require 'rspec/rails'
 Dir[Rails.root.join('spec/support/*.rb')].sort.each { |f| require f }
 Dir[Rails.root.join('spec/support/example/*.rb')].sort.each { |f| require f }
 # enable gem "webmock"
-require 'webmock'
-WebMock.allow_net_connect!(net_http_connect_on_start: true)
+require 'webmock/rspec'
+WebMock.disable_net_connect!(allow_localhost: true)
 
 require 'rspec_openapi'
 # Requires supporting ruby files with custom matchers and macros, etc, in
@@ -77,4 +85,9 @@ RSpec.configure do |config|
   config.include ResponseHelper
   config.include AuthenticationHelper
   config.include ActiveSupport::Testing::TimeHelpers
+  config.include PaizaioStubs
+
+  config.before(:each) do
+    stub_paizaio_api
+  end
 end

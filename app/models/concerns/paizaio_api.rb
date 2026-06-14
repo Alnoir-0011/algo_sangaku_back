@@ -1,17 +1,22 @@
 module PaizaioApi
   extend ActiveSupport::Concern
 
+  MAX_POLL_ATTEMPTS = 30
+
   def run_source(source, input = "", language = "ruby")
     id = create(source, language, input)
     status = "running"
+    attempts = 0
 
     while status == "running"
+      raise StandardError, "PaizaIO polling timeout" if attempts >= MAX_POLL_ATTEMPTS
+
       sleep(100.0 / 1000.0)
       status = get_status(id)
+      attempts += 1
     end
 
-    result = get_details(id)
-    result
+    get_details(id)
   end
 
   def create(source, language, input)
@@ -19,6 +24,8 @@ module PaizaioApi
     uri = URI(api_url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = uri.scheme === "https"
+    http.open_timeout = 10
+    http.read_timeout = 30
 
     headers = { "Content-Type" => "application/json" }
     params = {
