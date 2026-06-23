@@ -20,7 +20,7 @@ RSpec.describe "Api::V1::Admin::Users", type: :request do
         let!(:matched_by_nickname) { create(:user, email: "other@example.com", nickname: "search_target_nick") }
         let!(:unmatched_user) { create(:user, email: "nomatch@example.com", nickname: "nomatch") }
 
-        it "returns only users matching query by email", openapi: false do
+        it "returns only users matching query by email" do
           authenticate_stub(admin_user)
           get api_v1_admin_users_path, params: { query: "search_target@" }, headers: headers
 
@@ -80,7 +80,7 @@ RSpec.describe "Api::V1::Admin::Users", type: :request do
           expect(ids.index(older_user.id)).to be > ids.index(newer_user.id)
         end
 
-        it "returns users in descending order when sort=desc", openapi: false do
+        it "returns users in descending order when sort=desc" do
           authenticate_stub(admin_user)
           get api_v1_admin_users_path, params: { sort: "desc" }, headers: headers
 
