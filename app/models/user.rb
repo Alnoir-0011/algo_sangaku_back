@@ -9,6 +9,11 @@ class User < ApplicationRecord
 
   enum :role, { general: 0, admin: 1 }
 
+  scope :search, ->(query) {
+    q = "%#{sanitize_sql_like(query)}%"
+    where("email ILIKE ? OR nickname ILIKE ?", q, q)
+  }
+
   GENERATE_SOURCE_DAILY_LIMIT_DEFAULT = 5
 
   def generate_source_daily_limit

@@ -12,7 +12,7 @@ paths:
       - Api::V1::Admin::User
       responses:
         '200':
-          description: returns 200 with users list
+          description: returns users in descending order when sort=desc
           content:
             application/json:
               schema:
@@ -60,24 +60,44 @@ paths:
                 - data
               example:
                 data:
-                - id: '788'
+                - id: '877'
                   type: user
                   attributes:
                     name: test user
-                    email: user_82@example.com
-                    nickname: test nickname
-                    role: admin
-                    created_at: '2026-05-08T00:15:51.970+09:00'
-                    sangaku_count: 0
-                    answer_count: 0
-                - id: '789'
-                  type: user
-                  attributes:
-                    name: test user
-                    email: user_83@example.com
+                    email: user_18@example.com
                     nickname: test nickname
                     role: general
-                    created_at: '2026-05-08T00:15:51.971+09:00'
+                    created_at: '2026-06-23T16:18:51.659+09:00'
+                    sangaku_count: 0
+                    answer_count: 0
+                - id: '876'
+                  type: user
+                  attributes:
+                    name: test user
+                    email: user_17@example.com
+                    nickname: test nickname
+                    role: admin
+                    created_at: '2026-06-23T16:18:51.657+09:00'
+                    sangaku_count: 0
+                    answer_count: 0
+                - id: '879'
+                  type: user
+                  attributes:
+                    name: test user
+                    email: user_20@example.com
+                    nickname: test nickname
+                    role: general
+                    created_at: '2026-06-22T16:18:51.662+09:00'
+                    sangaku_count: 0
+                    answer_count: 0
+                - id: '878'
+                  type: user
+                  attributes:
+                    name: test user
+                    email: user_19@example.com
+                    nickname: test nickname
+                    role: general
+                    created_at: '2026-06-21T16:18:51.660+09:00'
                     sangaku_count: 0
                     answer_count: 0
         '401':
@@ -107,6 +127,19 @@ paths:
               example:
                 message: Forbidden
                 errors: []
+      parameters:
+      - name: query
+        in: query
+        required: false
+        schema:
+          type: string
+        example: search_target@
+      - name: sort
+        in: query
+        required: false
+        schema:
+          type: string
+        example: desc
   "/api/v1/admin/users/{id}":
     get:
       summary: show
@@ -118,7 +151,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 801
+        example: 895
       responses:
         '200':
           description: returns 200 with user attributes
@@ -167,14 +200,14 @@ paths:
                 - data
               example:
                 data:
-                  id: '795'
+                  id: '889'
                   type: user
                   attributes:
                     name: test user
-                    email: user_89@example.com
+                    email: user_30@example.com
                     nickname: test nickname
                     role: general
-                    created_at: '2026-05-08T00:15:52.037+09:00'
+                    created_at: '2026-06-23T16:18:51.714+09:00'
                     sangaku_count: 0
                     answer_count: 0
         '401':
@@ -214,7 +247,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 822
+        example: 916
       requestBody:
         content:
           application/json:
@@ -287,14 +320,14 @@ paths:
                 - data
               example:
                 data:
-                  id: '810'
+                  id: '904'
                   type: user
                   attributes:
                     name: test user
-                    email: user_104@example.com
+                    email: user_45@example.com
                     nickname: test nickname
                     role: admin
-                    created_at: '2026-05-08T00:15:52.156+09:00'
+                    created_at: '2026-06-23T16:18:51.814+09:00'
                     sangaku_count: 0
                     answer_count: 0
         '401':

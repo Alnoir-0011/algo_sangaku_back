@@ -5,7 +5,7 @@ module Api
         before_action :set_user, only: %i[show update]
 
         def index
-          @pagy, users = pagy(::User.all)
+          @pagy, users = pagy(filtered_users.order(created_at: sort_direction))
           render json: ::Admin::UserSerializer.new(users).serializable_hash.to_json, status: :ok
         end
 
@@ -42,6 +42,18 @@ module Api
 
         def set_user
           @user = ::User.find(params[:id])
+        end
+
+        ALLOWED_SORT_DIRECTIONS = %w[asc desc].freeze
+
+        def filtered_users
+          return ::User.all unless params[:query].present?
+
+          ::User.search(params[:query].to_s)
+        end
+
+        def sort_direction
+          ALLOWED_SORT_DIRECTIONS.include?(params[:sort]) ? params[:sort].to_sym : :desc
         end
       end
     end
