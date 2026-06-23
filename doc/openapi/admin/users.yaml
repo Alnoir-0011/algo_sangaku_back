@@ -10,6 +10,32 @@ paths:
       summary: index
       tags:
       - Api::V1::Admin::User
+      parameters:
+      - name: query
+        in: query
+        required: false
+        description: email または nickname に対する部分一致検索（大文字小文字無視）
+        schema:
+          type: string
+        example: example
+      - name: sort
+        in: query
+        required: false
+        description: 登録日時（created_at）のソート順。未指定時は desc（降順）
+        schema:
+          type: string
+          enum:
+          - asc
+          - desc
+          default: desc
+        example: desc
+      - name: page
+        in: query
+        required: false
+        description: ページ番号
+        schema:
+          type: integer
+        example: 1
       responses:
         '200':
           description: returns 200 with users list
