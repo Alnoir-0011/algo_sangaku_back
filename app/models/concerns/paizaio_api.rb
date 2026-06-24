@@ -4,7 +4,7 @@ module PaizaioApi
   MAX_POLL_ATTEMPTS = 30
 
   def run_source(source, input = "", language = "ruby")
-    id = create(source, language, input)
+    id = create_runner(source, language, input)
     status = "running"
     attempts = 0
 
@@ -19,7 +19,7 @@ module PaizaioApi
     get_details(id)
   end
 
-  def create(source, language, input)
+  def create_runner(source, language, input)
     api_url = "https://api.paiza.io/runners/create.json"
     uri = URI(api_url)
     http = Net::HTTP.new(uri.host, uri.port)

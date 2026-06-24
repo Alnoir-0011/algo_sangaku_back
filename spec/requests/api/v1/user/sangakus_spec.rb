@@ -288,7 +288,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
           http_request
         }.not_to change(GenerateSourceCallLog, :count)
         expect(response).to have_http_status(:too_many_requests)
-        expect(body["error"]).to be_present
+        expect(body["errors"].first).to be_present
         expect(body["reset_at"]).to be_present
       end
     end

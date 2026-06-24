@@ -6,11 +6,13 @@ module Api::ExceptionHandler
     rescue_from ActiveRecord::RecordNotFound, with: :render_404
     rescue_from ActionController::ParameterMissing, with: :render_400
     rescue_from ActiveRecord::RecordNotUnique, with: :render_409
+    rescue_from TooManyRequestsError, with: :render_429
   end
 
   private
 
   def render_400(exception = nil, messages = nil)
+    Rails.logger.warn("[render_400] #{exception&.message}") if exception
     render_error(400, "Bad Request", exception&.message, *messages)
   end
 
@@ -27,11 +29,16 @@ module Api::ExceptionHandler
     render_error(409, "Conflict")
   end
 
-  def render_error(code, message, *error_messages)
+  def render_429(exception = nil, messages = nil)
+    render_error(429, "Too Many Requests", exception&.message,
+                 reset_at: exception&.reset_at&.iso8601)
+  end
+
+  def render_error(code, message, *error_messages, **extra)
     res = {
       message: message,
       errors: error_messages.compact
-    }
+    }.merge(extra.compact)
 
     render json: res, status: code
   end

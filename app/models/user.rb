@@ -1,6 +1,6 @@
 class User < ApplicationRecord
   has_many :sangakus, dependent: :destroy
-  has_many :api_keys
+  has_many :api_keys, dependent: :destroy
   has_many :user_sangaku_saves, dependent: :destroy, class_name: "UserSangakuSave"
   has_many :saved_sangakus, through: :user_sangaku_saves, source: :sangaku
   has_many :answers, through: :user_sangaku_saves
@@ -40,11 +40,7 @@ class User < ApplicationRecord
   validates :email, length: { maximum: 255 }
   validates :nickname, presence: true, length: { maximum: 255 }
 
-  def initialize(attributes = {})
-    super
-    self.nickname = self.name if name.present? && !nickname.present?
-  end
-
+  after_initialize :set_defaults, if: :new_record?
 
   def add_saved_sangakus(sangaku)
     saved_sangakus << sangaku
@@ -52,5 +48,11 @@ class User < ApplicationRecord
 
   def dedicated_sangakus_with_shrine
     @dedicated_sangakus_with_shrine ||= sangakus.where.not(shrine_id: nil).includes(:shrine).to_a
+  end
+
+  private
+
+  def set_defaults
+    self.nickname = name if name.present? && nickname.blank?
   end
 end

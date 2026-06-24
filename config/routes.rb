@@ -16,7 +16,7 @@ Rails.application.routes.draw do
   namespace :api, format: :json do
     namespace :v1 do
       resource :authenticate, only: %i[create destroy]
-      resources :sangakus, only: %i[index show] do
+      resources :sangakus, only: %i[show] do
         resource :save, only: %i[create], controller: "sangaku_saves"
       end
       resources :shrines, only: %i[index show] do
