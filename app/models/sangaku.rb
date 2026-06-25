@@ -21,7 +21,7 @@ class Sangaku < ApplicationRecord
         { easy: 0, normal: 10, difficult: 20, very_difficult: 30 },
         prefix: true
 
-  scope :title_contain, ->(title) { where("title LIKE ?", "%#{title}%") }
+  scope :title_contain, ->(title) { where("title LIKE ?", "%#{sanitize_sql_like(title)}%") }
 
   def save_with_inputs(new_contents) # (str[] | nil) => boolean
     new_contents ||= []

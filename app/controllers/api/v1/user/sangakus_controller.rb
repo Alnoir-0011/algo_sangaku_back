@@ -4,7 +4,7 @@ module Api
       before_action :set_sangaku, only: %i[show update destroy]
 
       def index
-        @pagy, sangakus = pagy(current_user.sangakus.search(search_params).includes(:fixed_inputs, :user, :shrine))
+        @pagy, sangakus = pagy(current_user.sangakus.search(search_params).order(:id).includes(:fixed_inputs, :user, :shrine))
         render json: SangakuSerializer.new(sangakus).serializable_hash.to_json, status: :ok
       end
 
@@ -47,12 +47,7 @@ module Api
           return render json: { error: "問題文は#{GENERATE_SOURCE_MAX_LENGTH}文字以内で入力してください" }, status: :unprocessable_entity
         end
 
-        if current_user.generate_source_daily_remaining <= 0
-          return render json: {
-            error: "本日の利用回数上限に達しました",
-            reset_at: current_user.generate_source_daily_reset_at.iso8601
-          }, status: :too_many_requests
-        end
+        check_generate_source_rate_limit!
 
         client = OpenAI::Client.new
         response = client.chat(
@@ -87,8 +82,12 @@ module Api
           return render json: { error: "コードの生成に失敗しました" }, status: :unprocessable_entity
         end
 
-        now = Time.current
-        current_user.generate_source_call_logs.create!(called_at: now)
+        now = nil
+        current_user.with_lock do
+          check_generate_source_rate_limit!
+          now = Time.current
+          current_user.generate_source_call_logs.create!(called_at: now)
+        end
 
         render json: {
           source: source,
@@ -100,7 +99,8 @@ module Api
           }
         }, status: :ok
       rescue OpenAI::Error => e
-        render json: { error: e.message }, status: :unprocessable_entity
+        Rails.logger.error("[generate_source] OpenAI error: #{e.message}")
+        render json: { error: "コードの生成中にエラーが発生しました" }, status: :unprocessable_entity
       end
 
       def generate_source_usage
@@ -114,6 +114,12 @@ module Api
       end
 
       private
+
+      def check_generate_source_rate_limit!
+        if current_user.generate_source_daily_remaining <= 0
+          raise TooManyRequestsError.new(reset_at: current_user.generate_source_daily_reset_at)
+        end
+      end
 
       def search_params
         params.permit(:title, :shrine_id, :difficulty)

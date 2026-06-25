@@ -12,43 +12,22 @@ class Shrine < ApplicationRecord
 
   def self.search_by_bounds(low_lat, high_lat, low_lng, high_lng)
     search_result = self.text_search_by_location_restriction(low_lat, high_lat, low_lng, high_lng)
-    filtered_places = self.eleminate_non_shrine(search_result)
-
-    filtered_places.map! do |place|
-      {
-        name: place["displayName"]["text"],
-        address: place["formattedAddress"],
-        latitude: place["location"]["latitude"],
-        longitude: place["location"]["longitude"],
-        place_id: place["id"]
-      }
-    end
-
-    ActiveRecord::Base.transaction do
-      filtered_places.map! do |place|
-        shrine = Shrine.find_or_initialize_by(place_id: place[:place_id])
-
-        if shrine.persisted?
-          next shrine
-        else
-          shrine.assign_attributes(place)
-          shrine.save!
-          next shrine
-        end
-      end
-    end
-
-    filtered_places
-
+    persist_places(eleminate_non_shrine(search_result))
   rescue StandardError
     false
   end
 
   def self.search_by_location(lat, lng)
     search_result = self.text_search_by_location_bias(lat, lng)
-    filtered_places = self.eleminate_non_shrine(search_result)
+    persist_places(eleminate_non_shrine(search_result))
+  rescue StandardError
+    false
+  end
 
-    filtered_places.map! do |place|
+  private
+
+  def self.persist_places(filtered_places)
+    place_attrs = filtered_places.map do |place|
       {
         name: place["displayName"]["text"],
         address: place["formattedAddress"],
@@ -58,45 +37,24 @@ class Shrine < ApplicationRecord
       }
     end
 
-    ActiveRecord::Base.transaction do
-      filtered_places.map! do |place|
-        shrine = Shrine.find_or_initialize_by(place_id: place[:place_id])
+    existing = Shrine.where(place_id: place_attrs.map { |a| a[:place_id] }).index_by(&:place_id)
 
-        if shrine.persisted?
-          next shrine
-        else
-          shrine.assign_attributes(place)
-          shrine.save!
-          next shrine
-        end
+    ActiveRecord::Base.transaction do
+      place_attrs.map do |attrs|
+        shrine = existing[attrs[:place_id]] || Shrine.new(attrs)
+        shrine.save! unless shrine.persisted?
+        shrine
       end
     end
-
-    filtered_places
-
-  rescue StandardError
-    false
   end
 
-  private
-
   def self.eleminate_non_shrine(places)
-    eleminate_keyword = [ "寺", "手水舎", "社務所", "授与所", "鳥居" ]
-    filtered_places = []
-    places.map do |place|
-      flag = true
-
-      eleminate_keyword.map do |keyword|
-        break unless flag
-
-        flag = false if place["displayName"]["text"].include?(keyword)
-      end
-
-      if flag || place["displayName"]["text"].include?("社") && place["displayName"]["text"].include?("寺")
-        filtered_places << place
-      end
+    eliminate_keywords = [ "寺", "手水舎", "社務所", "授与所", "鳥居" ]
+    places.select do |place|
+      name = place["displayName"]["text"]
+      has_no_keyword = eliminate_keywords.none? { |kw| name.include?(kw) }
+      has_shrine_and_temple = name.include?("社") && name.include?("寺")
+      has_no_keyword || has_shrine_and_temple
     end
-
-    filtered_places
   end
 end

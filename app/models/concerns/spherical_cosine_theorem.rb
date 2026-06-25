@@ -10,8 +10,8 @@ module SphericalCosineTheorem
 
     6371 *
            Math.acos(
-             Math.cos(lat1) * Math.cos(lat2) * Math.cos(lng2 - lng1) +
-             Math.sin(lat1) * Math.sin(lat2)
+             (Math.cos(lat1) * Math.cos(lat2) * Math.cos(lng2 - lng1) +
+             Math.sin(lat1) * Math.sin(lat2)).clamp(-1.0, 1.0)
            )
   end
 end

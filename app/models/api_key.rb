@@ -5,8 +5,11 @@ class ApiKey < ApplicationRecord
 
   scope :active, -> { where("expires_at >= ?", Time.current) }
 
-  def initialize(attributes = {})
-    super
+  after_initialize :set_defaults, if: :new_record?
+
+  private
+
+  def set_defaults
     self.access_token = SecureRandom.uuid
     self.expires_at = 1.week.after
   end

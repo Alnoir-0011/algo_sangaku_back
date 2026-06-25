@@ -5,7 +5,7 @@ module Api
         before_action :set_sangaku, only: %i[show update destroy]
 
         def index
-          @pagy, sangakus = pagy(::Sangaku.all.includes(:user, :shrine))
+          @pagy, sangakus = pagy(::Sangaku.all.includes(:user, :shrine).order(:id))
           render json: ::Admin::SangakuSerializer.new(sangakus).serializable_hash.to_json, status: :ok
         end
 

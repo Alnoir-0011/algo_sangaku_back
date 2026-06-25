@@ -5,7 +5,7 @@ module Api
         before_action :set_shrine, only: %i[show update destroy]
 
         def index
-          @pagy, shrines = pagy(::Shrine.all)
+          @pagy, shrines = pagy(::Shrine.all.order(:id))
           render json: ::Admin::ShrineSerializer.new(shrines).serializable_hash.to_json, status: :ok
         end
 

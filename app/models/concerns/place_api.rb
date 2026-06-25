@@ -105,45 +105,5 @@ module PlaceApi
         nil
       end
     end
-
-    def find_or_getdetals_by(ids)
-      api_uri = "https://places.googleapis.com/v1/places/"
-      api_key = ENV["GOOGLE_MAP_API_KEY"]
-
-      saved_shrines = self.where(place_id: ids)
-      saved_ids = saved_shrines.map { |shrine| shrine.place_id }
-
-      shrines = ids.map do |id|
-        next saved_shrines.select { |shrine| shrine.place_id == id }[0] if saved_ids.include?(id)
-
-        uri = URI.parse(api_uri + id)
-        params = {
-          fields: %w[id displayName formattedAddress location].join(","),
-          key: api_key,
-          languageCode: "JA"
-        }
-
-        uri.query = URI.encode_www_form(params)
-
-        res = Net::HTTP.get_response(uri)
-
-        if res.class == Net::HTTPOK
-          body = JSON.parse(res.body)
-
-          shrine = Shrine.new(name: body["displayName"]["text"],
-            address: body["formattedAddress"],
-            latitude: body["location"]["latitude"],
-            longitude: body["location"]["longitude"],
-            place_id: body["id"]
-          )
-
-          shrine.save!
-          shrine
-        else
-          nil
-        end
-      end
-      shrines
-    end
   end
 end
