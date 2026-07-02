@@ -5,7 +5,7 @@ module Api
         sangaku = Sangaku.find(params[:sangaku_id])
 
         current_user.add_saved_sangakus(sangaku)
-        render json: SangakuSerializer.new(sangaku).serializable_hash.to_json
+        render json: PublicSangakuSerializer.new(sangaku).serializable_hash.to_json
       end
     end
   end

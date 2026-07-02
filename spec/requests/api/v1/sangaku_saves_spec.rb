@@ -17,6 +17,16 @@ RSpec.describe "Api::V1::Sangakus", type: :request do
         expect(response).to be_successful
         expect(response).to have_http_status(:ok)
       end
+
+      it "does not include the model answer source in the response" do
+        authenticate_stub(user)
+
+        http_request
+
+        json = JSON.parse(response.body)
+        expect(json["data"]["attributes"]).not_to have_key("source")
+        expect(response.body).not_to include(sangaku.source)
+      end
     end
   end
 end
