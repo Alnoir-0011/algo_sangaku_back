@@ -1,5 +1,5 @@
 module PaizaioStubs
-  def stub_paizaio_api(stdout: "Hello world\n")
+  def stub_paizaio_api(stdout: "Hello world\n", stderr: "")
     stub_request(:post, "https://api.paiza.io/runners/create.json")
       .to_return(
         status: 200,
@@ -17,7 +17,16 @@ module PaizaioStubs
     stub_request(:get, /api\.paiza\.io.*get_details/)
       .to_return(
         status: 200,
-        body: { stdout: stdout, stderror: "" }.to_json,
+        body: {
+          build_stdout: "",
+          build_stderr: "",
+          build_exit_code: 0,
+          build_result: "success",
+          stdout: stdout,
+          stderr: stderr,
+          exit_code: 0,
+          result: "success"
+        }.to_json,
         headers: { "Content-Type" => "application/json" }
       )
   end

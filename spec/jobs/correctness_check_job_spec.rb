@@ -16,6 +16,14 @@ RSpec.describe CorrectnessCheckJob, type: :job do
       expect(answer_result.reload.status).to eq("correct")
     end
 
+    it 'updates output to the stderr message and status to incorrect when the code raises a runtime error' do
+      stub_paizaio_api(stderr: "NoMethodError: undefined method\n")
+
+      CorrectnessCheckJob.perform_now(answer_result)
+      expect(answer_result.reload.output).to eq("NoMethodError: undefined method\n")
+      expect(answer_result.reload.status).to eq("incorrect")
+    end
+
     it 'sets status to error after exhausting retries' do
       allow_any_instance_of(AnswerResult).to receive(:update_status).and_raise(StandardError, "PaizaIO error")
 

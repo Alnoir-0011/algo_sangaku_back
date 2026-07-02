@@ -22,12 +22,12 @@ class AnswerResult < ApplicationRecord
     new_status = "pending"
     output = ""
 
-    if answer_result["stderror"].blank?
+    if answer_result["stderr"].blank?
       new_status = answer_result["stdout"] == correct_stdout ? "correct" : "incorrect"
       output = answer_result["stdout"]
     else
       new_status = "incorrect"
-      output = answer_result["stderror"]
+      output = answer_result["stderr"]
     end
 
     update!(status: new_status, output:)
