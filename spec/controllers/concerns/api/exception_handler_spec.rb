@@ -10,7 +10,7 @@ end
 
 RSpec.describe Api::ExceptionHandler, type: :request do
   before do
-    Rails.application.routes.append do
+    Rails.application.routes.draw do
       get "exception_handler_test/boom", to: "exception_handler_test#boom"
     end
   end
