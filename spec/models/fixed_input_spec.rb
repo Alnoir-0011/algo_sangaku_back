@@ -22,4 +22,17 @@ RSpec.describe FixedInput, type: :model do
       expect(another_input.errors[:content]).to eq [ 'はすでに存在します' ]
     end
   end
+
+  describe 'callbacks' do
+    it 'enqueues GenerateExpectedOutputJob after create' do
+      ActiveJob::Base.queue_adapter = :test
+      expect { create(:fixed_input) }.to have_enqueued_job(GenerateExpectedOutputJob)
+    end
+
+    it 'enqueues GenerateExpectedOutputJob after update' do
+      input = create(:fixed_input)
+      ActiveJob::Base.queue_adapter = :test
+      expect { input.update(content: 'updated_content') }.to have_enqueued_job(GenerateExpectedOutputJob)
+    end
+  end
 end
