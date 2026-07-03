@@ -1,6 +1,4 @@
 class FixedInput < ApplicationRecord
-  include PaizaioApi
-
   belongs_to :sangaku
 
   has_many :answer_results
@@ -13,9 +11,6 @@ class FixedInput < ApplicationRecord
   private
 
   def generate_expected_output
-    result = run_source(sangaku.source, content)
-    update_columns(expected_output: result["stdout"])
-  rescue StandardError
-    # PaizaIO 失敗時は nil のまま。採点時に都度実行するフォールバックに任せる
+    GenerateExpectedOutputJob.perform_later(self)
   end
 end
