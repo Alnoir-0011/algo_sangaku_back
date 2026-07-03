@@ -12,11 +12,11 @@ module Api::ExceptionHandler
   private
 
   def render_400(exception = nil, messages = nil)
-    Rails.logger.warn("[render_400] #{exception&.message}") if exception
     render_error(400, "Bad Request", exception&.message, *messages)
   end
 
   def render_500(exception = nil, messages = nil)
+    Rails.logger.error(exception.full_message) if exception
     detail = Rails.env.production? ? nil : exception&.message
     render_error(500, "Internal Server Error", detail, *messages)
   end
