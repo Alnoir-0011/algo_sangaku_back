@@ -42,7 +42,7 @@ class Sangaku < ApplicationRecord
     end
 
     true
-  rescue StandardError => e
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
     false
   end
 
@@ -78,7 +78,7 @@ class Sangaku < ApplicationRecord
     self.shrine = new_shrine
     save!
     true
-  rescue StandardError
+  rescue ActiveRecord::RecordInvalid
     false
   end
 

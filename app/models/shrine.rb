@@ -12,15 +12,19 @@ class Shrine < ApplicationRecord
 
   def self.search_by_bounds(low_lat, high_lat, low_lng, high_lng)
     search_result = self.text_search_by_location_restriction(low_lat, high_lat, low_lng, high_lng)
+    return false if search_result.nil?
+
     persist_places(eleminate_non_shrine(search_result))
-  rescue StandardError
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
     false
   end
 
   def self.search_by_location(lat, lng)
     search_result = self.text_search_by_location_bias(lat, lng)
+    return false if search_result.nil?
+
     persist_places(eleminate_non_shrine(search_result))
-  rescue StandardError
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
     false
   end
 

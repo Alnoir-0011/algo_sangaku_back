@@ -26,4 +26,45 @@ RSpec.describe Sangaku, type: :model do
       expect(sangaku.errors[:source]).to eq [ 'を入力してください' ]
     end
   end
+
+  describe '#save_with_inputs' do
+    it 'returns false when save! raises ActiveRecord::RecordInvalid' do
+      sangaku = create(:sangaku)
+      allow(sangaku).to receive(:save!).and_raise(ActiveRecord::RecordInvalid.new(sangaku))
+
+      expect(sangaku.save_with_inputs([])).to eq false
+    end
+
+    it 'returns false when save! raises ActiveRecord::RecordNotUnique' do
+      sangaku = create(:sangaku)
+      allow(sangaku).to receive(:save!).and_raise(ActiveRecord::RecordNotUnique.new("duplicate key"))
+
+      expect(sangaku.save_with_inputs([])).to eq false
+    end
+
+    it 'raises when an unexpected error occurs' do
+      sangaku = create(:sangaku)
+      allow(sangaku).to receive(:save!).and_raise(StandardError, "unexpected error")
+
+      expect { sangaku.save_with_inputs([]) }.to raise_error(StandardError, "unexpected error")
+    end
+  end
+
+  describe '#dedicate' do
+    it 'returns false when save! raises ActiveRecord::RecordInvalid' do
+      sangaku = create(:sangaku)
+      shrine = create(:shrine)
+      allow(sangaku).to receive(:save!).and_raise(ActiveRecord::RecordInvalid.new(sangaku))
+
+      expect(sangaku.dedicate(shrine, shrine.latitude, shrine.longitude)).to eq false
+    end
+
+    it 'raises when an unexpected error occurs' do
+      sangaku = create(:sangaku)
+      shrine = create(:shrine)
+      allow(sangaku).to receive(:save!).and_raise(StandardError, "unexpected error")
+
+      expect { sangaku.dedicate(shrine, shrine.latitude, shrine.longitude) }.to raise_error(StandardError, "unexpected error")
+    end
+  end
 end
