@@ -68,6 +68,12 @@ RSpec.describe Shrine, type: :model do
   end
 
   describe '.search_by_bounds' do
+    it 'returns false when text search returns nil' do
+      allow(Shrine).to receive(:text_search_by_location_restriction).and_return(nil)
+
+      expect(Shrine.search_by_bounds(1, 2, 3, 4)).to eq false
+    end
+
     it 'returns false when persist_places raises ActiveRecord::RecordInvalid' do
       allow(Shrine).to receive(:text_search_by_location_restriction).and_return([])
       allow(Shrine).to receive(:persist_places).and_raise(ActiveRecord::RecordInvalid.new(Shrine.new))
@@ -90,6 +96,12 @@ RSpec.describe Shrine, type: :model do
   end
 
   describe '.search_by_location' do
+    it 'returns false when text search returns nil' do
+      allow(Shrine).to receive(:text_search_by_location_bias).and_return(nil)
+
+      expect(Shrine.search_by_location(1, 2)).to eq false
+    end
+
     it 'returns false when persist_places raises ActiveRecord::RecordInvalid' do
       allow(Shrine).to receive(:text_search_by_location_bias).and_return([])
       allow(Shrine).to receive(:persist_places).and_raise(ActiveRecord::RecordInvalid.new(Shrine.new))
