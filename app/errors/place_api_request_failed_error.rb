@@ -1,0 +1,1 @@
+class PlaceApiRequestFailedError < StandardError; end
