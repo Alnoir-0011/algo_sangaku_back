@@ -89,9 +89,9 @@ RSpec.describe Shrine, type: :model do
     end
 
     it 'raises when an unexpected error occurs' do
-      allow(Shrine).to receive(:text_search_by_location_restriction).and_raise(PlaceApiRequestFailedError, "Google Places API request failed")
+      allow(Shrine).to receive(:text_search_by_location_restriction).and_raise(PlaceApiRequestFailedError.new("500"))
 
-      expect { Shrine.search_by_bounds(1, 2, 3, 4) }.to raise_error(PlaceApiRequestFailedError, "Google Places API request failed")
+      expect { Shrine.search_by_bounds(1, 2, 3, 4) }.to raise_error(PlaceApiRequestFailedError)
     end
   end
 
@@ -117,9 +117,9 @@ RSpec.describe Shrine, type: :model do
     end
 
     it 'raises when an unexpected error occurs' do
-      allow(Shrine).to receive(:text_search_by_location_bias).and_raise(PlaceApiRequestFailedError, "Google Places API request failed")
+      allow(Shrine).to receive(:text_search_by_location_bias).and_raise(PlaceApiRequestFailedError.new("500"))
 
-      expect { Shrine.search_by_location(1, 2) }.to raise_error(PlaceApiRequestFailedError, "Google Places API request failed")
+      expect { Shrine.search_by_location(1, 2) }.to raise_error(PlaceApiRequestFailedError)
     end
   end
 end

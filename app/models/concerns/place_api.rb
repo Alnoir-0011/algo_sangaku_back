@@ -76,7 +76,7 @@ module PlaceApi
         data = JSON.parse(response.body)
         data["places"]
       else
-        raise PlaceApiRequestFailedError, "Google Places API request failed"
+        raise PlaceApiRequestFailedError, response.code
       end
     end
   end
