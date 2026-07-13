@@ -2,9 +2,9 @@
 require 'simplecov'
 SimpleCov.start 'rails' do
   minimum_coverage 80 if ENV['COVERAGE']
-  add_filter '/spec/'
-  add_filter '/config/'
-  add_filter '/db/'
+  skip '/spec/'
+  skip '/config/'
+  skip '/db/'
 end
 
 require 'spec_helper'
