@@ -26,6 +26,35 @@ RSpec.describe "Api::V1::User::Profiles", type: :request do
         expect(attrs["answer_count"]).to eq 0
       end
     end
+
+    context "with a real raw token issued for the user" do
+      let(:raw_token) { SecureRandom.uuid }
+      let!(:api_key) { create(:api_key, user:, raw_token:) }
+      let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer #{raw_token}" } }
+
+      it "認証に成功しマイプロフィールを返す" do
+        # RED: base_controller#authenticate が Bearer トークンをダイジェスト化せずに
+        # そのまま access_token として検索しているため、factory がダイジェスト化した
+        # access_token を保存している現状では認証に失敗し 401 が返り失敗する
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"]["email"]).to eq user.email
+      end
+    end
+
+    context "with an incorrect token" do
+      let!(:api_key) { create(:api_key, user:) }
+      let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer #{SecureRandom.uuid}" } }
+
+      it "認証に失敗し 401 を返す" do
+        # RED: ダイジェスト化対応後の authenticate ロジックにおいても、
+        # 誤ったトークンでは認証に失敗し 401 を返すことを保証する回帰テスト
+        http_request
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
   end
 
   describe "PATCH /update" do

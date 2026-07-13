@@ -1,6 +1,10 @@
 FactoryBot.define do
   factory :api_key do
-    sequence(:access_token) { |n| "dummy_token_#{n}" }
+    transient do
+      raw_token { SecureRandom.uuid }
+    end
+
+    access_token { ApiKey.digest(raw_token) }
     expires_at { 1.week.from_now }
     association :user
 

@@ -11,7 +11,7 @@ module Api
 
       def set_token!(user)
         api_key = user.api_keys.create
-        response.header["AccessToken"] = api_key.access_token
+        response.header["AccessToken"] = api_key.raw_token
       end
 
       protected
@@ -29,7 +29,7 @@ module Api
 
       def authenticate
         authenticate_or_request_with_http_token do |token, _options|
-          @_current_user ||= ApiKey.active.find_by(access_token: token)&.user
+          @_current_user ||= ApiKey.active.find_by(access_token: ApiKey.digest(token))&.user
         end
       end
 

@@ -27,7 +27,7 @@ module Api
 
       def destroy
         token = request.headers["Authorization"].split(" ")[1]
-        key = ApiKey.find_by(access_token: token)
+        key = ApiKey.find_by(access_token: ApiKey.digest(token))
         key.destroy!
         render json: { message: "signout successful" }.to_json, status: :ok
       end
