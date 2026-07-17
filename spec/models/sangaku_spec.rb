@@ -27,7 +27,31 @@ RSpec.describe Sangaku, type: :model do
     end
   end
 
+  describe '#destroy' do
+    it 'destroys the sangaku without raising a foreign key violation when a fixed_input has answer_results' do
+      sangaku = create(:sangaku)
+      fixed_input = create(:fixed_input, sangaku: sangaku)
+      sangaku.reload
+      user_sangaku_save = create(:user_sangaku_save, sangaku: sangaku)
+      create(:answer, user_sangaku_save: user_sangaku_save)
+
+      expect { sangaku.destroy! }.not_to raise_error
+      expect(FixedInput.exists?(fixed_input.id)).to eq false
+    end
+  end
+
   describe '#save_with_inputs' do
+    it 'removes a fixed_input that has answer_results without raising a foreign key violation' do
+      sangaku = create(:sangaku)
+      fixed_input = create(:fixed_input, sangaku: sangaku, content: "old_input")
+      sangaku.reload
+      user_sangaku_save = create(:user_sangaku_save, sangaku: sangaku)
+      create(:answer, user_sangaku_save: user_sangaku_save)
+
+      expect(sangaku.save_with_inputs([])).to eq true
+      expect(FixedInput.exists?(fixed_input.id)).to eq false
+    end
+
     it 'returns false when save! raises ActiveRecord::RecordInvalid' do
       sangaku = create(:sangaku)
       allow(sangaku).to receive(:save!).and_raise(ActiveRecord::RecordInvalid.new(sangaku))
