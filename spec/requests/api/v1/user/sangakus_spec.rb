@@ -171,6 +171,24 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
         expect(response).not_to be_successful
       end
     end
+
+    context "removing a fixed_input that has answer_results", openapi: false do
+      let!(:sangaku) { create(:sangaku, title: "before_changed", user: user) }
+      let!(:fixed_input) { create(:fixed_input, sangaku: sangaku, content: "old_input") }
+      let!(:user_sangaku_save) { sangaku.reload; create(:user_sangaku_save, sangaku: sangaku) }
+      let!(:answer) { create(:answer, user_sangaku_save: user_sangaku_save) }
+      let(:params) { { sangaku: attributes_for(:sangaku, title: "changed_title"), fixed_inputs: [] }.to_json }
+      let(:http_request) { patch api_v1_user_sangaku_path(sangaku.id), headers:, params: }
+
+      it "success to update sangaku" do
+        authenticate_stub(user)
+
+        http_request
+        expect(response).to have_http_status(:ok)
+        expect(response).to be_successful
+        expect(FixedInput.exists?(fixed_input.id)).to eq false
+      end
+    end
   end
 
   describe "DELETE /sangakus/[id]" do
@@ -180,6 +198,24 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
 
     context "with with_accesstoken" do
       let!(:sangaku) { create(:sangaku, user:) }
+      let(:http_request) { delete api_v1_user_sangaku_path(sangaku.id), headers: }
+
+      it "return sangaku in json format" do
+        authenticate_stub(user)
+
+        expect {
+          http_request
+        }.to change(Sangaku, :count).by(-1)
+        expect(response).to have_http_status(:ok)
+        expect(response).to be_successful
+      end
+    end
+
+    context "with a fixed_input that has answer_results", openapi: false do
+      let!(:sangaku) { create(:sangaku, user:) }
+      let!(:fixed_input) { create(:fixed_input, sangaku: sangaku) }
+      let!(:user_sangaku_save) { sangaku.reload; create(:user_sangaku_save, sangaku: sangaku) }
+      let!(:answer) { create(:answer, user_sangaku_save: user_sangaku_save) }
       let(:http_request) { delete api_v1_user_sangaku_path(sangaku.id), headers: }
 
       it "return sangaku in json format" do

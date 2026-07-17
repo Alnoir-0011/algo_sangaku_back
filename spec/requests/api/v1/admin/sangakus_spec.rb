@@ -182,6 +182,21 @@ RSpec.describe "Api::V1::Admin::Sangakus", type: :request do
 
         expect(response).to have_http_status(:not_found)
       end
+
+      it "returns 200 and deletes the sangaku when a fixed_input has answer_results", openapi: false do
+        fixed_input = create(:fixed_input, sangaku: sangaku)
+        sangaku.reload
+        user_sangaku_save = create(:user_sangaku_save, sangaku: sangaku)
+        create(:answer, user_sangaku_save: user_sangaku_save)
+
+        authenticate_stub(admin_user)
+        expect {
+          delete api_v1_admin_sangaku_path(sangaku.id), headers: headers
+        }.to change(Sangaku, :count).by(-1)
+
+        expect(response).to have_http_status(:ok)
+        expect(FixedInput.exists?(fixed_input.id)).to eq false
+      end
     end
 
     context "as general user" do

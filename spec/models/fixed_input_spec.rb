@@ -35,4 +35,18 @@ RSpec.describe FixedInput, type: :model do
       expect { input.update(content: 'updated_content') }.to have_enqueued_job(GenerateExpectedOutputJob)
     end
   end
+
+  describe '#destroy' do
+    it 'destroys associated answer_results instead of raising a foreign key violation' do
+      sangaku = create(:sangaku)
+      fixed_input = create(:fixed_input, sangaku: sangaku)
+      sangaku.reload
+      user_sangaku_save = create(:user_sangaku_save, sangaku: sangaku)
+      answer = create(:answer, user_sangaku_save: user_sangaku_save)
+      answer_result = answer.answer_results.find_by(fixed_input: fixed_input)
+
+      expect { fixed_input.destroy! }.not_to raise_error
+      expect(AnswerResult.exists?(answer_result.id)).to eq false
+    end
+  end
 end
