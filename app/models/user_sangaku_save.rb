@@ -7,4 +7,5 @@ class UserSangakuSave < ApplicationRecord
   validates :sangaku_id, uniqueness: { scope: :user_id }
 
   scope :unanswered, -> { left_joins(:answer).where(answers: { id: nil }) }
+  scope :answered, -> { left_joins(:answer).where.not(answers: { id: nil }) }
 end
