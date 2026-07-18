@@ -50,6 +50,22 @@ RSpec.describe "Api::V1::User::Answers", type: :request do
         expect(body["errors"]).to eq [ [ "source", [ "を入力してください" ] ] ]
       end
     end
+
+    context "when the sangaku_save already has an answer", openapi: false do
+      let!(:existing_answer) { create(:answer, user_sangaku_save:) }
+      let(:params) { { answer: { source: "puts 'new answer'" } }.to_json }
+
+      it "returns 409 and does not delete the existing answer" do
+        authenticate_stub(user)
+
+        expect {
+          http_request
+        }.to change(Answer, :count).by(0)
+
+        expect(response).to have_http_status(409)
+        expect(Answer.exists?(existing_answer.id)).to be true
+      end
+    end
   end
 
   describe "GET /show" do
