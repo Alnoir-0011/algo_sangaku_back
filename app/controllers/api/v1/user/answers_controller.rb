@@ -15,6 +15,8 @@ module Api
         else
           render_400(nil, answer.errors.messages)
         end
+      rescue Answer::AlreadyAnsweredError
+        render_error(409, "Conflict", "この算額にはすでに解答が存在します")
       end
 
       def show

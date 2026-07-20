@@ -13,5 +13,32 @@ RSpec.describe Answer, type: :model do
       expect(answer).to be_invalid
       expect(answer.errors[:source]).to eq [ "を入力してください" ]
     end
+
+    it "raises ActiveRecord::RecordNotUnique when user_sangaku_save_id duplicates at the database level" do
+      existing_answer = create(:answer)
+      another_answer = Answer.new(source: "test")
+      another_answer.user_sangaku_save_id = existing_answer.user_sangaku_save_id
+
+      expect { another_answer.save }.to raise_error(ActiveRecord::RecordNotUnique)
+    end
+  end
+
+  describe "preventing overwriting an existing answer" do
+    let!(:user_sangaku_save) { create(:user_sangaku_save) }
+    let!(:existing_answer) { create(:answer, user_sangaku_save:) }
+
+    it "raises AlreadyAnsweredError when building another answer for the same user_sangaku_save" do
+      expect {
+        user_sangaku_save.build_answer(source: "new")
+      }.to raise_error(Answer::AlreadyAnsweredError)
+    end
+
+    it "does not delete the existing answer" do
+      expect {
+        user_sangaku_save.build_answer(source: "new")
+      }.to raise_error(Answer::AlreadyAnsweredError)
+
+      expect(Answer.exists?(existing_answer.id)).to be true
+    end
   end
 end

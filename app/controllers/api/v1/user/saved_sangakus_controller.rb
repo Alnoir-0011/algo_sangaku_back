@@ -2,26 +2,13 @@ module Api
   module V1
     class User::SavedSangakusController < BaseController
       def index
-        if params[:type] == "answered"
-          @pagy, saved_sangakus = pagy(current_user.saved_sangakus.left_joins(:answers).where.not(answers: { id: nil }).search(search_params).includes(:fixed_inputs, :user, :shrine))
-          render json: PublicSangakuSerializer.new(saved_sangakus).serializable_hash.to_json
-        elsif params[:type] == "before_answer"
-          @pagy, saved_sangakus = pagy(current_user.saved_sangakus.left_joins(:answers).where(answers: { id: nil }).search(search_params).includes(:fixed_inputs, :user, :shrine))
-          render json: PublicSangakuSerializer.new(saved_sangakus).serializable_hash.to_json
-        else
-          @pagy, saved_sangakus = pagy(current_user.saved_sangakus.includes(:fixed_inputs, :user, :shrine))
-          render json: PublicSangakuSerializer.new(saved_sangakus).serializable_hash.to_json
-        end
+        @pagy, saved_sangakus = pagy(index_scope.includes(:fixed_inputs, :user, :shrine))
+        render json: PublicSangakuSerializer.new(saved_sangakus).serializable_hash.to_json
       end
 
       def show
-        if params[:type] == "before_answer"
-          saved_sangaku = current_user.saved_sangakus.left_joins(:answers).where(answers: { id: nil }).find(params[:id])
-          render json: PublicSangakuSerializer.new(saved_sangaku).serializable_hash.to_json
-        else
-          saved_sangaku = current_user.saved_sangakus.find(params[:id])
-          render json: PublicSangakuSerializer.new(saved_sangaku).serializable_hash.to_json
-        end
+        saved_sangaku = show_scope.find(params[:id])
+        render json: PublicSangakuSerializer.new(saved_sangaku).serializable_hash.to_json
       end
 
       def answer
@@ -30,6 +17,25 @@ module Api
       end
 
       private
+
+      def index_scope
+        case params[:type]
+        when "answered"
+          Sangaku.where(id: current_user.user_sangaku_saves.answered.select(:sangaku_id)).search(search_params)
+        when "before_answer"
+          Sangaku.where(id: current_user.user_sangaku_saves.unanswered.select(:sangaku_id)).search(search_params)
+        else
+          current_user.saved_sangakus
+        end
+      end
+
+      def show_scope
+        if params[:type] == "before_answer"
+          Sangaku.where(id: current_user.user_sangaku_saves.unanswered.select(:sangaku_id))
+        else
+          current_user.saved_sangakus
+        end
+      end
 
       def search_params
         params.permit(:title, :difficulty)
