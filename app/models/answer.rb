@@ -8,7 +8,6 @@ class Answer < ApplicationRecord
   has_many :answer_results, dependent: :destroy
 
   validates :source, presence: true, length: { maximum: 65_535 }
-  validates :user_sangaku_save_id, uniqueness: true
 
   scope :is_status, ->(status) { where.not(id: AnswerResult.where.not(status:).select(:answer_id)) }
 

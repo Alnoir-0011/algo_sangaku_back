@@ -14,13 +14,12 @@ RSpec.describe Answer, type: :model do
       expect(answer.errors[:source]).to eq [ "を入力してください" ]
     end
 
-    it "is invalid when user_sangaku_save_id is already taken" do
+    it "raises ActiveRecord::RecordNotUnique when user_sangaku_save_id duplicates at the database level" do
       existing_answer = create(:answer)
       another_answer = Answer.new(source: "test")
       another_answer.user_sangaku_save_id = existing_answer.user_sangaku_save_id
 
-      expect(another_answer).to be_invalid
-      expect(another_answer.errors[:user_sangaku_save_id]).to eq [ "はすでに存在します" ]
+      expect { another_answer.save }.to raise_error(ActiveRecord::RecordNotUnique)
     end
   end
 
