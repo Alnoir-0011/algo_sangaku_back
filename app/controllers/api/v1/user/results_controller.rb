@@ -5,8 +5,8 @@ module Api
         sangaku = current_user.sangakus.find(params[:sangaku_id])
 
         user_sangaku_save_count = sangaku.user_sangaku_saves.count
-        correct_count = sangaku.answers.is_status("correct").count
-        incorrect_count = sangaku.answers.is_status("incorrect").count
+        correct_count = sangaku.answers.status_correct.count
+        incorrect_count = sangaku.answers.status_incorrect.count
 
         render json: {
           data: {

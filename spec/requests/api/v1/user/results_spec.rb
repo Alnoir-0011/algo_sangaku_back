@@ -22,6 +22,16 @@ RSpec.describe "Api::V1::User::Results", type: :request do
         expect(body["data"]["attributes"]["correct_count"]).to eq 1
         expect(body["data"]["attributes"]["incorrect_count"]).to eq 0
       end
+
+      it "counts an answer with all-error results as incorrect", openapi: false do
+        answer.answer_results.first.update!(status: "error")
+        authenticate_stub(user)
+
+        http_request
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"]["correct_count"]).to eq 0
+        expect(body["data"]["attributes"]["incorrect_count"]).to eq 1
+      end
     end
   end
 end
