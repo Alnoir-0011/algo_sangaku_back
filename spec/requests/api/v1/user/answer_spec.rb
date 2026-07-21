@@ -97,5 +97,17 @@ RSpec.describe "Api::V1::User::Answers", type: :request do
         expect(response).to have_http_status(401)
       end
     end
+
+    context "when all answer_results have error status", openapi: false do
+      before { answer.answer_results.update_all(status: "error") }
+
+      it "returns incorrect status instead of correct" do
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"]["status"]).to eq "incorrect"
+      end
+    end
   end
 end
