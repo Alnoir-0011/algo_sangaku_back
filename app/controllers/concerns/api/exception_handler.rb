@@ -6,6 +6,7 @@ module Api::ExceptionHandler
     rescue_from ActiveRecord::RecordNotFound, with: :render_404
     rescue_from ActionController::ParameterMissing, with: :render_400
     rescue_from ActiveRecord::RecordNotUnique, with: :render_409
+    rescue_from ActiveRecord::RecordInvalid, with: :render_409
     rescue_from TooManyRequestsError, with: :render_429
   end
 
