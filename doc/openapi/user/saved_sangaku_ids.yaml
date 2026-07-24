@@ -19,9 +19,9 @@ paths:
           items:
             type: string
         example:
-        - '2544'
-        - '2545'
-        - '2546'
+        - '2739'
+        - '2740'
+        - '2741'
       responses:
         '200':
           description: returns only the saved sangaku ids
@@ -38,4 +38,4 @@ paths:
                 - saved_sangaku_ids
               example:
                 saved_sangaku_ids:
-                - 2544
+                - 2739

@@ -1,7 +1,7 @@
 module Api
   module V1
     class User::SavedSangakuIdsController < BaseController
-      MAX_SANGAKU_IDS = 100
+      MAX_SANGAKU_IDS = Pagy::DEFAULT[:limit]
 
       def index
         render json: { saved_sangaku_ids: saved_sangaku_ids }, status: :ok
