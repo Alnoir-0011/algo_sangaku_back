@@ -101,6 +101,19 @@ RSpec.describe "Api::V1::User::SavedSangakuIds", type: :request do
           expect(body["saved_sangaku_ids"]).to contain_exactly(sangaku_a.id)
         end
       end
+
+      context "when sangaku_ids exceeds the max allowed count", openapi: false do
+        let!(:saved_relation) { create(:user_sangaku_save, sangaku: sangaku_a, user: user) }
+        let(:params) { { sangaku_ids: (1..200).to_a + [ sangaku_a.id ] } }
+
+        it "truncates the ids and does not error" do
+          authenticate_stub(user)
+          http_request
+
+          expect(response).to have_http_status(:ok)
+          expect(body["saved_sangaku_ids"]).to eq []
+        end
+      end
     end
 
     context "without token", openapi: false do
