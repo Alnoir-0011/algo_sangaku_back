@@ -1,0 +1,41 @@
+---
+openapi: 3.2.0
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/user/saved_sangaku_ids":
+    get:
+      summary: index
+      tags:
+      - Api::V1::User::SavedSangakuId
+      parameters:
+      - name: sangaku_ids
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+        example:
+        - '2739'
+        - '2740'
+        - '2741'
+      responses:
+        '200':
+          description: returns only the saved sangaku ids
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  saved_sangaku_ids:
+                    type: array
+                    items:
+                      type: integer
+                required:
+                - saved_sangaku_ids
+              example:
+                saved_sangaku_ids:
+                - 2739

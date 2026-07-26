@@ -9,7 +9,28 @@ class Answer < ApplicationRecord
 
   validates :source, presence: true, length: { maximum: 65_535 }
 
-  scope :is_status, ->(status) { where.not(id: AnswerResult.where.not(status:).select(:answer_id)) }
+  # 優先順位: pending（1件でもあれば） > incorrect（error を含む） > correct（全件correctのときのみ）
+  # #status（Rubyでの単一Answer判定）と同じ優先順位を表現している。変更時は両方揃えること。
+  # 整合性は spec/models/answer_spec.rb の特性テストで保証している。
+  scope :status_correct, -> { where.not(id: AnswerResult.where.not(status: "correct").select(:answer_id)) }
+  scope :status_incorrect, -> {
+    where.not(id: AnswerResult.where(status: "pending").select(:answer_id))
+      .where(id: AnswerResult.where.not(status: "correct").select(:answer_id))
+  }
+
+  # 優先順位: pending（1件でもあれば） > incorrect（error を含む） > correct（全件correctのときのみ）
+  # scope :status_correct / :status_incorrect（集計用SQL版）と同じ優先順位を表現している。変更時は両方揃えること。
+  def status
+    statuses = answer_results.map(&:status)
+
+    if statuses.include?("pending")
+      "pending"
+    elsif statuses.include?("incorrect") || statuses.include?("error")
+      "incorrect"
+    else
+      "correct"
+    end
+  end
 
   private
 
