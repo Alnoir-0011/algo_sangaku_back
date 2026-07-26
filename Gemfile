@@ -36,7 +36,7 @@ gem "config", "~> 5.5", ">= 5.5.2"
 gem "pagy", "~> 43.6"
 gem "googleauth", "~> 1.17"
 
-gem "solid_queue", "~> 1.4"
+gem "solid_queue", "~> 1.5"
 gem "ruby-openai", "~> 8.3"
 gem "rack-attack", "~> 6.7"
 
