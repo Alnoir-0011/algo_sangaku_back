@@ -165,26 +165,16 @@ data "aws_iam_policy_document" "github_actions_deploy" {
     ]
   }
 
-  # ECS タスク定義の登録・参照・一覧 (いずれもリソース制限不可のため "*")
+  # ECS タスク定義の登録・参照・一覧・deregister (いずれもリソース制限不可のため "*")
   statement {
     effect = "Allow"
     actions = [
       "ecs:RegisterTaskDefinition",
       "ecs:DescribeTaskDefinition",
       "ecs:ListTaskDefinitions",
-    ]
-    resources = ["*"]
-  }
-
-  # 古いタスク定義リビジョンの deregister (対象ファミリーのみに制限)
-  statement {
-    effect = "Allow"
-    actions = [
       "ecs:DeregisterTaskDefinition",
     ]
-    resources = [
-      "arn:aws:ecs:${var.aws_region}:${var.aws_account_id}:task-definition/${var.app_name}:*",
-    ]
+    resources = ["*"]
   }
 
   # ECS サービス操作 (対象クラスター・サービスのみに制限)

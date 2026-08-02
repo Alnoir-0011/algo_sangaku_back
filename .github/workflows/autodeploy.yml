@@ -36,6 +36,8 @@ jobs:
         env:
           INPUT_SHA: ${{ inputs.sha }}
         run: |
+          set -euo pipefail
+
           if ! printf '%s' "$INPUT_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
             echo "ERROR: sha は40桁の小文字16進数（フルコミットSHA）を指定してください" >&2
             exit 1
@@ -50,7 +52,9 @@ jobs:
         id: sha
         env:
           INPUT_SHA: ${{ inputs.sha }}
-        run: echo "short=${INPUT_SHA:0:7}" >> "$GITHUB_OUTPUT"
+        run: |
+          set -euo pipefail
+          echo "short=${INPUT_SHA:0:7}" >> "$GITHUB_OUTPUT"
 
       # arm64 クロスビルドに必要な QEMU・Buildx のセットアップ
       - name: Set up QEMU
@@ -71,35 +75,62 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # Rails イメージをビルド & push
+      # Rails イメージをビルド & push（ECR は IMMUTABLE のため、既に同タグが存在する場合は push をスキップしてべき等性を保つ）
       - name: Build and push Rails image
+        id: rails-image
         env:
           ECR_RAILS_URL: ${{ secrets.ECR_RAILS_URL }}
           SHORT_SHA: ${{ steps.sha.outputs.short }}
         run: |
-          docker build --platform linux/arm64 --build-arg RAILS_ENV=production -t "$ECR_RAILS_URL:$SHORT_SHA" .
-          docker push "$ECR_RAILS_URL:$SHORT_SHA"
+          set -euo pipefail
 
-      # nginx イメージをビルド & push
+          REPO_NAME="${ECR_RAILS_URL#*/}"
+
+          if aws ecr describe-images --repository-name "$REPO_NAME" --image-ids imageTag="$SHORT_SHA" >/dev/null 2>&1; then
+            echo "Image tag $SHORT_SHA already exists in $REPO_NAME, skipping build/push."
+          else
+            docker build --platform linux/arm64 --build-arg RAILS_ENV=production -t "$ECR_RAILS_URL:$SHORT_SHA" .
+            docker push "$ECR_RAILS_URL:$SHORT_SHA"
+          fi
+
+          DIGEST=$(aws ecr describe-images --repository-name "$REPO_NAME" --image-ids imageTag="$SHORT_SHA" --query 'imageDetails[0].imageDigest' --output text)
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+
+      # nginx イメージをビルド & push（Rails 同様べき等性を保つ）
       - name: Build and push nginx image
+        id: nginx-image
         env:
           ECR_NGINX_URL: ${{ secrets.ECR_NGINX_URL }}
           SHORT_SHA: ${{ steps.sha.outputs.short }}
         run: |
-          docker build --platform linux/arm64 -f nginx_docker_prod/Dockerfile -t "$ECR_NGINX_URL:$SHORT_SHA" nginx_docker_prod/
-          docker push "$ECR_NGINX_URL:$SHORT_SHA"
+          set -euo pipefail
 
-      # 新しいイメージタグを含むタスク定義リビジョンを登録
+          REPO_NAME="${ECR_NGINX_URL#*/}"
+
+          if aws ecr describe-images --repository-name "$REPO_NAME" --image-ids imageTag="$SHORT_SHA" >/dev/null 2>&1; then
+            echo "Image tag $SHORT_SHA already exists in $REPO_NAME, skipping build/push."
+          else
+            docker build --platform linux/arm64 -f nginx_docker_prod/Dockerfile -t "$ECR_NGINX_URL:$SHORT_SHA" nginx_docker_prod/
+            docker push "$ECR_NGINX_URL:$SHORT_SHA"
+          fi
+
+          DIGEST=$(aws ecr describe-images --repository-name "$REPO_NAME" --image-ids imageTag="$SHORT_SHA" --query 'imageDetails[0].imageDigest' --output text)
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+
+      # 新しいイメージダイジェストを含むタスク定義リビジョンを登録
       - name: Register new ECS task definition
         id: register-task-def
         env:
           ECR_RAILS_URL: ${{ secrets.ECR_RAILS_URL }}
           ECR_NGINX_URL: ${{ secrets.ECR_NGINX_URL }}
-          SHORT_SHA: ${{ steps.sha.outputs.short }}
+          RAILS_DIGEST: ${{ steps.rails-image.outputs.digest }}
+          NGINX_DIGEST: ${{ steps.nginx-image.outputs.digest }}
           ECS_CLUSTER: ${{ secrets.ECS_CLUSTER_NAME }}
           ECS_SERVICE: ${{ secrets.ECS_SERVICE_NAME }}
           TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY }}
         run: |
+          set -euo pipefail
+
           # 現在のタスク定義を取得
           TASK_DEF=$(aws ecs describe-task-definition \
             --task-definition "$TASK_FAMILY" \
@@ -115,10 +146,10 @@ jobs:
             fi
           done
 
-          # イメージタグを新しいコミット SHA に書き換え
+          # イメージ参照をダイジェスト指定（repo@sha256:...）に書き換え（可変タグへの依存を排除）
           NEW_TASK_DEF=$(echo "$TASK_DEF" | \
-            jq --arg rails "$ECR_RAILS_URL:$SHORT_SHA" \
-               --arg nginx "$ECR_NGINX_URL:$SHORT_SHA" \
+            jq --arg rails "${ECR_RAILS_URL}@${RAILS_DIGEST}" \
+               --arg nginx "${ECR_NGINX_URL}@${NGINX_DIGEST}" \
             '(.containerDefinitions[] | select(.name == "web")  | .image) |= $rails |
              (.containerDefinitions[] | select(.name == "queue") | .image) |= $rails |
              (.containerDefinitions[] | select(.name == "nginx") | .image) |= $nginx |
@@ -140,6 +171,8 @@ jobs:
           ECS_SERVICE: ${{ secrets.ECS_SERVICE_NAME }}
           TASK_DEF_ARN: ${{ steps.register-task-def.outputs.task_def_arn }}
         run: |
+          set -euo pipefail
+
           aws ecs update-service \
             --cluster "$ECS_CLUSTER" \
             --service "$ECS_SERVICE" \
@@ -148,14 +181,32 @@ jobs:
 
           echo "Waiting for service to stabilize..."
           # デフォルトの wait は最大 10 分 (40回 × 15秒) のため、最大 20 分のカスタムポーリングに変更
+          # deployments 件数だけでなく、PRIMARY デプロイの rolloutState と taskDefinition の一致まで確認する
+          # (update-service 直後の API 反映ラグでの誤判定、circuit breaker ロールバック後の誤判定を防ぐ)
           TIMEOUT=1200
           INTERVAL=15
           ELAPSED=0
-          until [ "$(aws ecs describe-services \
+          while :; do
+            DEPLOYMENTS_JSON=$(aws ecs describe-services \
               --cluster "$ECS_CLUSTER" \
               --services "$ECS_SERVICE" \
-              --query 'length(services[0].deployments)' \
-              --output text)" -eq 1 ]; do
+              --query 'services[0].deployments' \
+              --output json)
+
+            DEPLOYMENT_COUNT=$(echo "$DEPLOYMENTS_JSON" | jq 'length')
+            PRIMARY=$(echo "$DEPLOYMENTS_JSON" | jq '.[] | select(.status == "PRIMARY")')
+            ROLLOUT_STATE=$(echo "$PRIMARY" | jq -r '.rolloutState // empty')
+            PRIMARY_TASK_DEF=$(echo "$PRIMARY" | jq -r '.taskDefinition // empty')
+
+            if [ "$ROLLOUT_STATE" = "FAILED" ]; then
+              echo "ERROR: deployment rollout failed (circuit breaker likely triggered a rollback)" >&2
+              exit 1
+            fi
+
+            if [ "$DEPLOYMENT_COUNT" -eq 1 ] && [ "$ROLLOUT_STATE" = "COMPLETED" ] && [ "$PRIMARY_TASK_DEF" = "$TASK_DEF_ARN" ]; then
+              break
+            fi
+
             if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
               echo "ERROR: service did not stabilize within ${TIMEOUT}s" >&2
               exit 1
@@ -174,11 +225,14 @@ jobs:
         run: |
           set -euo pipefail
 
+          # --family-prefix は前方一致のため、命名が似た別ファミリ(例: ${TASK_FAMILY}-staging)を
+          # 巻き込まないよう、ARN 中の family 名が完全一致するものだけに絞り込む
           REVISIONS=$(aws ecs list-task-definitions \
             --family-prefix "$TASK_FAMILY" \
             --sort ASC \
             --query 'taskDefinitionArns' \
-            --output json | jq -r '.[]')
+            --output json | jq -r --arg family "$TASK_FAMILY" \
+            '.[] | select((split("/")[1] | split(":")[0]) == $family)')
 
           if [ -z "$REVISIONS" ]; then
             echo "Nothing to deregister (no revisions found)."
