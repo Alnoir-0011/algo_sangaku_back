@@ -12,9 +12,14 @@ permissions:
   id-token: write   # OIDC トークン取得に必要
   contents: read
 
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     environment: production
 
     steps:
@@ -167,13 +172,20 @@ jobs:
           TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY }}
           KEEP: 3
         run: |
+          set -euo pipefail
+
           REVISIONS=$(aws ecs list-task-definitions \
             --family-prefix "$TASK_FAMILY" \
             --sort ASC \
             --query 'taskDefinitionArns' \
             --output json | jq -r '.[]')
 
-          TOTAL=$(echo "$REVISIONS" | wc -l | tr -d ' ')
+          if [ -z "$REVISIONS" ]; then
+            echo "Nothing to deregister (no revisions found)."
+            exit 0
+          fi
+
+          TOTAL=$(echo "$REVISIONS" | grep -c .)
           DELETE_COUNT=$(( TOTAL - KEEP ))
 
           if [ "$DELETE_COUNT" -le 0 ]; then
