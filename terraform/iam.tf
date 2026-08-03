@@ -154,6 +154,8 @@ data "aws_iam_policy_document" "github_actions_deploy" {
       "ecr:BatchCheckLayerAvailability",
       "ecr:GetDownloadUrlForLayer",
       "ecr:BatchGetImage",
+      # autodeploy.yml が同タグの存在確認・イメージダイジェスト取得に使用する
+      "ecr:DescribeImages",
       "ecr:PutImage",
       "ecr:InitiateLayerUpload",
       "ecr:UploadLayerPart",
