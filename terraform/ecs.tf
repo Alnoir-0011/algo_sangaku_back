@@ -26,7 +26,7 @@ resource "aws_ecs_task_definition" "main" {
     # --- web (Rails/Puma) ---
     {
       name  = "web"
-      image = "${aws_ecr_repository.rails.repository_url}:latest"
+      image = "${aws_ecr_repository.rails.repository_url}:${var.initial_image_tag}"
       essential = true
 
       entryPoint = ["/algo_sangaku_back/entrypoint.sh"]
@@ -82,7 +82,7 @@ resource "aws_ecs_task_definition" "main" {
     # --- nginx ---
     {
       name  = "nginx"
-      image = "${aws_ecr_repository.nginx.repository_url}:latest"
+      image = "${aws_ecr_repository.nginx.repository_url}:${var.initial_image_tag}"
       essential = true
 
       portMappings = [
@@ -127,7 +127,7 @@ resource "aws_ecs_task_definition" "main" {
     # --- queue (Solid Queue) ---
     {
       name  = "queue"
-      image = "${aws_ecr_repository.rails.repository_url}:latest"
+      image = "${aws_ecr_repository.rails.repository_url}:${var.initial_image_tag}"
       essential = false
 
       entryPoint = ["/algo_sangaku_back/entrypoint-queue.sh"]
@@ -177,7 +177,7 @@ resource "aws_ecs_task_definition" "main" {
   }
 
   # GitHub Actions のデプロイフローがコンテナイメージを管理するため、
-  # terraform apply のたびに :latest タグでタスク定義が上書きされないよう無視する
+  # terraform apply でブートストラップ用のイメージタグに巻き戻らないよう無視する
   lifecycle {
     ignore_changes = [container_definitions]
   }

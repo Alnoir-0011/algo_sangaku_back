@@ -20,6 +20,15 @@ variable "app_name" {
   default     = "algo-sangaku"
 }
 
+# 実運用のイメージは autodeploy.yml がデプロイのたびにダイジェスト参照へ書き換えるため、
+# この値が使われるのはゼロから環境を構築するときだけ。ECR に実在するタグを指定すること
+# (:latest は ECR のタグ運用廃止に伴い削除済みのため使用不可)。
+variable "initial_image_tag" {
+  description = "ブートストラップ時にタスク定義が参照する ECR イメージタグ"
+  type        = string
+  default     = "c2b0c62"
+}
+
 # --- VPC ---
 variable "vpc_cidr" {
   description = "VPC の CIDR ブロック"
