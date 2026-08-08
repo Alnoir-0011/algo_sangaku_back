@@ -86,6 +86,7 @@ RSpec.configure do |config|
   config.include AuthenticationHelper
   config.include ActiveSupport::Testing::TimeHelpers
   config.include PaizaioStubs
+  config.include SqlQueryHelper
 
   config.before(:each) do
     stub_paizaio_api

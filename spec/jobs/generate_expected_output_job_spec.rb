@@ -15,11 +15,20 @@ RSpec.describe GenerateExpectedOutputJob, type: :job do
       expect(fixed_input.reload.expected_output).to eq("Hello world\n")
     end
 
-    it 'leaves expected_output as nil when PaizaIO fails' do
-      allow_any_instance_of(GenerateExpectedOutputJob).to receive(:run_source).and_raise(StandardError, "PaizaIO error")
+    context "when PaizaIO fails" do
+      before do
+        allow_any_instance_of(GenerateExpectedOutputJob).to receive(:run_source).and_raise(StandardError, "PaizaIO error")
+      end
 
-      GenerateExpectedOutputJob.perform_now(fixed_input)
-      expect(fixed_input.reload.expected_output).to be_nil
+      it 'leaves expected_output as nil' do
+        GenerateExpectedOutputJob.perform_now(fixed_input)
+        expect(fixed_input.reload.expected_output).to be_nil
+      end
+
+      it 'logs a warning' do
+        expect(Rails.logger).to receive(:warn).with(/fixed_input_id=#{fixed_input.id}/)
+        GenerateExpectedOutputJob.perform_now(fixed_input)
+      end
     end
   end
 end

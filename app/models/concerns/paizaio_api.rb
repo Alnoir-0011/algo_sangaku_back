@@ -2,6 +2,8 @@ module PaizaioApi
   extend ActiveSupport::Concern
 
   MAX_POLL_ATTEMPTS = 30
+  HTTP_OPEN_TIMEOUT = 10
+  HTTP_READ_TIMEOUT = 30
 
   def run_source(source, input = "", language = "ruby")
     id = create_runner(source, language, input)
@@ -23,9 +25,9 @@ module PaizaioApi
     api_url = "https://api.paiza.io/runners/create.json"
     uri = URI(api_url)
     http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = uri.scheme === "https"
-    http.open_timeout = 10
-    http.read_timeout = 30
+    http.use_ssl = uri.scheme == "https"
+    http.open_timeout = HTTP_OPEN_TIMEOUT
+    http.read_timeout = HTTP_READ_TIMEOUT
 
     headers = { "Content-Type" => "application/json" }
     params = {
@@ -63,7 +65,9 @@ module PaizaioApi
     }
 
     uri.query = URI.encode_www_form(params)
-    res = Net::HTTP.get_response(uri)
+    res = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https", open_timeout: HTTP_OPEN_TIMEOUT, read_timeout: HTTP_READ_TIMEOUT) do |http|
+      http.get(uri)
+    end
 
     case res
     when Net::HTTPOK
@@ -87,7 +91,9 @@ module PaizaioApi
     }
 
     uri.query = URI.encode_www_form(params)
-    res = Net::HTTP.get_response(uri)
+    res = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https", open_timeout: HTTP_OPEN_TIMEOUT, read_timeout: HTTP_READ_TIMEOUT) do |http|
+      http.get(uri)
+    end
 
     case res
     when Net::HTTPOK

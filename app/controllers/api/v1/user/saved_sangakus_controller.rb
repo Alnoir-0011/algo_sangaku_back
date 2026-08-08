@@ -21,11 +21,11 @@ module Api
       def index_scope
         case params[:type]
         when "answered"
-          Sangaku.where(id: current_user.user_sangaku_saves.answered.select(:sangaku_id)).search(search_params)
+          Sangaku.where(id: current_user.user_sangaku_saves.answered.select(:sangaku_id)).search(search_params).order(:id)
         when "before_answer"
-          Sangaku.where(id: current_user.user_sangaku_saves.unanswered.select(:sangaku_id)).search(search_params)
+          Sangaku.where(id: current_user.user_sangaku_saves.unanswered.select(:sangaku_id)).search(search_params).order(:id)
         else
-          current_user.saved_sangakus
+          current_user.saved_sangakus.order(:id)
         end
       end
 

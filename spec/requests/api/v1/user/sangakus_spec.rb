@@ -366,12 +366,28 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
         allow_any_instance_of(OpenAI::Client).to receive(:chat).and_raise(OpenAI::Error)
       end
 
-      it "returns 422 without creating a log" do
+      it "returns 422 with an error message and still consumes the rate limit log" do
         authenticate_stub(user)
         expect {
           http_request
-        }.not_to change(GenerateSourceCallLog, :count)
+        }.to change(GenerateSourceCallLog, :count).by(1)
         expect(response).to have_http_status(:unprocessable_entity)
+        expect(body["error"]).to be_present
+      end
+    end
+
+    context "when OpenAI API raises a network error", openapi: false do
+      before do
+        allow_any_instance_of(OpenAI::Client).to receive(:chat).and_raise(Faraday::TimeoutError)
+      end
+
+      it "returns 422 with an error message and still consumes the rate limit log" do
+        authenticate_stub(user)
+        expect {
+          http_request
+        }.to change(GenerateSourceCallLog, :count).by(1)
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(body["error"]).to be_present
       end
     end
 

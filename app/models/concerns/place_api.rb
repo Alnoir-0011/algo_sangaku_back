@@ -2,6 +2,8 @@ module PlaceApi
   extend ActiveSupport::Concern
 
   GOOGLE_PLACES_SEARCH_TEXT_URI = "https://places.googleapis.com/v1/places:searchText"
+  HTTP_OPEN_TIMEOUT = 10
+  HTTP_READ_TIMEOUT = 30
 
   class_methods do
     def text_search_by_location_restriction(low_lat, high_lat, low_lng, high_lng)
@@ -59,6 +61,8 @@ module PlaceApi
       uri = URI.parse(GOOGLE_PLACES_SEARCH_TEXT_URI)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme === "https"
+      http.open_timeout = HTTP_OPEN_TIMEOUT
+      http.read_timeout = HTTP_READ_TIMEOUT
 
       headers = {
         "Content-Type" => "application/json",
