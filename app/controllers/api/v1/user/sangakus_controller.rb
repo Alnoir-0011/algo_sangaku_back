@@ -47,7 +47,12 @@ module Api
           return render json: { error: "問題文は#{GENERATE_SOURCE_MAX_LENGTH}文字以内で入力してください" }, status: :unprocessable_entity
         end
 
-        check_generate_source_rate_limit!
+        now = nil
+        current_user.with_lock do
+          check_generate_source_rate_limit!
+          now = Time.current
+          current_user.generate_source_call_logs.create!(called_at: now)
+        end
 
         client = OpenAI::Client.new
         response = client.chat(
@@ -82,13 +87,6 @@ module Api
           return render json: { error: "コードの生成に失敗しました" }, status: :unprocessable_entity
         end
 
-        now = nil
-        current_user.with_lock do
-          check_generate_source_rate_limit!
-          now = Time.current
-          current_user.generate_source_call_logs.create!(called_at: now)
-        end
-
         render json: {
           source: source,
           usage: {
@@ -98,7 +96,7 @@ module Api
             reset_at: current_user.generate_source_daily_reset_at(now).iso8601
           }
         }, status: :ok
-      rescue OpenAI::Error => e
+      rescue OpenAI::Error, Faraday::Error => e
         Rails.logger.error("[generate_source] OpenAI error: #{e.message}")
         render json: { error: "コードの生成中にエラーが発生しました" }, status: :unprocessable_entity
       end

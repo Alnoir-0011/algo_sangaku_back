@@ -33,6 +33,25 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
         expect(body["data"][0]["attributes"].keys).not_to include("source")
       end
     end
+
+    context "with multiple unsolved saved sangakus created out of id order" do
+      let!(:other_sangaku) { create(:sangaku, id: sangaku.id - 1, title: "other", user: author, shrine:) }
+      let!(:other_sangaku_save_relation) { create(:user_sangaku_save, sangaku: other_sangaku, user: user) }
+
+      it "returns sangakus in ascending id order regardless of creation order" do
+        authenticate_stub(user)
+        http_request
+
+        returned_ids = body["data"].map { |d| d["id"].to_i }
+        expect(returned_ids).to eq([ other_sangaku.id, sangaku.id ])
+      end
+
+      it "issues a query with an explicit ascending id order" do
+        authenticate_stub(user)
+        queries = capture_executed_sql { http_request }
+        expect(queries).to include(a_string_matching(/ORDER BY "sangakus"\."id" ASC/i))
+      end
+    end
   end
 
   describe "GET /index with multiple users' answer status" do
