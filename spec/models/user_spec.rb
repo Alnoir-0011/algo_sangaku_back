@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe User, type: :model do
   describe "validation" do
-    it "is valid with all attribute" do
+    it "is valid with all attributes" do
       user = build(:user)
       expect(user).to be_valid
       expect(user.errors).to be_empty
@@ -67,7 +67,7 @@ RSpec.describe User, type: :model do
       expect(another_user.errors[:email]).to eq [ 'はすでに存在します' ]
     end
 
-    it "is valid with another eamil" do
+    it "is valid with another email" do
       create(:user)
       another_user = build(:user, email: "another_user@example.com")
       expect(another_user).to be_valid
@@ -83,7 +83,7 @@ RSpec.describe User, type: :model do
 
     it "is valid with same nickname" do
       user = create(:user)
-      another_user = build(:user, email: user.nickname)
+      another_user = build(:user, nickname: user.nickname)
       expect(another_user).to be_valid
       expect(another_user.errors).to be_empty
     end
@@ -163,6 +163,92 @@ RSpec.describe User, type: :model do
           expect(user.generate_source_daily_reset_at).to eq Time.zone.local(2026, 4, 11, 3, 0, 0)
         end
       end
+    end
+  end
+
+  describe "#add_saved_sangakus" do
+    it "adds the sangaku to the user's saved sangakus" do
+      user = create(:user)
+      sangaku = create(:sangaku)
+
+      user.add_saved_sangakus(sangaku)
+
+      expect(user.saved_sangakus).to include(sangaku)
+    end
+  end
+
+  describe "#dedicated_sangakus_with_shrine" do
+    it "returns only sangakus that have a shrine" do
+      user = create(:user)
+      shrine = create(:shrine)
+      dedicated_sangaku = create(:sangaku, user:, shrine:)
+      create(:sangaku, user:, shrine: nil)
+
+      expect(user.dedicated_sangakus_with_shrine).to eq [ dedicated_sangaku ]
+    end
+
+    it "memoizes the result across calls" do
+      user = create(:user)
+      shrine = create(:shrine)
+      create(:sangaku, user:, shrine:)
+
+      first_call = user.dedicated_sangakus_with_shrine
+      create(:sangaku, user:, shrine: create(:shrine))
+
+      expect(user.dedicated_sangakus_with_shrine).to equal(first_call)
+    end
+  end
+
+  describe ".search" do
+    it "matches users whose email partially matches the query" do
+      matching_user = create(:user, email: "taro@example.com")
+      create(:user, email: "other@example.com")
+
+      expect(User.search("taro")).to include(matching_user)
+      expect(User.search("taro").count).to eq 1
+    end
+
+    it "matches users whose nickname partially matches the query" do
+      matching_user = create(:user, nickname: "algo_taro")
+      create(:user, nickname: "other")
+
+      expect(User.search("taro")).to include(matching_user)
+    end
+
+    it "is case-insensitive" do
+      matching_user = create(:user, nickname: "AlgoTaro")
+
+      expect(User.search("algotaro")).to include(matching_user)
+    end
+
+    it "escapes the percent wildcard instead of matching every user" do
+      literal_percent_user = create(:user, nickname: "50%off")
+      other_user = create(:user, nickname: "regular")
+
+      result = User.search("%")
+
+      expect(result).to include(literal_percent_user)
+      expect(result).not_to include(other_user)
+    end
+
+    it "escapes the underscore wildcard instead of matching any single character" do
+      literal_underscore_user = create(:user, nickname: "a_b")
+      other_user = create(:user, nickname: "aXb")
+
+      result = User.search("a_b")
+
+      expect(result).to include(literal_underscore_user)
+      expect(result).not_to include(other_user)
+    end
+
+    it "escapes backslash characters in the query" do
+      literal_backslash_user = create(:user, nickname: "a\\b")
+      other_user = create(:user, nickname: "ab")
+
+      result = User.search("a\\b")
+
+      expect(result).to include(literal_backslash_user)
+      expect(result).not_to include(other_user)
     end
   end
 end

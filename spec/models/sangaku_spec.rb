@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Sangaku, type: :model do
   describe 'validation' do
-    it 'is valid with all attribute' do
+    it 'is valid with all attributes' do
       sangaku = build(:sangaku)
       expect(sangaku).to be_valid
       expect(sangaku.errors).to be_empty
@@ -74,7 +74,38 @@ RSpec.describe Sangaku, type: :model do
     end
   end
 
+  # lat/lng はクライアント（HTTPリクエストパラメータ）からそのまま渡される申告値であり、
+  # このテストはあくまで距離計算に基づく閾値判定ロジックの正しさを検証するもの。
+  # サーバー側で位置情報の真正性を検証していないため、この距離チェックはUX上の制約であり
+  # 位置偽装（なりすまし奉納）に対するセキュリティ境界にはならない（issue #312 で対応方針を検討）。
   describe '#dedicate' do
+    it 'dedicates the sangaku when the distance is within the default threshold' do
+      sangaku = create(:sangaku, shrine: nil)
+      shrine = create(:shrine, latitude: 35.4, longitude: 135.1)
+
+      expect(sangaku.dedicate(shrine, 35.4, 135.1)).to eq true
+      expect(sangaku.reload.shrine).to eq shrine
+    end
+
+    it 'does not dedicate the sangaku when the distance exceeds the default threshold' do
+      sangaku = create(:sangaku, shrine: nil)
+      shrine = create(:shrine, latitude: 35.4, longitude: 135.1)
+
+      expect(sangaku.dedicate(shrine, 35.41, 135.1)).to eq false
+      expect(sangaku.reload.shrine).to be_nil
+    end
+
+    it 'does not dedicate the sangaku when it already has a shrine, regardless of distance' do
+      existing_shrine = create(:shrine, latitude: 35.4, longitude: 135.1)
+      sangaku = create(:sangaku, shrine: existing_shrine)
+      # 意図的に existing_shrine と異なる座標にし、「距離判定ではなく既存shrineの有無で
+      # 短絡的に弾かれている」ことを明確にする
+      new_shrine = create(:shrine, latitude: 43.0, longitude: 141.3)
+
+      expect(sangaku.dedicate(new_shrine, 43.0, 141.3)).to eq false
+      expect(sangaku.reload.shrine).to eq existing_shrine
+    end
+
     it 'returns false when save! raises ActiveRecord::RecordInvalid' do
       sangaku = create(:sangaku)
       shrine = create(:shrine)
