@@ -5,12 +5,13 @@ RSpec.describe "Api::V1::User::Profiles", type: :request do
   let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
 
   describe "GET /show" do
-    let!(:shrine) { create(:shrine) }
-    let!(:dedicated_sangaku) { create(:sangaku, user:, shrine:) }
-    let!(:undedicated_sangaku) { create(:sangaku, user:) }
     let(:http_request) { get api_v1_user_profile_path, headers: }
 
     context "with access_token" do
+      let!(:shrine) { create(:shrine) }
+      let!(:dedicated_sangaku) { create(:sangaku, user:, shrine:) }
+      let!(:undedicated_sangaku) { create(:sangaku, user:) }
+
       it "マイプロフィールを返す" do
         authenticate_stub(user)
         http_request
@@ -33,9 +34,9 @@ RSpec.describe "Api::V1::User::Profiles", type: :request do
       let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer #{raw_token}" } }
 
       it "認証に成功しマイプロフィールを返す" do
-        # RED: base_controller#authenticate が Bearer トークンをダイジェスト化せずに
-        # そのまま access_token として検索しているため、factory がダイジェスト化した
-        # access_token を保存している現状では認証に失敗し 401 が返り失敗する
+        # base_controller#authenticate は Bearer トークンをダイジェスト化して照合するため、
+        # factory がダイジェスト化して保存した access_token と生トークンでの認証が
+        # 正しく一致することを保証する回帰テスト
         http_request
 
         expect(response).to have_http_status(:ok)
@@ -48,7 +49,6 @@ RSpec.describe "Api::V1::User::Profiles", type: :request do
       let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer #{SecureRandom.uuid}" } }
 
       it "認証に失敗し 401 を返す" do
-        # RED: ダイジェスト化対応後の authenticate ロジックにおいても、
         # 誤ったトークンでは認証に失敗し 401 を返すことを保証する回帰テスト
         http_request
 
@@ -80,6 +80,27 @@ RSpec.describe "Api::V1::User::Profiles", type: :request do
 
         expect(response).to have_http_status(:ok)
         expect(user.reload.show_answer_count).to be true
+      end
+    end
+
+    context "without access_token", openapi: false do
+      it "return 401 errors" do
+        http_request
+
+        expect(response).to have_http_status(401)
+      end
+    end
+
+    context "with invalid params", openapi: false do
+      let(:params) { { user: { nickname: "" } }.to_json }
+
+      it "return 400 errors" do
+        authenticate_stub(user)
+
+        expect {
+          http_request
+        }.not_to change { user.reload.nickname }
+        expect(response).to have_http_status(400)
       end
     end
   end
