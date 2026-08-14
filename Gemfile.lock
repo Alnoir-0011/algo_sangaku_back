@@ -80,9 +80,9 @@ GEM
     ast (2.4.3)
     base64 (0.3.0)
     bigdecimal (4.1.2)
-    bootsnap (1.24.6)
-      msgpack (~> 1.2)
-    brakeman (8.0.5)
+    bootsnap (1.25.0)
+      msgpack (~> 1.5)
+    brakeman (8.0.6)
       racc
     builder (3.3.0)
     byebug (13.0.0)
@@ -110,7 +110,7 @@ GEM
     drb (2.2.3)
     erb (6.0.6)
     erubi (1.13.1)
-    et-orbi (1.4.0)
+    et-orbi (1.4.1)
       tzinfo
     event_stream_parser (1.0.0)
     factory_bot (6.5.5)
@@ -156,7 +156,7 @@ GEM
       prism (>= 1.3.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    json (2.21.1)
+    json (2.21.2)
     jsonapi-serializer (2.2.0)
       activesupport (>= 4.2)
     jwt (3.2.0)
@@ -190,7 +190,7 @@ GEM
       railties (>= 7.1)
       stimulus-rails
       turbo-rails
-    msgpack (1.8.1)
+    msgpack (1.8.4)
     multipart-post (2.4.1)
     net-http (0.9.1)
       uri (>= 0.11.1)
@@ -314,7 +314,7 @@ GEM
       zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.4.2)
-    rbs (4.1.1)
+    rbs (4.1.2)
       logger
       prism (>= 1.6.0)
       tsort
@@ -335,7 +335,7 @@ GEM
     rspec-mocks (3.13.8)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
-    rspec-openapi (0.31.0)
+    rspec-openapi (0.32.0)
       actionpack (>= 5.2.0)
       rails-dom-testing
       rspec-core
@@ -387,7 +387,7 @@ GEM
       faraday (>= 0.17.5, < 3.a)
       jwt (>= 1.5, < 4.0)
     simplecov (1.0.3)
-    solid_queue (1.5.1)
+    solid_queue (1.6.0)
       activejob (>= 7.1)
       activerecord (>= 7.1)
       concurrent-ruby (>= 1.3.1)
@@ -419,7 +419,7 @@ GEM
     websocket-extensions (0.1.5)
     yaml (0.4.0)
     yard (0.9.38)
-    zeitwerk (2.8.2)
+    zeitwerk (2.8.3)
 
 PLATFORMS
   aarch64-linux-gnu
@@ -459,7 +459,7 @@ DEPENDENCIES
   rubocop-rails-omakase
   ruby-openai (~> 8.3)
   simplecov
-  solid_queue (~> 1.5)
+  solid_queue (~> 1.6)
   tzinfo-data
   webmock (~> 3.26)
 
