@@ -33,13 +33,29 @@ RSpec.describe "Api::V1::Sangakus", type: :request do
         http_request
 
         expect {
-          # 実際のリクエストは毎回 DB から current_user を再取得するため、
-          # ここでも user を reload して同一Rubyオブジェクトの使い回しによる
-          # 誤ったキャッシュ挙動（no-op化）を避ける
-          authenticate_stub(User.find(user.id))
           post api_v1_sangaku_save_path(sangaku.id), headers:
         }.not_to change(user.saved_sangakus, :count)
         expect(response).to have_http_status(:conflict)
+      end
+    end
+
+    context "without access_token", openapi: false do
+      it "return 401 errors" do
+        http_request
+
+        expect(response).to have_http_status(401)
+      end
+    end
+
+    context "with a nonexistent sangaku_id", openapi: false do
+      let(:http_request) { post api_v1_sangaku_save_path(sangaku.id + 1_000_000), headers: }
+
+      it "return 404" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(404)
       end
     end
   end

@@ -83,6 +83,16 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
         expect(body["data"][0]["attributes"]["title"]).to eq sangaku.title
       end
     end
+
+    context "without access_token", openapi: false do
+      let(:params) { {} }
+
+      it "return 401 errors" do
+        http_request
+
+        expect(response).to have_http_status(401)
+      end
+    end
   end
 
   describe "POST /user/sangakus" do
@@ -100,6 +110,33 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
         }.to change(Sangaku, :count).by(1)
         expect(response).to be_successful
         expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context "without access_token", openapi: false do
+      let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' } }
+      let(:params) { { sangaku: attributes_for(:sangaku) } }
+
+      it "return 401 errors" do
+        expect {
+          post api_v1_user_sangakus_path, headers: headers, params: params.to_json
+        }.not_to change(Sangaku, :count)
+        expect(response).to have_http_status(401)
+      end
+    end
+
+    context "with invalid params", openapi: false do
+      let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
+      let(:params) { { sangaku: attributes_for(:sangaku, title: "") } }
+      let!(:user) { create(:user) }
+
+      it "return 400 errors" do
+        authenticate_stub(user)
+
+        expect {
+          post api_v1_user_sangakus_path, headers: headers, params: params.to_json
+        }.not_to change(Sangaku, :count)
+        expect(response).to have_http_status(400)
       end
     end
   end
@@ -120,6 +157,40 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
         expect(response).to be_successful
         expect(response).to have_http_status(:ok)
         expect(body["data"]["id"]).to eq sangaku.id.to_s
+      end
+    end
+
+    context "without access_token", openapi: false do
+      it "return 401 errors" do
+        http_request
+
+        expect(response).to have_http_status(401)
+      end
+    end
+
+    context "with a nonexistent id", openapi: false do
+      let(:http_request) { get api_v1_user_sangaku_path(sangaku.id + 1_000_000), headers:, params: }
+
+      it "return 404" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(404)
+      end
+    end
+
+    context "with another user's sangaku id", openapi: false do
+      let!(:another_user) { create(:user, nickname: "another") }
+      let!(:another_sangaku) { create(:sangaku, user: another_user) }
+      let(:http_request) { get api_v1_user_sangaku_path(another_sangaku.id), headers:, params: }
+
+      it "return 404" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(404)
       end
     end
   end
@@ -157,6 +228,34 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       end
     end
 
+    context "without access_token", openapi: false do
+      let!(:sangaku) { create(:sangaku, title: "before_changed", user: user) }
+      let(:params) { { sangaku: attributes_for(:sangaku, title: "changed_title") }.to_json }
+      let(:http_request) { patch api_v1_user_sangaku_path(sangaku.id), headers: { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' }, params: }
+
+      it "return 401 errors" do
+        http_request
+
+        expect(response).to have_http_status(401)
+        expect(sangaku.reload.title).to eq "before_changed"
+      end
+    end
+
+    context "with invalid params", openapi: false do
+      let!(:sangaku) { create(:sangaku, title: "before_changed", user: user) }
+      let(:params) { { sangaku: attributes_for(:sangaku, title: "") }.to_json }
+      let(:http_request) { patch api_v1_user_sangaku_path(sangaku.id), headers:, params: }
+
+      it "return 400 errors" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(400)
+        expect(sangaku.reload.title).to eq "before_changed"
+      end
+    end
+
     context "with anotheruser's sangaku id", openapi: false do
       let!(:another_user) { create(:user) }
       let!(:another_sangaku) { create(:sangaku, user: another_user) }
@@ -175,7 +274,10 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
     context "removing a fixed_input that has answer_results", openapi: false do
       let!(:sangaku) { create(:sangaku, title: "before_changed", user: user) }
       let!(:fixed_input) { create(:fixed_input, sangaku: sangaku, content: "old_input") }
-      let!(:user_sangaku_save) { sangaku.reload; create(:user_sangaku_save, sangaku: sangaku) }
+      # Answer#create_results が sangaku.fixed_inputs を参照するため、
+      # user_sangaku_save/answer を作る前に関連キャッシュを更新しておく必要がある
+      before { sangaku.reload }
+      let!(:user_sangaku_save) { create(:user_sangaku_save, sangaku: sangaku) }
       let!(:answer) { create(:answer, user_sangaku_save: user_sangaku_save) }
       let(:params) { { sangaku: attributes_for(:sangaku, title: "changed_title"), fixed_inputs: [] }.to_json }
       let(:http_request) { patch api_v1_user_sangaku_path(sangaku.id), headers:, params: }
@@ -211,14 +313,29 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       end
     end
 
+    context "without access_token", openapi: false do
+      let!(:sangaku) { create(:sangaku, user:) }
+      let(:http_request) { delete api_v1_user_sangaku_path(sangaku.id), headers: { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' } }
+
+      it "return 401 errors" do
+        expect {
+          http_request
+        }.not_to change(Sangaku, :count)
+        expect(response).to have_http_status(401)
+      end
+    end
+
     context "with a fixed_input that has answer_results", openapi: false do
       let!(:sangaku) { create(:sangaku, user:) }
       let!(:fixed_input) { create(:fixed_input, sangaku: sangaku) }
-      let!(:user_sangaku_save) { sangaku.reload; create(:user_sangaku_save, sangaku: sangaku) }
+      # Answer#create_results が sangaku.fixed_inputs を参照するため、
+      # user_sangaku_save/answer を作る前に関連キャッシュを更新しておく必要がある
+      before { sangaku.reload }
+      let!(:user_sangaku_save) { create(:user_sangaku_save, sangaku: sangaku) }
       let!(:answer) { create(:answer, user_sangaku_save: user_sangaku_save) }
       let(:http_request) { delete api_v1_user_sangaku_path(sangaku.id), headers: }
 
-      it "return sangaku in json format" do
+      it "deletes the sangaku along with its fixed_inputs and answer_results" do
         authenticate_stub(user)
 
         expect {

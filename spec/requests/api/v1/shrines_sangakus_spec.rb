@@ -41,5 +41,15 @@ RSpec.describe "Api::V1::ShrinesSangakus", type: :request do
         expect(queries).to include(a_string_matching(/ORDER BY "sangakus"\."id" ASC/i))
       end
     end
+
+    context "with a nonexistent shrine_id", openapi: false do
+      let(:http_request) { get api_v1_shrine_sangakus_path(shrine.id + 1_000_000), headers:, params: }
+
+      it "return 404" do
+        http_request
+
+        expect(response).to have_http_status(404)
+      end
+    end
   end
 end

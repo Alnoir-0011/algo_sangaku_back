@@ -99,5 +99,15 @@ RSpec.describe "Api::V1::Shrines", type: :request do
         expect(body["data"]["attributes"]["name"]).to eq shrine.name
       end
     end
+
+    context "with a nonexistent shrine id", openapi: false do
+      let(:http_request) { get api_v1_shrine_path(shrine.id + 1_000_000), headers: }
+
+      it "return 404" do
+        http_request
+
+        expect(response).to have_http_status(404)
+      end
+    end
   end
 end

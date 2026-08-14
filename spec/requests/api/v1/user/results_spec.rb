@@ -33,5 +33,37 @@ RSpec.describe "Api::V1::User::Results", type: :request do
         expect(body["data"]["attributes"]["incorrect_count"]).to eq 1
       end
     end
+
+    context "without access_token", openapi: false do
+      it "return 401 errors" do
+        http_request
+
+        expect(response).to have_http_status(401)
+      end
+    end
+
+    context "with a nonexistent sangaku_id", openapi: false do
+      let(:http_request) { get api_v1_user_sangaku_result_path(sangaku.id + 1_000_000), headers: headers }
+
+      it "return 404" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(404)
+      end
+    end
+
+    context "with another user's sangaku_id", openapi: false do
+      let(:http_request) { get api_v1_user_sangaku_result_path(sangaku.id), headers: headers }
+
+      it "return 404" do
+        authenticate_stub(another_user)
+
+        http_request
+
+        expect(response).to have_http_status(404)
+      end
+    end
   end
 end

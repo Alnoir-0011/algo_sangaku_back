@@ -52,6 +52,14 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
         expect(queries).to include(a_string_matching(/ORDER BY "sangakus"\."id" ASC/i))
       end
     end
+
+    context "without access_token", openapi: false do
+      it "return 401 errors" do
+        http_request
+
+        expect(response).to have_http_status(401)
+      end
+    end
   end
 
   describe "GET /index with multiple users' answer status" do
@@ -151,6 +159,14 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
         expect(body["data"]["attributes"].keys).not_to include("source")
       end
     end
+
+    context "without access_token", openapi: false do
+      it "return 401 errors" do
+        http_request
+
+        expect(response).to have_http_status(401)
+      end
+    end
   end
 
   describe "GET /show with multiple users' answer status" do
@@ -210,6 +226,28 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
         http_request
         expect(response).to have_http_status(:ok)
         expect(body['data']['attributes']['source']).to eq answer.source
+      end
+    end
+
+    context "without access_token", openapi: false do
+      it "return 401 errors" do
+        http_request
+
+        expect(response).to have_http_status(401)
+      end
+    end
+
+    context "when the sangaku has not been answered yet", openapi: false do
+      let!(:unanswered_sangaku) { create(:sangaku, user: author) }
+      let!(:unanswered_sangaku_save_relation) { create(:user_sangaku_save, sangaku: unanswered_sangaku, user: user) }
+      let(:http_request) { get answer_api_v1_user_saved_sangaku_path(unanswered_sangaku.id), headers: }
+
+      it "return 404" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(404)
       end
     end
   end

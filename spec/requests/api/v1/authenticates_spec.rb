@@ -43,9 +43,8 @@ RSpec.describe "Api::V1::Authenticates", type: :request do
       end
 
       it 'issues a raw token in the AccessToken header, not the stored digest' do
-        # RED: base_controller#set_token! が api_key.access_token（ダイジェスト）を
-        # そのままヘッダーに設定している現状の実装では、ヘッダー値と DB 上の access_token が
-        # 一致してしまい、ダイジェストと不一致であることを検証するこのテストは失敗する
+        # base_controller#set_token! はヘッダーに raw_token（生トークン）を設定し、
+        # DB には ApiKey.digest によるダイジェストのみを保存するため、両者が一致しないことを保証する回帰テスト
         http_request
 
         created_user = User.find_by(uid: user_attr[:uid])
@@ -77,6 +76,24 @@ RSpec.describe "Api::V1::Authenticates", type: :request do
         expect(response.headers.keys).to include 'accesstoken'
       end
     end
+
+    context 'when the new user fails validation', openapi: false do
+      let!(:params) { { token: 'dummy_idtoken' }.to_json }
+      let!(:dummy_payload) { {
+        "iss" => "https://accounts.google.com",
+        "azp" => "dummy_azp",
+        "aud" => "dummy_aud",
+        "sub" => SecureRandom.uuid,
+        "email" => "",
+        "name" => "test user"
+      } }
+      let(:http_request) { post api_v1_authenticate_path, params: params, headers: headers }
+
+      it 'returns 400 and does not create a user' do
+        expect { http_request }.not_to change(User, :count)
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
   end
 
   describe "DELETE /destroy" do
@@ -90,9 +107,8 @@ RSpec.describe "Api::V1::Authenticates", type: :request do
       let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer #{raw_token}" } }
 
       it 'return success message with json format' do
-        # RED: authenticates_controller#destroy が Bearer トークンをダイジェスト化せずに
-        # 生の access_token として find_by しているため、factory で raw_token からダイジェスト化した
-        # access_token を保存している現状では、生トークンでの検索がヒットせず失敗する
+        # authenticates_controller#destroy は Bearer トークンを ApiKey.digest でダイジェスト化してから
+        # find_by しているため、factory で raw_token からダイジェスト化した access_token と正しく一致する
         expect {
           http_request
         }.to change(ApiKey, :count).by(-1)
@@ -101,15 +117,17 @@ RSpec.describe "Api::V1::Authenticates", type: :request do
       end
     end
 
-    context "with an incorrect access_token" do
+    context "with an incorrect access_token", openapi: false do
       let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer #{SecureRandom.uuid}" } }
 
-      it 'does not delete any ApiKey' do
-        # RED: 誤ったトークンでは該当レコードが見つからず削除されないことを保証する回帰テスト。
-        # ダイジェスト化対応後の find_by ロジックが正しく「不一致」を判定できるかを検証する
+      it 'does not delete any ApiKey and returns 401' do
+        # 誤ったトークンでは該当レコードが見つからず削除されないことを保証する回帰テスト。
+        # before_action :authenticate が destroy より先に実行され401を返すため、
+        # destroy内の key.destroy! に到達しないことも合わせて確認する
         expect {
           http_request
         }.not_to change(ApiKey, :count)
+        expect(response).to have_http_status(401)
       end
     end
   end
