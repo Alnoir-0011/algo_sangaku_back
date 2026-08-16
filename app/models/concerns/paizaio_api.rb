@@ -48,7 +48,8 @@ module PaizaioApi
       body = JSON.parse(res.body)
       if body.include?("id")
         body["id"]
-      elsif body.include?("error")
+      else
+        Rails.logger.error("PaizaIO create_runner unexpected response body: #{body}")
         raise StandardError.new("コードが実行できませんでした")
       end
     else

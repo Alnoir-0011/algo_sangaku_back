@@ -72,6 +72,8 @@ class Sangaku < ApplicationRecord
     relation
   end
 
+  # lat/lng はクライアント申告値であり、位置偽装のセキュリティ境界にはならない。
+  # 個人開発規模のなりすましリスクを踏まえ、署名済み位置情報やレート制限の追加対応は不要と判断した（issue #312）。
   def dedicate(new_shrine, lat, lng)
     return false if shrine.present? || distance(new_shrine, lat, lng) > DEFAULT_DEDICATE_DISTANCE
 

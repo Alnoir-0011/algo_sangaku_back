@@ -89,6 +89,17 @@ RSpec.describe PlaceApi, type: :model do
         # Assert
         expect(result).to eq(dummy_places)
       end
+
+      it "requests primaryType and types in the fieldmask" do
+        # Act
+        Shrine.text_search_by_location_restriction(35.4, 35.5, 135.1, 135.2)
+
+        # Assert
+        expect(WebMock).to have_requested(:post, search_text_uri)
+          .with(headers: { "X-Goog-Fieldmask" => /places\.primaryType/ })
+        expect(WebMock).to have_requested(:post, search_text_uri)
+          .with(headers: { "X-Goog-Fieldmask" => /places\.types/ })
+      end
     end
 
     context "when Google Places API returns a non-200 response" do

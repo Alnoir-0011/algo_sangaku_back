@@ -1,2 +1,4 @@
 frontend_url:
   host: "localhost:4030"
+
+verify_client_secret: false

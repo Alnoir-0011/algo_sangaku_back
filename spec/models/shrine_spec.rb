@@ -123,9 +123,66 @@ RSpec.describe Shrine, type: :model do
     end
   end
 
-  # eleminate_non_shrine はクラス内で private 宣言されているが、Ruby の private は
-  # def self.foo 形式のクラスメソッド（特異メソッド）には効かないため実際は public で呼び出せる
-  # （可視性を意図通りにする対応は issue #312 で追跡）。
+  describe '.persist_places' do
+    def place_data(place_id:, name: "test_shrine", latitude: 35.4, longitude: 135.1)
+      {
+        "id" => place_id,
+        "displayName" => { "text" => name },
+        "formattedAddress" => "dummy address",
+        "location" => { "latitude" => latitude, "longitude" => longitude }
+      }
+    end
+
+    it 'persists all places when all of them are valid' do
+      places = [ place_data(place_id: "place_1"), place_data(place_id: "place_2") ]
+
+      expect {
+        Shrine.send(:persist_places, places)
+      }.to change(Shrine, :count).by(2)
+    end
+
+    it 'skips an invalid place and persists the remaining valid places without raising' do
+      valid_place = place_data(place_id: "place_valid")
+      invalid_place = place_data(place_id: "place_invalid", latitude: 999)
+
+      result = nil
+      expect {
+        result = Shrine.send(:persist_places, [ valid_place, invalid_place ])
+      }.to change(Shrine, :count).by(1)
+
+      expect(Shrine.find_by(place_id: "place_valid")).to be_present
+      expect(Shrine.find_by(place_id: "place_invalid")).to be_nil
+      expect(result.map { |shrine| shrine.place_id }).to eq [ "place_valid" ]
+    end
+
+    it 'logs a warning and excludes the place when save fails' do
+      invalid_place = place_data(place_id: "place_invalid", latitude: 999)
+
+      expect(Rails.logger).to receive(:warn).with(/place_id=place_invalid/)
+
+      result = Shrine.send(:persist_places, [ invalid_place ])
+
+      expect(result).to eq []
+    end
+
+    it 'adopts the concurrently persisted record when a RecordNotUnique race occurs' do
+      place = place_data(place_id: "place_race")
+
+      allow_any_instance_of(Shrine).to receive(:save) do
+        # 別プロセスが同じ place_id を先に保存した状況を再現する（.save を経由せず直接INSERT）
+        Shrine.insert!({ name: "concurrent winner", address: "dummy address", latitude: 35.4, longitude: 135.1, place_id: "place_race" })
+        raise ActiveRecord::RecordNotUnique, "duplicate key"
+      end
+
+      result = Shrine.send(:persist_places, [ place ])
+      winner = Shrine.find_by(place_id: "place_race")
+
+      expect(winner).to be_present
+      expect(result).to eq [ winner ]
+    end
+  end
+
+  # eleminate_non_shrine は private_class_method だが .send で呼び出せる。
   # 除外条件の組み合わせ（キーワード×「社」と「寺」の同時一致）が複雑で、
   # .search_by_bounds/.search_by_location 経由の間接テストだけでは全分岐を網羅しづらいため、直接呼び出して検証する
   describe '.eleminate_non_shrine' do
@@ -184,6 +241,66 @@ RSpec.describe Shrine, type: :model do
       drop = place_with_name("〇〇寺")
 
       expect(Shrine.send(:eleminate_non_shrine, [ keep, drop ])).to eq [ keep ]
+    end
+
+    it 'excludes a sub-location even when the name contains both 社 and 寺' do
+      expect(Shrine.send(:eleminate_non_shrine, [ place_with_name("〇〇寺社務所") ])).to eq []
+      expect(Shrine.send(:eleminate_non_shrine, [ place_with_name("浅草寺 神社授与所") ])).to eq []
+    end
+
+    it 'excludes a place whose primaryType is buddhist_temple even when the name gives no hint' do
+      place = place_with_name("〇〇神社").merge("primaryType" => "buddhist_temple")
+
+      expect(Shrine.send(:eleminate_non_shrine, [ place ])).to eq []
+    end
+
+    it 'excludes a place whose types array includes buddhist_temple even when the name gives no hint' do
+      place = place_with_name("〇〇神社").merge("types" => [ "point_of_interest", "buddhist_temple" ])
+
+      expect(Shrine.send(:eleminate_non_shrine, [ place ])).to eq []
+    end
+
+    it 'excludes a place without raising when types is not an array (unexpected API shape)' do
+      place = place_with_name("〇〇神社").merge("types" => { "unexpected" => "shape" })
+
+      expect { Shrine.send(:eleminate_non_shrine, [ place ]) }.not_to raise_error
+    end
+
+    it 'excludes a place without raising when the place itself is not a Hash (unexpected API shape)' do
+      expect { Shrine.send(:eleminate_non_shrine, [ "not_a_hash" ]) }.not_to raise_error
+      expect(Shrine.send(:eleminate_non_shrine, [ "not_a_hash" ])).to eq []
+    end
+
+    it 'keeps a place when primaryType/types are absent' do
+      place = place_with_name("〇〇神社")
+
+      expect(Shrine.send(:eleminate_non_shrine, [ place ])).to eq [ place ]
+    end
+
+    it 'excludes a place when displayName is missing without raising' do
+      place_without_display_name = { "formattedAddress" => "dummy address" }
+
+      expect {
+        expect(Shrine.send(:eleminate_non_shrine, [ place_without_display_name ])).to eq []
+      }.not_to raise_error
+    end
+
+    it 'excludes a place when displayName.text is missing without raising' do
+      place_without_text = { "displayName" => {} }
+
+      expect {
+        expect(Shrine.send(:eleminate_non_shrine, [ place_without_text ])).to eq []
+      }.not_to raise_error
+    end
+  end
+
+  describe 'class method visibility' do
+    it 'raises NoMethodError when calling persist_places without .send' do
+      expect { Shrine.persist_places([]) }.to raise_error(NoMethodError, /private method/)
+    end
+
+    it 'raises NoMethodError when calling eleminate_non_shrine without .send' do
+      expect { Shrine.eleminate_non_shrine([]) }.to raise_error(NoMethodError, /private method/)
     end
   end
 end
