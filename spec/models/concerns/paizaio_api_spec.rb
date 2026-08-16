@@ -27,11 +27,11 @@ RSpec.describe PaizaioApi, type: :model do
       expect { instance.create_runner("puts 1", "ruby", "") }.to raise_error(StandardError, "リクエストに失敗しました")
     end
 
-    it 'returns nil when the response body has neither an id nor an error key (documents current behavior; see issue #312)' do
+    it 'raises when the response body has neither an id nor an error key' do
       stub_request(:post, "https://api.paiza.io/runners/create.json")
         .to_return(status: 200, body: {}.to_json, headers: { "Content-Type" => "application/json" })
 
-      expect(instance.create_runner("puts 1", "ruby", "")).to be_nil
+      expect { instance.create_runner("puts 1", "ruby", "") }.to raise_error(StandardError, "コードが実行できませんでした")
     end
 
     it 'sends the value returned by ENV.fetch("PAIZAIO_API_KEY", "guest") as the api_key parameter' do

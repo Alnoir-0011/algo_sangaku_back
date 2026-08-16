@@ -48,7 +48,7 @@ module PaizaioApi
       body = JSON.parse(res.body)
       if body.include?("id")
         body["id"]
-      elsif body.include?("error")
+      else
         raise StandardError.new("コードが実行できませんでした")
       end
     else
