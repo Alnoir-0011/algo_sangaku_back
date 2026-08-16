@@ -17,7 +17,7 @@ module Api
       protected
 
       def verify_client_secret
-        return if Rails.env.test?
+        return unless Settings.verify_client_secret
 
         expected = ENV["CLIENT_SECRET"]
         actual = request.headers["X-Client-Secret"]
