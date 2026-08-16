@@ -28,37 +28,42 @@ class Shrine < ApplicationRecord
     false
   end
 
-  private
-
   def self.persist_places(filtered_places)
     place_attrs = filtered_places.map do |place|
       {
-        name: place["displayName"]["text"],
+        name: place.dig("displayName", "text"),
         address: place["formattedAddress"],
-        latitude: place["location"]["latitude"],
-        longitude: place["location"]["longitude"],
+        latitude: place.dig("location", "latitude"),
+        longitude: place.dig("location", "longitude"),
         place_id: place["id"]
       }
     end
 
     existing = Shrine.where(place_id: place_attrs.map { |a| a[:place_id] }).index_by(&:place_id)
 
-    ActiveRecord::Base.transaction do
-      place_attrs.map do |attrs|
-        shrine = existing[attrs[:place_id]] || Shrine.new(attrs)
-        shrine.save! unless shrine.persisted?
-        shrine
-      end
+    place_attrs.filter_map do |attrs|
+      shrine = existing[attrs[:place_id]] || Shrine.new(attrs)
+      next shrine if shrine.persisted?
+
+      shrine if shrine.save
     end
   end
 
   def self.eleminate_non_shrine(places)
-    eliminate_keywords = [ "寺", "手水舎", "社務所", "授与所", "鳥居" ]
+    sub_location_keywords = [ "手水舎", "社務所", "授与所", "鳥居" ]
+    excluded_types = [ "buddhist_temple" ]
+
     places.select do |place|
-      name = place["displayName"]["text"]
-      has_no_keyword = eliminate_keywords.none? { |kw| name.include?(kw) }
-      has_shrine_and_temple = name.include?("社") && name.include?("寺")
-      has_no_keyword || has_shrine_and_temple
+      name = place.dig("displayName", "text").to_s
+      next false if name.blank?
+      next false if sub_location_keywords.any? { |kw| name.include?(kw) }
+
+      types = Array(place["types"]) + [ place["primaryType"] ].compact
+      next false if (types & excluded_types).any?
+
+      !name.include?("寺") || name.include?("社")
     end
   end
+
+  private_class_method :persist_places, :eleminate_non_shrine
 end
