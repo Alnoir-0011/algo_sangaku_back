@@ -49,6 +49,7 @@ module PaizaioApi
       if body.include?("id")
         body["id"]
       else
+        Rails.logger.error("PaizaIO create_runner unexpected response body: #{body}")
         raise StandardError.new("コードが実行できませんでした")
       end
     else
