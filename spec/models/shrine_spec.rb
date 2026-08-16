@@ -154,6 +154,32 @@ RSpec.describe Shrine, type: :model do
       expect(Shrine.find_by(place_id: "place_invalid")).to be_nil
       expect(result.map { |shrine| shrine.place_id }).to eq [ "place_valid" ]
     end
+
+    it 'logs a warning and excludes the place when save fails' do
+      invalid_place = place_data(place_id: "place_invalid", latitude: 999)
+
+      expect(Rails.logger).to receive(:warn).with(/place_id=place_invalid/)
+
+      result = Shrine.send(:persist_places, [ invalid_place ])
+
+      expect(result).to eq []
+    end
+
+    it 'adopts the concurrently persisted record when a RecordNotUnique race occurs' do
+      place = place_data(place_id: "place_race")
+
+      allow_any_instance_of(Shrine).to receive(:save) do
+        # 別プロセスが同じ place_id を先に保存した状況を再現する（.save を経由せず直接INSERT）
+        Shrine.insert!({ name: "concurrent winner", address: "dummy address", latitude: 35.4, longitude: 135.1, place_id: "place_race" })
+        raise ActiveRecord::RecordNotUnique, "duplicate key"
+      end
+
+      result = Shrine.send(:persist_places, [ place ])
+      winner = Shrine.find_by(place_id: "place_race")
+
+      expect(winner).to be_present
+      expect(result).to eq [ winner ]
+    end
   end
 
   # eleminate_non_shrine は private_class_method だが .send で呼び出せる。
@@ -232,6 +258,17 @@ RSpec.describe Shrine, type: :model do
       place = place_with_name("〇〇神社").merge("types" => [ "point_of_interest", "buddhist_temple" ])
 
       expect(Shrine.send(:eleminate_non_shrine, [ place ])).to eq []
+    end
+
+    it 'excludes a place without raising when types is not an array (unexpected API shape)' do
+      place = place_with_name("〇〇神社").merge("types" => { "unexpected" => "shape" })
+
+      expect { Shrine.send(:eleminate_non_shrine, [ place ]) }.not_to raise_error
+    end
+
+    it 'excludes a place without raising when the place itself is not a Hash (unexpected API shape)' do
+      expect { Shrine.send(:eleminate_non_shrine, [ "not_a_hash" ]) }.not_to raise_error
+      expect(Shrine.send(:eleminate_non_shrine, [ "not_a_hash" ])).to eq []
     end
 
     it 'keeps a place when primaryType/types are absent' do
