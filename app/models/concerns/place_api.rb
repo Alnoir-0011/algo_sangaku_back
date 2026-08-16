@@ -67,7 +67,7 @@ module PlaceApi
       headers = {
         "Content-Type" => "application/json",
         "X-Goog-Api-Key" => ENV["GOOGLE_MAP_API_KEY"],
-        "X-Goog-Fieldmask" => "places.displayName,places.id,places.formattedAddress,places.location"
+        "X-Goog-Fieldmask" => "places.displayName,places.id,places.formattedAddress,places.location,places.primaryType,places.types"
       }
 
       req = Net::HTTP::Post.new(uri.path)
