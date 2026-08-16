@@ -14,6 +14,10 @@
 /config/master.key
 /config/credentials/*.key
 
+# Ignore local settings overrides (config gem)
+/config/settings.local.yml
+/config/settings/*.local.yml
+
 # Ignore all logfiles and tempfiles.
 /log/*
 /tmp/*

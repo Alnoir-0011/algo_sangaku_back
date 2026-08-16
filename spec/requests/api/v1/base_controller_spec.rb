@@ -20,7 +20,34 @@ RSpec.describe "Api::V1::BaseController", type: :request do
       it "does not verify the client secret even without the header" do
         http_request
 
-        expect(response).not_to have_http_status(403)
+        # searchType 未指定なので、verify_client_secret を通過した先の
+        # index アクションが 400 "invalid params" を返す（403 にならないことを確認）
+        expect(response).to have_http_status(400)
+      end
+    end
+
+    context "when Settings.verify_client_secret is missing (returns nil, e.g. key typo)" do
+      before { allow(Settings).to receive(:verify_client_secret).and_return(nil) }
+
+      it "fails closed and returns 403 Forbidden even without the header" do
+        http_request
+
+        expect(response).to have_http_status(403)
+        expect(body['message']).to eq('Forbidden')
+      end
+    end
+
+    context "when running in production, even if Settings.verify_client_secret is false" do
+      before do
+        allow(Rails.env).to receive(:production?).and_return(true)
+        allow(Settings).to receive(:verify_client_secret).and_return(false)
+      end
+
+      it "still verifies the client secret and returns 403 Forbidden without the header" do
+        http_request
+
+        expect(response).to have_http_status(403)
+        expect(body['message']).to eq('Forbidden')
       end
     end
 
@@ -30,7 +57,7 @@ RSpec.describe "Api::V1::BaseController", type: :request do
       it "passes verification and reaches the controller action" do
         http_request
 
-        expect(response).not_to have_http_status(403)
+        expect(response).to have_http_status(400)
       end
     end
 

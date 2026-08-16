@@ -17,7 +17,7 @@ module Api
       protected
 
       def verify_client_secret
-        return unless Settings.verify_client_secret
+        return if skip_client_secret_verification?
 
         expected = ENV["CLIENT_SECRET"]
         actual = request.headers["X-Client-Secret"]
@@ -25,6 +25,15 @@ module Api
         unless expected.present? && ActiveSupport::SecurityUtils.secure_compare(expected, actual.to_s)
           render_error(403, "Forbidden")
         end
+      end
+
+      # Settings.verify_client_secret のキー欠落・typo時は nil が返るため、
+      # 「明示的に false のときだけスキップ」にすることでfail-closedにする。
+      # 本番は設定値に関わらず必ず検証する。
+      def skip_client_secret_verification?
+        return false if Rails.env.production?
+
+        Settings.verify_client_secret == false
       end
 
       def authenticate
