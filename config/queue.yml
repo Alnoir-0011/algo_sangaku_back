@@ -21,5 +21,7 @@ production:
   workers:
     - queues: "*"
       threads: 3
-      processes: 0
+      # fork モードでは processes がそのまま worker の生成数になる。
+      # 0 にすると worker が 1 つも起動せずジョブが永久に処理されないため 1 未満にしない。
+      processes: 1
       polling_interval: 0.1
