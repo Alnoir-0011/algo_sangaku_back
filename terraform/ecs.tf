@@ -76,7 +76,7 @@ resource "aws_ecs_task_definition" "main" {
         }
       }
 
-      memory = 340
+      memory = 600
     },
 
     # --- nginx ---
@@ -121,7 +121,7 @@ resource "aws_ecs_task_definition" "main" {
         }
       }
 
-      memory = 64
+      memory = 96
     },
 
     # --- queue (Solid Queue) ---
@@ -168,7 +168,7 @@ resource "aws_ecs_task_definition" "main" {
         }
       }
 
-      memory = 340
+      memory = 600
     }
   ])
 
