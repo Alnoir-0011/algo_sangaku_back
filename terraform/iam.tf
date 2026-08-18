@@ -21,6 +21,62 @@ resource "aws_iam_role_policy_attachment" "ecs_instance_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
 
+# SSM Session Manager / Run Command で EC2 ホストに接続するための最小権限。
+# ECS エージェントが接続不能になるとタスクが起動せず ECS Exec も使えなくなるため、
+# ホスト側を調査する経路をタスクとは独立して確保しておく。
+#
+# マネージドポリシー AmazonSSMManagedInstanceCore は使わない。同ポリシーは
+# ssm:GetParameter / GetParameters を Resource: "*" で含んでおり、Parameter Store の
+# 全パラメータが読める。EC2 の IMDS は hop limit 2 でコンテナからも到達できるため、
+# インスタンスロールが奪取された場合の被害を抑える目的で必要な権限のみに絞る。
+data "aws_iam_policy_document" "ecs_instance_ssm" {
+  # Session Manager のセッション確立
+  statement {
+    effect = "Allow"
+    actions = [
+      "ssmmessages:CreateControlChannel",
+      "ssmmessages:CreateDataChannel",
+      "ssmmessages:OpenControlChannel",
+      "ssmmessages:OpenDataChannel",
+    ]
+    resources = ["*"]
+  }
+
+  # Run Command (send-command) のメッセージ送受信
+  statement {
+    effect = "Allow"
+    actions = [
+      "ec2messages:AcknowledgeMessage",
+      "ec2messages:DeleteMessage",
+      "ec2messages:FailMessage",
+      "ec2messages:GetEndpoint",
+      "ec2messages:GetMessages",
+      "ec2messages:SendReply",
+    ]
+    resources = ["*"]
+  }
+
+  # マネージドインスタンスとして登録・ハートビートするために必要
+  statement {
+    effect    = "Allow"
+    actions   = ["ssm:UpdateInstanceInformation"]
+    resources = ["*"]
+  }
+
+  # Run Command が実行する SSM ドキュメント (AWS-RunShellScript 等) の取得
+  statement {
+    effect    = "Allow"
+    actions   = ["ssm:GetDocument", "ssm:DescribeDocument"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_instance_ssm" {
+  name   = "${var.app_name}-ecs-instance-ssm"
+  role   = aws_iam_role.ecs_instance.id
+  policy = data.aws_iam_policy_document.ecs_instance_ssm.json
+}
+
 resource "aws_iam_instance_profile" "ecs_instance" {
   name = "${var.app_name}-ecs-instance-profile"
   role = aws_iam_role.ecs_instance.name
