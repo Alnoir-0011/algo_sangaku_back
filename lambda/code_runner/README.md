@@ -242,6 +242,21 @@ CI では Docker を使わず **`ubuntu-24.04-arm` 上で直接**実行してい
 > `RLIMIT_AS` を握り潰して `soft=17592186044415MiB`（実質無制限）になり、rlimit の検証自体が
 > 成立しない。ローカル検証は必ず arm64 ネイティブで行うこと。
 
+### act でワークフロー自体を確認する
+
+```bash
+act push -j lambda_code_runner \
+  -P ubuntu-24.04-arm=catthehacker/ubuntu:act-latest \
+  --container-architecture linux/arm64
+```
+
+**act のランナーコンテナは root で動くため、`RLIMIT_NPROC` の検証 2 件はスキップされる**
+（root では per-UID の制限が無視されるので、通しても検証にならない）。ワークフローの構文と
+ステップの疎通確認には使えるが、fork bomb 対策の検証には `Dockerfile.test`（非 root）を使うこと。
+
+スキップされた場合は spec 実行時に警告が出る。本物の GitHub Actions のランナーは非 root
+（`runner`）なので、CI ログにこの警告が出ていたら前提が崩れているサインになる。
+
 ## デプロイ（#320 への申し送り）
 
 Terraform の `archive_file` で zip 化してマネージドランタイムにデプロイする。

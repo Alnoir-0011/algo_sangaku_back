@@ -44,6 +44,16 @@ RSpec.configure do |config|
   # rlimit_as は Linux 専用で、macOS では Process.spawn 自体が失敗する。
   config.filter_run_excluding(:linux) unless RUBY_PLATFORM.include?('linux')
 
+  # RLIMIT_NPROC は per-UID の制限で、root では無視される。root で走らせても fork bomb 対策の
+  # 検証にはならないため、黙って通すのではなくスキップして警告する。
+  # 本番の Lambda も GitHub Actions のランナーも非 root なので、そこでは実行される
+  # （act のようなローカルの CI エミュレータは root コンテナで動くのでスキップされる）。
+  if Process.uid.zero?
+    warn "\n[warn] root で実行しているため RLIMIT_NPROC の検証をスキップします。" \
+         "fork bomb 対策を検証するには非 root で実行してください。\n\n"
+    config.filter_run_excluding(:non_root)
+  end
+
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
   end

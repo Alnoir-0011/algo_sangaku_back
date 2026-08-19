@@ -155,7 +155,7 @@ RSpec.describe 'lambda_handler', :linux do
       expect(result['stdout'].strip).to eq [ CodeRunner::NPROC_LIMIT, CodeRunner::NPROC_LIMIT ].inspect
     end
 
-    it 'stops the child from spawning unbounded threads' do
+    it 'stops the child from spawning unbounded threads', :non_root do
       # RLIMIT_NPROC は Linux ではスレッドも計上するため、スレッド爆弾もここで止まる
       source = <<~RUBY
         spawned = 0
@@ -175,7 +175,7 @@ RSpec.describe 'lambda_handler', :linux do
       expect(result['stdout'][/\d+/].to_i).to be <= CodeRunner::NPROC_HEADROOM
     end
 
-    it 'never lets a fork bomb exceed the process limit' do
+    it 'never lets a fork bomb exceed the process limit', :non_root do
       peak = 0
       sampler = Thread.new do
         loop do
