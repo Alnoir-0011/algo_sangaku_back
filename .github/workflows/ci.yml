@@ -66,6 +66,32 @@ jobs:
         env:
           COVERAGE: true
 
+  # Lambda のコードランナーは Rails から独立していて、ランタイムも Ruby 3.4。
+  # ランナーは非 root + glibc なので rlimit 系はそのまま検証できる（Docker は不要）。
+  #
+  # 本番の Lambda が arm64 なので、ランナーも arm64 に揃える。rlimit_as の値は
+  # 「Ruby 3.4 が起動時に予約する仮想アドレス空間」を実測して決めており、この量は
+  # アーキテクチャによって変わるため、amd64 で検証しても本番の保証にならない。
+  lambda_code_runner:
+    runs-on: ubuntu-24.04-arm
+    defaults:
+      run:
+        working-directory: lambda/code_runner/ruby
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+          working-directory: lambda/code_runner/ruby
+
+      - name: Run rspec
+        run: bundle exec rspec
+
   lint:
     runs-on: ubuntu-latest
     steps:

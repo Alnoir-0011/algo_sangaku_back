@@ -1,0 +1,23 @@
+# Lambda の ruby3.4 マネージドランタイムと同じ OS / Ruby でサンドボックスを検証するための
+# テスト専用イメージ。本番は zip + マネージドランタイムでデプロイする（#320）ので、
+# このイメージがデプロイされることはない。
+FROM public.ecr.aws/lambda/ruby:3.4
+
+# RLIMIT_NPROC は per-UID の制限で root では無視される。Lambda 本番は非 root で動くため、
+# root のまま検証すると fork bomb 対策が効いているように見えて実際は無検証になる。
+# useradd は /usr/sbin にあり、このイメージの PATH には含まれないので絶対パスで呼ぶ。
+RUN dnf install -y shadow-utils && dnf clean all && rm -rf /var/cache/dnf \
+  && /usr/sbin/useradd --uid 1000 --create-home sandbox
+
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+COPY ruby/Gemfile ruby/Gemfile.lock ./
+RUN bundle install
+
+COPY ruby/.rspec ruby/handler.rb ./
+COPY ruby/spec ./spec
+
+# bundle install が生成した Gemfile.lock を含め、非 root から読み書きできるようにする
+RUN chown -R sandbox:sandbox ${LAMBDA_TASK_ROOT}
+
+USER sandbox
