@@ -166,6 +166,30 @@ EPERM を返すようになり、同じ判定を通る `/proc/<ppid>/*` の読�
 `/proc` スイープ・RIE 経由の Lambda ランタイム動作、いずれも変化なし）。子は execve で
 dumpable=1 に戻るため、ユーザーコード側の挙動は変わらない。
 
+### ⚠ Ruby 4.0 で `fiddle` が default gem から外れる
+
+`prctl` を呼ぶ手段が Ruby には `fiddle` しかないため、この保護は `fiddle` に依存している。
+**`fiddle` は Ruby 4.0.0 で default gem ではなくなる**（Ruby 3.4 でも `require` すると警告が出る）。
+
+本番の zip には gem を同梱しない設計なので、Lambda ランタイムを **ruby4.x に上げるときは
+`fiddle` がランタイムに含まれているかを必ず確認すること。** 失敗の仕方は 2 通りに分かれる。
+
+| 状況 | 挙動 | 理由 |
+|---|---|---|
+| `fiddle` 自体が無い | **関数が起動しない**（実測で確認） | `LoadError` は `StandardError` ではなく `ScriptError` のサブクラスなので `protect_from_ptrace` の `rescue` を素通りする |
+| `fiddle` はあるが `prctl` を呼べない | 警告を出して**保護なしで継続** | `Fiddle::DLError` は `StandardError` のサブクラスなので捕捉され `false` になる |
+
+前者は採点が完全に止まるが、**保護が無い状態で第三者のコードを実行するよりは安全**なので、
+この挙動は意図して残している（`rescue` を広げて握り潰さないこと）。
+
+後者に気づけるよう 2 か所で検知している。
+
+- **本番**: Init 時に stderr へ警告を出す（CloudWatch Logs に残る）
+- **CI**: `PTRACE_PROTECTED` が `true` であることを spec で assert している
+
+ランタイムに `fiddle` が含まれない場合の対応は、zip に同梱するか、prctl を呼ぶ別の手段
+（拡張ライブラリを同梱する等）に切り替えるかのどちらかになる。
+
 ## Ruby レベルでは何も塞いでいない
 
 `system` / `` ` `` / `Kernel.system` / `Process.spawn` / `RubyVM::InstructionSequence.eval` /

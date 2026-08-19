@@ -213,6 +213,14 @@ module CodeRunner
   # /proc の見え方に依存する処理を保護前に済ませておく方が安全側）。
   PTRACE_PROTECTED = protect_from_ptrace
 
+  # 保護に失敗したまま黙って動き続けると、ptrace によるハンドラ停止と /proc 経由の
+  # 認証情報窃取が復活する。fiddle は Ruby 4.0 で default gem から外れるため、
+  # ランタイム更新でここが壊れうる。CloudWatch Logs に残して気づけるようにする。
+  unless PTRACE_PROTECTED
+    warn "[code_runner] prctl(PR_SET_DUMPABLE, 0) に失敗しました。" \
+         "ptrace 保護と /proc 経由の情報漏洩対策が無効な状態で動作します。"
+  end
+
   # 上限に達した後も読み捨てを続けるバッファ。
   # 読むのを止めるとパイプが満杯になって子がブロックし、kill 処理とデッドロックする。
   class CappedBuffer
