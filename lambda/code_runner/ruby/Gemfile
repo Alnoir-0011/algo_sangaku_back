@@ -1,0 +1,7 @@
+source "https://rubygems.org"
+
+# ハンドラ本体は stdlib のみで動く。ここに書くのはテスト用の依存だけにする。
+# （Lambda にデプロイする zip にはこの Gemfile を含めない。README の #320 への申し送りを参照）
+group :test do
+  gem "rspec", "~> 3.13"
+end
