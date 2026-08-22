@@ -141,9 +141,11 @@ Lambda は `/tmp` を次の呼び出しに持ち越し、「完了しなかっ�
 | `127.0.0.1:9001`（Lambda Runtime API、認証なし）への直接アクセス | ネットワーク名前空間の分離が Lambda で使えない（`unshare` が EPERM） | **期待値（正解の stdout）を絶対に Lambda に渡さない。** 正誤比較は Rails 側で行う |
 | `Process.kill("KILL", Process.ppid)` による親殺し | シグナル送信の権限判定は UID だけを見るので、`PR_SET_DUMPABLE` では防げない | 被害はその提出 1 件の採点失敗のみ（自分自身の DoS）。ハンドラは即座に死ぬので実行環境を占有しない |
 | 多数ファイル作成による `/tmp` の合計枯渇 | `rlimit_fsize` は 1 ファイルあたりの制限 | invoke ごとの `/tmp` ワイプ |
+| `/proc/<ppid>/environ` からの AWS 認証情報窃取 | **本番の Lambda では `prctl` が使えない**（後述） | 実行ロールの権限をほぼ空にしてある。窃取できるのは特定ロググループへの `logs` 書き込みのみ（#320） |
+| `PTRACE_ATTACH` によるハンドラ停止 | 同上 | 被害は実行環境を関数タイムアウト（10 秒）まで占有すること。reserved concurrency 5 なので採点の遅延に留まる |
 
-> 設計当初は `/proc/<ppid>/environ` からの認証情報窃取と `ptrace` も「防げないもの」に入れていたが、
-> `PR_SET_DUMPABLE` で塞げることが分かったため下記に移した。
+> **重要**: 設計当初は上記 2 つを `PR_SET_DUMPABLE` で塞げるとしていたが、**本番の Lambda では
+> `prctl` 自体が拒否される**ことが実測で分かったため、ここに戻した。詳細は次節。
 
 ## ハンドラプロセスの保護（`PR_SET_DUMPABLE`）
 
@@ -162,9 +164,33 @@ EPERM を返すようになり、同じ判定を通る `/proc/<ppid>/*` の読�
 | `ptrace(PTRACE_ATTACH, ppid)` | **成功してハンドラが停止する** | **EPERM** |
 | 攻撃後のハンドラ | 戻ってこない | **正常に次の invoke を処理する** |
 
-副作用が無いことは実測で確認済み（`NPROC_LIMIT` の算出・`/proc/self` の自己参照・子プロセスの実行・
-`/proc` スイープ・RIE 経由の Lambda ランタイム動作、いずれも変化なし）。子は execve で
-dumpable=1 に戻るため、ユーザーコード側の挙動は変わらない。
+### ⚠ 本番の Lambda ではこの保護は効いていない
+
+上表は `Dockerfile.test`（Lambda 公式イメージ + Docker）での実測値である。
+**本番のマネージドランタイムでは `prctl` が拒否され、保護は成立していない。**
+2026-08-22 に実環境で確認した結果は以下のとおり。
+
+```
+PR_SET_DUMPABLE returned -1 (errno=1 EPERM)
+PR_GET_DUMPABLE returned -1
+```
+
+`PR_GET_DUMPABLE` は引数が正しければ 0/1/2 を返すだけで失敗しようがない呼び出しであり、
+それも -1 になっている。したがって特定のオプションが拒否されているのではなく、
+**`prctl` の呼び出しそのものが通っていない**。またカーネルの `PR_SET_DUMPABLE` は引数不正なら
+`EINVAL` を返す実装で `EPERM` を返す経路が無いため、カーネルに届く前に
+seccomp 等のフィルタで弾かれていると考えられる。**ハンドラ側では回避できない。**
+
+Docker で再現しないのは、Docker の既定 seccomp プロファイルが `prctl` を許可しているため。
+**テストが通っても本番で成立するとは限らない**典型例なので、`spec` の
+「marks the handler process as non-dumpable」が通っていることを根拠に安全と判断しないこと。
+
+保護が効いているかは、実行環境ごとに `PR_GET_DUMPABLE` で読み戻して確認している。
+失敗時は理由を添えて stderr に出るので、CloudWatch で追える（通知は #335 で対応）。
+
+結果として `/proc/<ppid>/environ` からの認証情報窃取と `PTRACE_ATTACH` は
+「防げないもの」に戻っている。**#320 の IAM 設計（実行ロールの権限をほぼ空にする）は
+最終防衛線ではなく、この 2 つに対する主たる防御である。**
 
 ### ⚠ Ruby 4.0 で `fiddle` が default gem から外れる
 
@@ -321,8 +347,8 @@ IMDS は無いので認証情報の奪取に直結はしないが、提出コー
   か、入れるなら経路を持たない専用サブネット + egress ルールゼロの SG に置く
   → `terraform/vpc.tf` の `sandbox_a` / `sandbox_c` + ルート無しの `aws_route_table.sandbox`、
   `terraform/security_groups.tf` の `aws_security_group.code_runner`
-- **実行ロールは特定ロググループへの `logs` 以外をゼロにする。** `/proc/<ppid>/environ` は
-  `PR_SET_DUMPABLE` で塞いだが、これは最終防衛線として維持する
+- **実行ロールは特定ロググループへの `logs` 以外をゼロにする。** 本番では `prctl` が使えず
+  `/proc/<ppid>/environ` を塞げないため、これは最終防衛線ではなく**主たる防御**である
   → `terraform/iam.tf` の `aws_iam_role.code_runner`。ただし VPC 接続には ENI 操作
   （`ec2:CreateNetworkInterface` 等）が必須なので厳密に `logs` だけにはできない。保険の
   Deny は `NotAction = ["logs:*", "ec2:*"]` とし、`ec2:*` は `lambda:SourceFunctionArn`
@@ -340,9 +366,11 @@ IMDS は無いので認証情報の奪取に直結はしないが、提出コー
   `127.0.0.1:9001` の Runtime API に到達できるため、渡した時点で漏れる
 - **`request_token` の一致を検証する。** ハンドラはエコーバックするだけで検証していない。
   取り違えの検知は Rails 側の責務
-- Runtime API 経由でレスポンス自体を偽造される可能性は残る。検知したい場合は、子から読めない
-  環境変数（`unsetenv_others` + `PR_SET_DUMPABLE` で保護される）に秘密鍵を置き、ハンドラが
-  `HMAC(request_token || stdout || stderr || exit_status)` を付けて Rails で検証する形にできる
+- Runtime API 経由でレスポンス自体を偽造される可能性は残る。**当初は「子から読めない環境変数に
+  秘密鍵を置いて HMAC を付ける」案を挙げていたが、本番では `prctl` が使えず
+  `/proc/<ppid>/environ` を塞げないため、この案は成立しない。** ハンドラの環境変数に秘密鍵を
+  置いても子から読める。偽造を検知したい場合は、秘密をハンドラ内に持たない方式
+  （Rails 側で入力と出力の突き合わせを行う等）を検討すること
 - 出力は Lambda 側で 60,000 文字に収めているが、`answer_results.output` 側の truncate も
   #323 で入れておくと二重に安全
 

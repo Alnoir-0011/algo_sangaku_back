@@ -86,6 +86,22 @@ module CodeRunner
   CHILD_LANG = "C.UTF-8"
   CHILD_TZ = "Asia/Tokyo"
 
+  # 絶対パスで起動しても、共有ライブラリの解決だけは別に手当てが要る。
+  #
+  # 本番の Lambda では /var/lang/bin/ruby が必要とする libcrypt.so.2 がローダの既定パスに
+  # 無く、LD_LIBRARY_PATH でしか解決できない。unsetenv_others: true でこれを落とすと
+  # 子が起動できず、あらゆる提出が exit status 127（error while loading shared libraries）に
+  # なる。
+  #
+  # Lambda 公式イメージ（Dockerfile.test）では同じライブラリが /lib64 にあり、既定パスで
+  # 解決できてしまうためこの問題は再現しない。テストが通っても本番で落ちる類の差分なので、
+  # ここを削るときは必ず実環境で確認すること。
+  #
+  # 値は Init 時の親の環境をそのまま引き継ぐ。実行環境ごとに異なるため決め打ちできない。
+  # 秘密は含まれず、指す先（/var/lang/lib・/var/task 等）はいずれも読み取り専用なので、
+  # 子から .so を仕込んで乗っ取る経路にはならない。
+  CHILD_LD_LIBRARY_PATH = ENV["LD_LIBRARY_PATH"]
+
   # Lambda は実行環境を warm start で使い回し、/tmp はクラッシュによるリセット時ですら
   # 次の呼び出しに持ち越される。テストが本物の /tmp を消さずに済むよう差し替え可能にしている
   # （本番では常に /tmp）。
@@ -165,7 +181,20 @@ module CodeRunner
   # /proc/<ppid>/environ 経由の AWS 認証情報窃取もまとめて塞げる。
   #
   # 子は execve で dumpable=1 に戻るため、ユーザーコード側の挙動は変わらない。
+  #
+  # ★ 本番の Lambda ではこの保護は成立していない。prctl の呼び出し自体が EPERM で拒否される
+  #   （PR_GET_DUMPABLE すら -1 を返す）。Docker の既定 seccomp では通るためテストでは
+  #   再現せず、実環境でしか分からない。詳細と受け入れている残存リスクは ../README.md を参照。
+  #   この保護が無い前提で、実行ロールの権限をほぼ空にすることが主たる防御になっている（#320）。
   PR_SET_DUMPABLE = 4
+  # 設定できたという戻り値を信用せず読み戻して確認するために使う。
+  PR_GET_DUMPABLE = 3
+
+  class << self
+    # 保護に失敗した理由。「失敗した」だけでは実行環境のどこで躓いたのか追えないので、
+    # CloudWatch に出せるように残す。成功時は nil。
+    attr_reader :ptrace_failure_reason
+  end
 
   def self.protect_from_ptrace
     prctl = Fiddle::Function.new(
@@ -173,9 +202,31 @@ module CodeRunner
       [ Fiddle::TYPE_INT ] * 5,
       Fiddle::TYPE_INT
     )
-    prctl.call(PR_SET_DUMPABLE, 0, 0, 0, 0).zero?
-  rescue StandardError
+    result = prctl.call(PR_SET_DUMPABLE, 0, 0, 0, 0)
+
+    unless result.zero?
+      # 呼べたが拒否された場合。カーネルの PR_SET_DUMPABLE は引数不正なら EINVAL を返す
+      # 実装で EPERM を返す経路が無いため、EPERM なら seccomp 等の外部フィルタが疑わしい。
+      # PR_GET_DUMPABLE も併せて記録し、prctl 自体が塞がれているのか
+      # PR_SET_DUMPABLE だけが拒否されているのかを切り分けられるようにする。
+      @ptrace_failure_reason =
+        "PR_SET_DUMPABLE returned #{result} (errno=#{Fiddle.last_error}), " \
+        "PR_GET_DUMPABLE returned #{prctl.call(PR_GET_DUMPABLE, 0, 0, 0, 0)}"
+      return false
+    end
+
+    # 0 が返っても実際に効いているとは限らないので読み戻して確認する。
+    # ここを信用したまま動くと、保護されていないのに警告が出ない状態になる。
+    dumpable = prctl.call(PR_GET_DUMPABLE, 0, 0, 0, 0)
+    return true if dumpable.zero?
+
+    @ptrace_failure_reason =
+      "PR_SET_DUMPABLE succeeded but PR_GET_DUMPABLE returned #{dumpable} (expected 0)"
+    false
+  rescue StandardError => e
     # prctl を持たない環境（macOS 等）では諦める。本番は常に Linux。
+    # シンボル解決の失敗と fiddle 自体の欠落もここに落ちる。
+    @ptrace_failure_reason = "#{e.class}: #{e.message}"
     false
   end
 
@@ -218,7 +269,8 @@ module CodeRunner
   # ランタイム更新でここが壊れうる。CloudWatch Logs に残して気づけるようにする。
   unless PTRACE_PROTECTED
     warn "[code_runner] prctl(PR_SET_DUMPABLE, 0) に失敗しました。" \
-         "ptrace 保護と /proc 経由の情報漏洩対策が無効な状態で動作します。"
+         "ptrace 保護と /proc 経由の情報漏洩対策が無効な状態で動作します。" \
+         "理由: #{ptrace_failure_reason}"
   end
 
   # 上限に達した後も読み捨てを続けるバッファ。
@@ -392,12 +444,16 @@ module CodeRunner
     end
 
     def child_env
-      {
+      env = {
         "LANG" => CHILD_LANG,
         "TZ" => CHILD_TZ,
         "HOME" => @workdir,
         "PATH" => CHILD_PATH
       }
+      # 親に設定が無い環境（開発機など）では渡さない。空文字を渡すとカレントディレクトリが
+      # 検索対象になり、workdir に置かれたユーザーのファイルを読ませる経路ができる。
+      env["LD_LIBRARY_PATH"] = CHILD_LD_LIBRARY_PATH unless CHILD_LD_LIBRARY_PATH.to_s.empty?
+      env
     end
 
     def rlimits

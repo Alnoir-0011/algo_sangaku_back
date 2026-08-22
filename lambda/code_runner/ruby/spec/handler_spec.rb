@@ -316,7 +316,21 @@ RSpec.describe 'lambda_handler', :linux do
     it 'hands the child only the environment variables it needs' do
       result = run_code('puts ENV.keys.sort.join(",")')
 
-      expect(result['stdout'].strip).to eq 'HOME,LANG,PATH,TZ'
+      expected = %w[HOME LANG PATH TZ]
+      expected << 'LD_LIBRARY_PATH' unless CodeRunner::CHILD_LD_LIBRARY_PATH.to_s.empty?
+
+      expect(result['stdout'].strip).to eq expected.sort.join(',')
+    end
+
+    # 本番の Lambda では /var/lang/bin/ruby が必要とする共有ライブラリがローダの既定パスに
+    # 無く、これを落とすと子が起動できずあらゆる提出が exit status 127 になる。
+    it 'passes the library search path so the interpreter can start at all' do
+      skip 'LD_LIBRARY_PATH not set in this environment' if CodeRunner::CHILD_LD_LIBRARY_PATH.to_s.empty?
+
+      result = run_code('puts ENV["LD_LIBRARY_PATH"]')
+
+      expect(result['stdout'].strip).to eq CodeRunner::CHILD_LD_LIBRARY_PATH
+      expect(result['exit_status']).to eq 0
     end
 
     it 'does not leak AWS credentials through the environment' do
@@ -354,6 +368,16 @@ RSpec.describe 'lambda_handler', :linux do
   end
 
   describe 'handler process protection' do
+    # 保護に失敗したとき、CloudWatch に「失敗した」としか出ないと実行環境のどこで躓いたのか
+    # 追えない。本番の Lambda で実際に失敗しており、原因の切り分けに理由が要る。
+    it 'records why the protection failed so the warning can be acted on' do
+      if CodeRunner::PTRACE_PROTECTED
+        expect(CodeRunner.ptrace_failure_reason).to be_nil
+      else
+        expect(CodeRunner.ptrace_failure_reason).to be_a(String).and(satisfy { |r| !r.empty? })
+      end
+    end
+
     # ptrace の実攻撃はテストしない。防御が壊れていると PTRACE_ATTACH の SIGSTOP で
     # ハンドラ（= このテストプロセス）が停止し、スイートごと戻らなくなるため。
     # 代わりに、ptrace と同じ権限判定（ptrace_may_access）を通る /proc 読み取りと
