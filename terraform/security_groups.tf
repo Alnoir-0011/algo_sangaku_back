@@ -56,3 +56,28 @@ resource "aws_security_group" "rds" {
     Name = "${var.app_name}-rds-sg"
   }
 }
+
+# --- Lambda code_runner セキュリティグループ ---
+#
+# ★ ingress ブロックも egress ブロックも書いていないのは意図的である（書き忘れではない）。
+#
+# Terraform の aws_security_group は egress を省略すると AWS デフォルトの全許可ルールを
+# 「削除」する。これがまさに欲しい挙動で、アウトバウンドが完全に遮断される。
+# 結果としてインターネット・RDS・AWS API のいずれにも到達できなくなる。
+#
+# ここにルールを 1 つでも足すと、第三者が投稿した任意コードから外部へ出られるようになる。
+# code_runner は信頼できないコードを実行する前提で作られており、ハンドラ側では
+# この経路を塞げない（/usr/bin/curl も存在する）。追加する前に必ず
+# lambda/code_runner/README.md の「防げないもの」を読むこと。
+#
+# ループバック (127.0.0.1:9001 の Lambda Runtime API) だけは SG の対象外なので通る。
+# これは残存リスクとして受容済みで、「期待値を絶対に Lambda に渡さない」ことで無害化している。
+resource "aws_security_group" "code_runner" {
+  name        = "${var.app_name}-code-runner-sg"
+  description = "No ingress and no egress by design (untrusted code sandbox)"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.app_name}-code-runner-sg"
+  }
+}

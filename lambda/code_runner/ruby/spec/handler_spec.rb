@@ -484,3 +484,37 @@ RSpec.describe 'lambda_handler', :linux do
     end
   end
 end
+
+# ウォームアップはサンドボックスに入る前で完結するため、:linux を必要としない。
+RSpec.describe 'lambda_handler warmup' do
+  it 'acknowledges a warmup event that carries no source' do
+    result = lambda_handler(event: { 'warmup' => true }, context: nil)
+
+    expect(result).to eq('warmup' => true)
+  end
+
+  it 'does not run the source when the event is flagged as a warmup' do
+    Dir.mktmpdir('warmup-spec-') do |dir|
+      marker = File.join(dir, 'ran')
+
+      lambda_handler(
+        event: { 'warmup' => true, 'source' => "File.write(#{marker.inspect}, 'x')" },
+        context: nil
+      )
+
+      expect(File.exist?(marker)).to be false
+    end
+  end
+
+  it 'leaves no working directory behind, so the daily ping costs nothing' do
+    lambda_handler(event: { 'warmup' => true }, context: nil)
+
+    expect(Dir.children(CodeRunner::TMP_ROOT)).to be_empty
+  end
+
+  it 'still runs the sandbox for an event without the warmup flag', :linux do
+    result = lambda_handler(event: { 'source' => 'puts "not a warmup"' }, context: nil)
+
+    expect(result['stdout']).to eq("not a warmup\n")
+  end
+end

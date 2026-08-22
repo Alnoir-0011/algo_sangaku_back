@@ -58,10 +58,21 @@ variable "db_username" {
 }
 
 # --- EC2 / ECS ---
+
+# t4g.small は AWS の T4g 無料トライアルの対象で、月 750 時間まで無料になる
+# (全リージョン合算・繰り越し不可・2026-12-31 まで)。1 か月は最大 744 時間なので
+# 1 台なら常時稼働でも枠内に収まるが、余裕は 6 時間しかない。
+# 一時的にでも 2 台並走させると超過分はオンデマンド課金 ($0.0216/h) になる。
+#
+# 無料トライアル終了後は月 $15.77 が発生する。t4g.micro に落とせば約半額になるが、
+# micro は無料トライアルの対象外なので、期限までは small のままの方が安い。
+#
+# ECS の AMI は arm64 版を参照している (ec2.tf の data.aws_ssm_parameter.ecs_optimized_ami)
+# ため、x86 系のインスタンスタイプには変更できない。
 variable "ec2_instance_type" {
-  description = "EC2 インスタンスタイプ"
+  description = "EC2 インスタンスタイプ (arm64 のみ。t4g.small は 2026-12-31 まで無料トライアル対象)"
   type        = string
-  default     = "t4g.micro"
+  default     = "t4g.small"
 }
 
 variable "ec2_key_name" {
@@ -134,6 +145,32 @@ variable "cloudfront_secret_header_value" {
     condition     = length(var.cloudfront_secret_header_value) >= 32
     error_message = "cloudfront_secret_header_value は 32 文字以上のランダムな文字列を使用してください。"
   }
+}
+
+# --- Lambda code_runner ---
+
+# 1,769 MB はちょうど 1 vCPU 相当。Lambda は割り当てメモリに比例して CPU が変わるため、
+# ここを動かすと同じコードの実行時間が変わり TLE 判定が不安定になる。
+# CPU バウンドの処理では実行時間が比例して短くなるので、GB-秒コストはほぼ中立。
+variable "code_runner_memory_mb" {
+  description = "code_runner Lambda のメモリ (MB)。1769 = 1 vCPU 相当"
+  type        = number
+  default     = 1769
+}
+
+# ユーザーコードの実行予算 5s + ハンドラのオーバーヘッドと後始末 + 余裕。
+variable "code_runner_timeout_seconds" {
+  description = "code_runner Lambda のタイムアウト (秒)"
+  type        = number
+  default     = 10
+}
+
+# コスト上限を確定させ、後始末が追いつく同時数に制限する。
+# 0 にすると呼び出しが全て落ちるのでキルスイッチとしても使える。
+variable "code_runner_reserved_concurrency" {
+  description = "code_runner Lambda の予約済み同時実行数 (0 にすると呼び出しを止められる)"
+  type        = number
+  default     = 5
 }
 
 # --- GitHub Actions OIDC ---

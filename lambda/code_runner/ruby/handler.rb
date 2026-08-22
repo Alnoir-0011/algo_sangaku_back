@@ -574,5 +574,14 @@ end
 
 # Lambda ランタイムの呼び出し規約。context はこのハンドラでは使わないが引数として必須。
 def lambda_handler(event:, context:)
+  # VPC に接続した関数は 14 日アイドルすると Hyperplane ENI が回収され、Inactive になって
+  # 次の呼び出しが失敗する。EventBridge Scheduler が 1 日 1 回 {"warmup": true} を投げて
+  # これを防ぐ（terraform/lambda.tf の aws_scheduler_schedule.code_runner_warmup）。
+  #
+  # ここで返すのは Sandbox に入る前である点が重要。source を持たないウォームアップ用の
+  # イベントを Sandbox に渡すと ArgumentError になるうえ、掃除や子プロセス起動といった
+  # 実行経路を毎日通す必要もない。
+  return { "warmup" => true } if event.is_a?(Hash) && event["warmup"]
+
   CodeRunner::Sandbox.new.call(event)
 end

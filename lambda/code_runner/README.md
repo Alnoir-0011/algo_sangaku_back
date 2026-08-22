@@ -281,9 +281,13 @@ act push -j lambda_code_runner \
 スキップされた場合は spec 実行時に警告が出る。本物の GitHub Actions のランナーは非 root
 （`runner`）なので、CI ログにこの警告が出ていたら前提が崩れているサインになる。
 
-## デプロイ（#320 への申し送り）
+## デプロイ
 
-Terraform の `archive_file` で zip 化してマネージドランタイムにデプロイする。
+Terraform の `archive_file` で zip 化してマネージドランタイムにデプロイする（#320 で構築済み。
+実体は `terraform/lambda.tf`）。**CI ではコードを触らない。**変更頻度が極めて低いサンドボックスの
+ために drift 源を増やしたくないため。頻繁に変えるフェーズに入ったら `update-function-code` +
+`ignore_changes` 方式に移行する。`handler.rb` を変更したら `terraform apply` で反映する
+（`source_code_hash` が変わって関数コードが差し替わる）。
 
 ```hcl
 data "archive_file" "code_runner" {
@@ -296,6 +300,16 @@ data "archive_file" "code_runner" {
 }
 ```
 
+### VPC 接続の副作用: 日次ウォームアップ
+
+VPC に接続した関数は **14 日アイドルすると Hyperplane ENI が回収され、`Inactive` になって
+次の呼び出しが失敗する**（AWS 公式が明記）。EventBridge Scheduler が 1 日 1 回
+`{"warmup": true}` を投げてこれを防ぐ（`terraform/lambda.tf` の
+`aws_scheduler_schedule.code_runner_warmup`）。
+
+`lambda_handler` は `warmup` を見たら **`Sandbox` に入る前に即 return する**。ウォームアップ用の
+イベントは `source` を持たないので、そのまま渡すと `ArgumentError` になる。
+
 ### インフラ側で必ず満たすこと（#320 の受入条件）
 
 ユーザーコードは**インターネットへ自由に出られる**（`/usr/bin/curl` も存在する）。Lambda に
@@ -305,10 +319,20 @@ IMDS は無いので認証情報の奪取に直結はしないが、提出コー
 
 - **既存 VPC を流用しない。** 流用した瞬間に RDS / ECS への到達性が生まれる。VPC に入れない
   か、入れるなら経路を持たない専用サブネット + egress ルールゼロの SG に置く
+  → `terraform/vpc.tf` の `sandbox_a` / `sandbox_c` + ルート無しの `aws_route_table.sandbox`、
+  `terraform/security_groups.tf` の `aws_security_group.code_runner`
 - **実行ロールは特定ロググループへの `logs` 以外をゼロにする。** `/proc/<ppid>/environ` は
   `PR_SET_DUMPABLE` で塞いだが、これは最終防衛線として維持する
+  → `terraform/iam.tf` の `aws_iam_role.code_runner`。ただし VPC 接続には ENI 操作
+  （`ec2:CreateNetworkInterface` 等）が必須なので厳密に `logs` だけにはできない。保険の
+  Deny は `NotAction = ["logs:*", "ec2:*"]` とし、`ec2:*` は `lambda:SourceFunctionArn`
+  条件付き Deny で「ユーザーコード由来の呼び出しだけ」を拒否している
 - リソースベースポリシーで invoke 元を ECS タスクロールに限定する
+  → `aws_lambda_permission` で付与済み。ただし**同一アカウント内では identity ベースで
+  許可されていれば invoke は通る**ため、これ単体では限定にならない。実質的な限定は
+  `aws_iam_role_policy.ecs_task_invoke_code_runner` の Resource 限定が担う
 - reserved concurrency 5（コスト上限とキルスイッチを兼ねる）
+  → `var.code_runner_reserved_concurrency`。`0` にすれば呼び出しを止められる
 
 ### Rails 側で必ず満たすこと（#322 / #323 の受入条件）
 

@@ -38,3 +38,15 @@ output "github_oidc_role_arn" {
   description = "GitHub Actions OIDC 用 IAM ロールの ARN"
   value       = aws_iam_role.github_actions_oidc.arn
 }
+
+# Rails 側はこの名前を config.x の定数で持つ (#322)。環境変数では渡せない事情は
+# terraform/lambda.tf の locals を参照。
+output "code_runner_function_name" {
+  description = "コード実行 Lambda の関数名"
+  value       = aws_lambda_function.code_runner.function_name
+}
+
+output "code_runner_function_arn" {
+  description = "コード実行 Lambda の ARN"
+  value       = aws_lambda_function.code_runner.arn
+}

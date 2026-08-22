@@ -11,12 +11,14 @@ frontend_url = ""   # 例: https://app.example.com
 
 # RDS
 db_snapshot_identifier = ""   # 例: rds:algo-sangaku-db-2024-01-01-00-00
-db_instance_class      = "db.t3.micro"
+db_instance_class      = "db.t4g.micro"
 db_name                = "myapp_production"
 db_username            = "postgres"
 
 # EC2
-ec2_instance_type = "t3.micro"
+# arm64 のインスタンスタイプのみ (ECS の AMI が arm64 版のため)。
+# t4g.small は 2026-12-31 まで月 750 時間が無料トライアル対象。
+ec2_instance_type = "t4g.small"
 ec2_key_name      = ""   # SSH 不要なら空のまま
 
 # CloudFront カスタムヘッダー (32文字以上のランダムな文字列: openssl rand -hex 32)

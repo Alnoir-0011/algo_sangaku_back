@@ -6,6 +6,12 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+
+    # Lambda 関数コードの zip 化に使う (terraform/lambda.tf の archive_file)。
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.4"
+    }
   }
 
   # 現在はローカル state 管理。チーム開発や本番運用では S3 + DynamoDB へ移行を推奨。

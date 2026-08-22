@@ -8,6 +8,9 @@ terraform.tfvars
 # Terraform キャッシュ (.terraform.lock.hcl はプロバイダーバージョンを固定するためリポジトリ管理)
 .terraform/
 
+# archive_file が生成する Lambda 関数の zip (lambda/code_runner/ruby から毎回作り直される)
+.build/
+
 # クラッシュログ
 crash.log
 crash.*.log

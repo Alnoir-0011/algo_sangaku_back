@@ -119,6 +119,23 @@ resource "aws_iam_role_policy" "ecs_exec" {
   policy = data.aws_iam_policy_document.ecs_exec.json
 }
 
+# Rails (CorrectnessCheckJob) から code_runner を呼ぶための権限。
+# terraform/ecs.tf の通り web / queue は同じタスクロールを使うため、web からも invoke できる
+# ことになる。Rails は既に DB へのフルアクセスを持っているので権限の増分としては小さい。
+data "aws_iam_policy_document" "ecs_task_invoke_code_runner" {
+  statement {
+    effect    = "Allow"
+    actions   = ["lambda:InvokeFunction"]
+    resources = [local.code_runner_function_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_task_invoke_code_runner" {
+  name   = "${var.app_name}-ecs-task-invoke-code-runner"
+  role   = aws_iam_role.ecs_task.id
+  policy = data.aws_iam_policy_document.ecs_task_invoke_code_runner.json
+}
+
 # ============================================================
 # ECS タスク実行ロール
 # ============================================================
@@ -262,4 +279,120 @@ resource "aws_iam_role_policy" "github_actions_deploy" {
   name   = "${var.app_name}-github-actions-deploy"
   role   = aws_iam_role.github_actions_oidc.id
   policy = data.aws_iam_policy_document.github_actions_deploy.json
+}
+
+# ============================================================
+# Lambda code_runner 実行ロール
+# ============================================================
+#
+# このロールは「奪われても無害であること」を目標に設計している。
+# 子プロセスからの認証情報窃取は技術的には塞ぎきれない前提で（handler.rb の
+# PR_SET_DUMPABLE は最終防衛線であって唯一の防壁ではない）、漏れても何もできない状態にする。
+data "aws_iam_policy_document" "lambda_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "code_runner" {
+  name               = "${var.app_name}-code-runner-role"
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+}
+
+data "aws_iam_policy_document" "code_runner" {
+  # 自分のロググループへの書き込みのみ。logs:CreateLogGroup は付けない
+  # (ロググループは aws_cloudwatch_log_group.code_runner で先に作ってある)。
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+    resources = ["${aws_cloudwatch_log_group.code_runner.arn}:*"]
+  }
+
+  # VPC 接続の ENI 操作に必須。Lambda サービスが実行ロールの権限で代行するため、
+  # ここを削ると関数が起動しない。これらの API は Resource による制限ができない。
+  statement {
+    effect = "Allow"
+    actions = [
+      "ec2:CreateNetworkInterface",
+      "ec2:DescribeNetworkInterfaces",
+      "ec2:DeleteNetworkInterface",
+    ]
+    resources = ["*"]
+  }
+
+  # 将来うっかり権限が足された場合の保険。logs と ec2 以外は明示的に拒否する。
+  #
+  # ★ NotAction に ec2:* を含めるのを外さないこと。issue #320 の記述どおり logs:* だけに
+  #   すると、上の ENI 操作まで Deny されて関数が起動しなくなる。
+  statement {
+    effect      = "Deny"
+    not_actions = ["logs:*", "ec2:*"]
+    resources   = ["*"]
+  }
+
+  # ユーザーコード由来の ec2:* 呼び出しだけを拒否する。
+  #
+  # lambda:SourceFunctionArn は「関数の実行環境内から行われた呼び出し」に付く条件キーなので、
+  # 実行環境の中で動くユーザーコードの呼び出しには付き、Lambda サービスが実行環境の外側で
+  # 代行する ENI 操作には付かない。結果として ENI 作成は通り、ユーザーコードからの
+  # ec2:* は落ちる。
+  #
+  # ★ 同じ手を logs:* に対しては使えない。CloudWatch Logs への配信も Lambda が実行環境の
+  #   外側で代行するため、この条件キーで Deny するとログ配信ごと壊れる。
+  statement {
+    effect    = "Deny"
+    actions   = ["ec2:*"]
+    resources = ["*"]
+
+    condition {
+      test     = "ArnLike"
+      variable = "lambda:SourceFunctionArn"
+      values   = [local.code_runner_function_arn]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "code_runner" {
+  name   = "${var.app_name}-code-runner"
+  role   = aws_iam_role.code_runner.id
+  policy = data.aws_iam_policy_document.code_runner.json
+}
+
+# ============================================================
+# EventBridge Scheduler (code_runner のウォームアップ用)
+# ============================================================
+data "aws_iam_policy_document" "scheduler_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["scheduler.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "code_runner_warmup" {
+  name               = "${var.app_name}-code-runner-warmup-role"
+  assume_role_policy = data.aws_iam_policy_document.scheduler_assume_role.json
+}
+
+data "aws_iam_policy_document" "code_runner_warmup" {
+  statement {
+    effect    = "Allow"
+    actions   = ["lambda:InvokeFunction"]
+    resources = [local.code_runner_function_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "code_runner_warmup" {
+  name   = "${var.app_name}-code-runner-warmup"
+  role   = aws_iam_role.code_runner_warmup.id
+  policy = data.aws_iam_policy_document.code_runner_warmup.json
 }
