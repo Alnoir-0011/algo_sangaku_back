@@ -316,14 +316,55 @@ data "aws_iam_policy_document" "code_runner" {
   }
 
   # VPC 接続の ENI 操作に必須。Lambda サービスが実行ロールの権限で代行するため、
-  # ここを削ると関数が起動しない。これらの API は Resource による制限ができない。
+  # ここを削ると関数が VPC に接続できない（CreateFunction / UpdateFunctionConfiguration が
+  # "The provided execution role does not have permissions to call CreateNetworkInterface on
+  # EC2" で失敗することを実測で確認済み）。
+  #
+  # ★ 対象をサンドボックスのサブネットと SG に限定するのが要点。
+  #
+  # 下の SourceFunctionArn 付き Deny は「実行環境の中からの呼び出し」にしか効かない。
+  # ユーザーコードは /proc/<ppid>/environ から実行ロールの認証情報を読めてしまい
+  # （本番の Lambda では prctl が seccomp に拒否され dumpable を落とせない）、
+  # 盗んだ認証情報を外部で使うと条件キーが付かないので Deny が発動しない。
+  # そのため Allow 側を絞っておかないと、アカウント全体の ENI を作成・削除できてしまう。
   statement {
+    sid    = "CreateEniInSandboxOnly"
     effect = "Allow"
     actions = [
       "ec2:CreateNetworkInterface",
-      "ec2:DescribeNetworkInterfaces",
-      "ec2:DeleteNetworkInterface",
     ]
+    resources = [
+      "arn:aws:ec2:${var.aws_region}:${var.aws_account_id}:network-interface/*",
+      aws_subnet.sandbox_a.arn,
+      aws_subnet.sandbox_c.arn,
+      aws_security_group.code_runner.arn,
+    ]
+  }
+
+  # 削除はサンドボックスのサブネット内の ENI に限定する。
+  # ここを "*" にすると、盗まれた認証情報でアカウント内の任意の ENI を削除できる。
+  statement {
+    sid       = "DeleteEniInSandboxOnly"
+    effect    = "Allow"
+    actions   = ["ec2:DeleteNetworkInterface"]
+    resources = ["arn:aws:ec2:${var.aws_region}:${var.aws_account_id}:network-interface/*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "ec2:Subnet"
+      values = [
+        aws_subnet.sandbox_a.arn,
+        aws_subnet.sandbox_c.arn,
+      ]
+    }
+  }
+
+  # Describe 系はリソースレベルの制限に対応していないため "*" のまま。
+  # ENI 一覧の情報漏洩は残るが、破壊的な操作ではないため受け入れる。
+  statement {
+    sid       = "DescribeEni"
+    effect    = "Allow"
+    actions   = ["ec2:DescribeNetworkInterfaces"]
     resources = ["*"]
   }
 
