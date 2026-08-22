@@ -5,7 +5,7 @@
 ```
 Route53 (A alias)
   └─ CloudFront (HTTPS / ACM us-east-1)
-       └─ EC2 t4g.micro / AL2023 arm64 (Elastic IP)
+       └─ EC2 t4g.small / AL2023 arm64 (Elastic IP)
             └─ ECS on EC2 (bridge mode)
                  ├─ nginx コンテナ (port 80)
                  ├─ web コンテナ (Rails/Puma, unix socket)
