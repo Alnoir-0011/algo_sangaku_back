@@ -61,7 +61,7 @@ variable "db_username" {
 variable "ec2_instance_type" {
   description = "EC2 インスタンスタイプ"
   type        = string
-  default     = "t4g.micro"
+  default     = "t4g.small"
 }
 
 variable "ec2_key_name" {
