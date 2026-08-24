@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Algo Sangaku Documentation
   version: 1.0.0
@@ -12,7 +12,8 @@ paths:
       - Api::V1::SangakuSave
       responses:
         '200':
-          description: return unsolved saved sangakus in json format
+          description: does not include the sangaku since current_user has already
+            answered it
           content:
             application/json:
               schema:
@@ -71,8 +72,9 @@ paths:
                               type: object
                               properties:
                                 data:
-                                  nullable: true
-                                  type: object
+                                  type:
+                                  - object
+                                  - 'null'
                                   properties:
                                     id:
                                       type: string
@@ -94,25 +96,7 @@ paths:
                 required:
                 - data
               example:
-                data:
-                - id: '170'
-                  type: sangaku
-                  attributes:
-                    title: test_title
-                    description: test_description
-                    difficulty: easy
-                    inputs: []
-                    author_name: author
-                    shrine_name: test_shrine
-                  relationships:
-                    user:
-                      data:
-                        id: '190'
-                        type: user
-                    shrine:
-                      data:
-                        id: '92'
-                        type: shrine
+                data: []
       parameters:
       - name: type
         in: query
@@ -131,7 +115,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 172
+        example: 2528
       - name: type
         in: query
         required: false
@@ -140,7 +124,7 @@ paths:
         example: before_answer
       responses:
         '200':
-          description: return sangaku in json format
+          description: returns the sangaku
           content:
             application/json:
               schema:
@@ -168,7 +152,7 @@ paths:
                           author_name:
                             type: string
                           shrine_name:
-                            nullable: true
+                            type: 'null'
                         required:
                         - title
                         - description
@@ -197,7 +181,7 @@ paths:
                             type: object
                             properties:
                               data:
-                                nullable: true
+                                type: 'null'
                             required:
                             - data
                         required:
@@ -212,7 +196,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '172'
+                  id: '2527'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -224,105 +208,25 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '192'
+                        id: '5373'
                         type: user
                     shrine:
                       data:
-  "/api/v1/user/saved_sangakus/{id}/answer":
-    get:
-      summary: answer
-      tags:
-      - Api::V1::SangakuSave
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-        example: 173
-      responses:
-        '200':
-          description: return answer in json format
+        '404':
+          description: returns not found since current_user has already answered it
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      type:
-                        type: string
-                      attributes:
-                        type: object
-                        properties:
-                          source:
-                            type: string
-                          status:
-                            type: string
-                        required:
-                        - source
-                        - status
-                      relationships:
-                        type: object
-                        properties:
-                          user_sangaku_save:
-                            type: object
-                            properties:
-                              data:
-                                type: object
-                                properties:
-                                  id:
-                                    type: string
-                                  type:
-                                    type: string
-                                required:
-                                - id
-                                - type
-                            required:
-                            - data
-                          answer_results:
-                            type: object
-                            properties:
-                              data:
-                                type: array
-                                items:
-                                  type: object
-                                  properties:
-                                    id:
-                                      type: string
-                                    type:
-                                      type: string
-                                  required:
-                                  - id
-                                  - type
-                            required:
-                            - data
-                        required:
-                        - user_sangaku_save
-                        - answer_results
-                    required:
-                    - id
-                    - type
-                    - attributes
-                    - relationships
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
                 required:
-                - data
+                - message
+                - errors
               example:
-                data:
-                  id: '14'
-                  type: answer
-                  attributes:
-                    source: puts 'Hello world'
-                    status: pending
-                  relationships:
-                    user_sangaku_save:
-                      data:
-                        id: '24'
-                        type: user_sangaku_save
-                    answer_results:
-                      data:
-                      - id: '14'
-                        type: answer_result
+                message: Record Not Found
+                errors: []

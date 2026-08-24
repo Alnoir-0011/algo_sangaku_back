@@ -40,11 +40,11 @@ Rails.application.routes.draw do
           end
           resource :result, only: %i[show]
           resource :dedicate, only: %i[create]
-          resources :answers, only: %i[create show]
         end
+        resources :answers, only: %i[show]
         resources :answer_results, only: %i[show]
         resources :saved_sangakus, only: %i[index show] do
-          get "answer", on: :member
+          resource :answer, only: %i[create show], controller: "saved_sangakus_answers"
         end
         resources :saved_sangaku_ids, only: %i[index]
         resource :profile, only: %i[show update]

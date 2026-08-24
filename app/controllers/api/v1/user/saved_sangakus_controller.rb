@@ -11,11 +11,6 @@ module Api
         render json: PublicSangakuSerializer.new(saved_sangaku).serializable_hash.to_json
       end
 
-      def answer
-        answer = current_user.answers.joins(:user_sangaku_save).find_by!(user_sangaku_save: { sangaku_id: params[:id] })
-        render json: AnswerSerializer.new(answer).serializable_hash.to_json, status: :ok
-      end
-
       private
 
       def index_scope
