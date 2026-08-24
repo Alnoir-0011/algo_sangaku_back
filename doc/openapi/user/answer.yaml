@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Algo Sangaku Documentation
   version: 1.0.0
@@ -9,16 +9,16 @@ paths:
     get:
       summary: show
       tags:
-        - Api::V1::User::Answer
+      - Api::V1::User::Answer
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          example: 13
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 879
       responses:
-        "200":
+        '200':
           description: return answer in json format
           content:
             application/json:
@@ -40,7 +40,8 @@ paths:
                           status:
                             type: string
                         required:
-                          - source
+                        - source
+                        - status
                       relationships:
                         type: object
                         properties:
@@ -55,10 +56,10 @@ paths:
                                   type:
                                     type: string
                                 required:
-                                  - id
-                                  - type
+                                - id
+                                - type
                             required:
-                              - data
+                            - data
                           answer_results:
                             type: object
                             properties:
@@ -72,148 +73,33 @@ paths:
                                     type:
                                       type: string
                                   required:
-                                    - id
-                                    - type
+                                  - id
+                                  - type
                             required:
-                              - data
+                            - data
                         required:
-                          - user_sangaku_save
-                          - answer_results
+                        - user_sangaku_save
+                        - answer_results
                     required:
-                      - id
-                      - type
-                      - attributes
-                      - relationships
+                    - id
+                    - type
+                    - attributes
+                    - relationships
                 required:
-                  - data
+                - data
               example:
                 data:
-                  id: "13"
+                  id: '879'
                   type: answer
                   attributes:
                     source: puts 'Hello world'
-                    status: correct
+                    status: pending
                   relationships:
                     user_sangaku_save:
                       data:
-                        id: "35"
+                        id: '1360'
                         type: user_sangaku_save
                     answer_results:
                       data:
-                        - id: "13"
-                          type: answer_result
-  "/api/v1/user/sangakus/{sangaku_id}/answers":
-    post:
-      summary: create
-      tags:
-        - Api::V1::User::Answer
-      parameters:
-        - name: sangaku_id
-          in: path
-          required: true
-          schema:
-            type: integer
-          example: 76
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                answer:
-                  type: object
-                  properties:
-                    source:
-                      type: string
-                  required:
-                    - source
-              required:
-                - answer
-            example:
-              answer:
-                source: puts 'Hello wourld'
-      responses:
-        "200":
-          description: return answer in json format
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      type:
-                        type: string
-                      attributes:
-                        type: object
-                        properties:
-                          source:
-                            type: string
-                          status:
-                            type: string
-                        required:
-                          - source
-                      relationships:
-                        type: object
-                        properties:
-                          user_sangaku_save:
-                            type: object
-                            properties:
-                              data:
-                                type: object
-                                properties:
-                                  id:
-                                    type: string
-                                  type:
-                                    type: string
-                                required:
-                                  - id
-                                  - type
-                            required:
-                              - data
-                          answer_results:
-                            type: object
-                            properties:
-                              data:
-                                type: array
-                                items:
-                                  type: object
-                                  properties:
-                                    id:
-                                      type: string
-                                    type:
-                                      type: string
-                                  required:
-                                    - id
-                                    - type
-                            required:
-                              - data
-                        required:
-                          - user_sangaku_save
-                          - answer_results
-                    required:
-                      - id
-                      - type
-                      - attributes
-                      - relationships
-                required:
-                  - data
-              example:
-                data:
-                  id: "12"
-                  type: answer
-                  attributes:
-                    source: puts 'Hello wourld'
-                    status: incorrect
-                  relationships:
-                    user_sangaku_save:
-                      data:
-                        id: "32"
-                        type: user_sangaku_save
-                    answer_results:
-                      data:
-                        - id: "12"
-                          type: answer_result
+                      - id: '1157'
+                        type: answer_result

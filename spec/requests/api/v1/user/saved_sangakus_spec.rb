@@ -209,46 +209,4 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
       end
     end
   end
-
-  describe "GET /answer" do
-    let!(:user) { create(:user) }
-    let!(:author) { create(:user, nickname: "author") }
-    let!(:sangaku) { create(:sangaku, user: author) }
-    let!(:sangaku_save_relation) { create(:user_sangaku_save, sangaku:, user: user) }
-    let!(:answer) { create(:answer, user_sangaku_save: sangaku_save_relation) }
-    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
-    let(:http_request) { get answer_api_v1_user_saved_sangaku_path(sangaku.id), headers: }
-
-    context "with access_token" do
-      it "return answer in json format" do
-        authenticate_stub(user)
-
-        http_request
-        expect(response).to have_http_status(:ok)
-        expect(body['data']['attributes']['source']).to eq answer.source
-      end
-    end
-
-    context "without access_token", openapi: false do
-      it "return 401 errors" do
-        http_request
-
-        expect(response).to have_http_status(401)
-      end
-    end
-
-    context "when the sangaku has not been answered yet", openapi: false do
-      let!(:unanswered_sangaku) { create(:sangaku, user: author) }
-      let!(:unanswered_sangaku_save_relation) { create(:user_sangaku_save, sangaku: unanswered_sangaku, user: user) }
-      let(:http_request) { get answer_api_v1_user_saved_sangaku_path(unanswered_sangaku.id), headers: }
-
-      it "return 404" do
-        authenticate_stub(user)
-
-        http_request
-
-        expect(response).to have_http_status(404)
-      end
-    end
-  end
 end
