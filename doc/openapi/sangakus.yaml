@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Algo Sangaku Documentation
   version: 1.0.0
@@ -16,10 +16,10 @@ paths:
         required: true
         schema:
           type: integer
-        example: 139
+        example: 217
       responses:
         '200':
-          description: return sangakus in json format
+          description: does not include source in response
           content:
             application/json:
               schema:
@@ -47,7 +47,7 @@ paths:
                           author_name:
                             type: string
                           shrine_name:
-                            nullable: true
+                            type: 'null'
                         required:
                         - title
                         - description
@@ -76,7 +76,7 @@ paths:
                             type: object
                             properties:
                               data:
-                                nullable: true
+                                type: 'null'
                             required:
                             - data
                         required:
@@ -91,7 +91,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '139'
+                  id: '217'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -103,7 +103,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '135'
+                        id: '562'
                         type: user
                     shrine:
                       data:

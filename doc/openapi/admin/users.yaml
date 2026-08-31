@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Algo Sangaku Documentation
   version: 1.0.0
@@ -60,44 +60,44 @@ paths:
                 - data
               example:
                 data:
-                - id: '877'
+                - id: '496'
                   type: user
                   attributes:
                     name: test user
-                    email: user_18@example.com
+                    email: user_114@example.com
                     nickname: test nickname
                     role: general
-                    created_at: '2026-06-23T16:18:51.659+09:00'
+                    created_at: '2026-09-01T00:01:41.779+09:00'
                     sangaku_count: 0
                     answer_count: 0
-                - id: '876'
+                - id: '495'
                   type: user
                   attributes:
                     name: test user
-                    email: user_17@example.com
+                    email: user_113@example.com
                     nickname: test nickname
                     role: admin
-                    created_at: '2026-06-23T16:18:51.657+09:00'
+                    created_at: '2026-09-01T00:01:41.777+09:00'
                     sangaku_count: 0
                     answer_count: 0
-                - id: '879'
+                - id: '498'
                   type: user
                   attributes:
                     name: test user
-                    email: user_20@example.com
+                    email: user_116@example.com
                     nickname: test nickname
                     role: general
-                    created_at: '2026-06-22T16:18:51.662+09:00'
+                    created_at: '2026-08-31T00:01:41.781+09:00'
                     sangaku_count: 0
                     answer_count: 0
-                - id: '878'
+                - id: '497'
                   type: user
                   attributes:
                     name: test user
-                    email: user_19@example.com
+                    email: user_115@example.com
                     nickname: test nickname
                     role: general
-                    created_at: '2026-06-21T16:18:51.660+09:00'
+                    created_at: '2026-08-30T00:01:41.779+09:00'
                     sangaku_count: 0
                     answer_count: 0
         '401':
@@ -151,7 +151,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 895
+        example: 514
       responses:
         '200':
           description: returns 200 with user attributes
@@ -200,14 +200,14 @@ paths:
                 - data
               example:
                 data:
-                  id: '889'
+                  id: '508'
                   type: user
                   attributes:
                     name: test user
-                    email: user_30@example.com
+                    email: user_126@example.com
                     nickname: test nickname
                     role: general
-                    created_at: '2026-06-23T16:18:51.714+09:00'
+                    created_at: '2026-09-01T00:01:41.827+09:00'
                     sangaku_count: 0
                     answer_count: 0
         '401':
@@ -247,7 +247,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 916
+        example: 535
       requestBody:
         content:
           application/json:
@@ -320,14 +320,14 @@ paths:
                 - data
               example:
                 data:
-                  id: '904'
+                  id: '523'
                   type: user
                   attributes:
                     name: test user
-                    email: user_45@example.com
+                    email: user_141@example.com
                     nickname: test nickname
                     role: admin
-                    created_at: '2026-06-23T16:18:51.814+09:00'
+                    created_at: '2026-09-01T00:01:41.897+09:00'
                     sangaku_count: 0
                     answer_count: 0
         '401':

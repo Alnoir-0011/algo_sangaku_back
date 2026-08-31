@@ -16,7 +16,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 3233
+        example: 290
       responses:
         '200':
           description: return answer in json format
@@ -89,7 +89,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '1040'
+                  id: '56'
                   type: answer
                   attributes:
                     source: puts 'Hello world'
@@ -97,11 +97,11 @@ paths:
                   relationships:
                     user_sangaku_save:
                       data:
-                        id: '1598'
+                        id: '93'
                         type: user_sangaku_save
                     answer_results:
                       data:
-                      - id: '1362'
+                      - id: '56'
                         type: answer_result
     post:
       summary: create
@@ -113,7 +113,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 3226
+        example: 283
       requestBody:
         content:
           application/json:
@@ -204,7 +204,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '1037'
+                  id: '53'
                   type: answer
                   attributes:
                     source: puts 'Hello wourld'
@@ -212,9 +212,9 @@ paths:
                   relationships:
                     user_sangaku_save:
                       data:
-                        id: '1592'
+                        id: '87'
                         type: user_sangaku_save
                     answer_results:
                       data:
-                      - id: '1359'
+                      - id: '53'
                         type: answer_result

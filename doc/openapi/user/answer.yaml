@@ -16,7 +16,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 879
+        example: 43
       responses:
         '200':
           description: return answer in json format
@@ -89,7 +89,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '879'
+                  id: '43'
                   type: answer
                   attributes:
                     source: puts 'Hello world'
@@ -97,9 +97,9 @@ paths:
                   relationships:
                     user_sangaku_save:
                       data:
-                        id: '1360'
+                        id: '77'
                         type: user_sangaku_save
                     answer_results:
                       data:
-                      - id: '1157'
+                      - id: '43'
                         type: answer_result

@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Algo Sangaku Documentation
   version: 1.0.0
@@ -56,7 +56,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '168'
+                - id: '93'
                   type: shrine
                   attributes:
                     name: test_shrine
@@ -175,7 +175,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '176'
+                  id: '101'
                   type: shrine
                   attributes:
                     name: 新しい神社
@@ -221,7 +221,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 192
+        example: 117
       responses:
         '200':
           description: returns 200 and deletes shrine
@@ -266,7 +266,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '189'
+                  id: '114'
                   type: shrine
                   attributes:
                     name: test_shrine
@@ -311,7 +311,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 174
+        example: 99
       responses:
         '200':
           description: returns 200 with shrine attributes
@@ -356,7 +356,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '171'
+                  id: '96'
                   type: shrine
                   attributes:
                     name: test_shrine
@@ -401,7 +401,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 188
+        example: 113
       requestBody:
         content:
           application/json:
@@ -464,7 +464,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '183'
+                  id: '108'
                   type: shrine
                   attributes:
                     name: 更新後の神社名

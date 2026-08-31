@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Algo Sangaku Documentation
   version: 1.0.0
@@ -12,7 +12,7 @@ paths:
       - Api::V1::User::Profile
       responses:
         '200':
-          description: マイプロフィールを返す
+          description: 認証に成功しマイプロフィールを返す
           content:
             application/json:
               schema:
@@ -61,17 +61,26 @@ paths:
                 - data
               example:
                 data:
-                  id: '85'
+                  id: '602'
                   type: my_profile
                   attributes:
-                    email: user_1@example.com
+                    email: user_220@example.com
                     nickname: test nickname
                     show_answer_count: false
-                    created_at: '2026-04-18T13:50:41.563+09:00'
-                    sangaku_count: 2
-                    dedicated_sangaku_count: 1
+                    created_at: '2026-09-01T00:01:42.641+09:00'
+                    sangaku_count: 0
+                    dedicated_sangaku_count: 0
                     saved_sangaku_count: 0
                     answer_count: 0
+        '401':
+          description: 認証に失敗し 401 を返す
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'HTTP Token: Access denied.
+
+                '
     patch:
       summary: update
       tags:
@@ -123,6 +132,8 @@ paths:
                             type: string
                           nickname:
                             type: string
+                          role:
+                            type: string
                         required:
                         - provider
                         - uid
@@ -137,11 +148,12 @@ paths:
                 - data
               example:
                 data:
-                  id: '87'
+                  id: '605'
                   type: user
                   attributes:
                     provider: google
-                    uid: eb1d9b56-7370-43c1-b813-6ade816c1e0a
+                    uid: 36ba77a5-8fd3-4cd5-b939-6a856abdd3e4
                     name: test user
-                    email: user_3@example.com
+                    email: user_223@example.com
                     nickname: test nickname
+                    role: general
