@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Algo Sangaku Documentation
   version: 1.0.0
@@ -9,16 +9,16 @@ paths:
     get:
       summary: show
       tags:
-        - Api::V1::User::AnswerResult
+      - Api::V1::User::AnswerResult
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          example: 74
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 38
       responses:
-        "200":
+        '200':
           description: return answer_result in json format
           content:
             application/json:
@@ -38,13 +38,15 @@ paths:
                           status:
                             type: string
                           output:
-                            type: string
+                            type:
+                            - string
+                            - 'null'
                           fixed_input_content:
                             type: string
                         required:
-                          - status
-                          - output
-                          - fixed_input_content
+                        - status
+                        - output
+                        - fixed_input_content
                       relationships:
                         type: object
                         properties:
@@ -59,41 +61,39 @@ paths:
                                   type:
                                     type: string
                                 required:
-                                  - id
-                                  - type
+                                - id
+                                - type
                             required:
-                              - data
+                            - data
                           fixed_input:
                             type: object
                             properties:
                               data:
-                                nullable: true
+                                type: 'null'
                             required:
-                              - data
+                            - data
                         required:
-                          - answer
-                          - fixed_input
+                        - answer
+                        - fixed_input
                     required:
-                      - id
-                      - type
-                      - attributes
-                      - relationships
+                    - id
+                    - type
+                    - attributes
+                    - relationships
                 required:
-                  - data
+                - data
               example:
                 data:
-                  id: "74"
+                  id: '38'
                   type: answer_result
                   attributes:
-                    status: correct
-                    output: "Hello world
-
-                      "
-                    fixed_input_content: ""
+                    status: pending
+                    output:
+                    fixed_input_content: ''
                   relationships:
                     answer:
                       data:
-                        id: "71"
+                        id: '38'
                         type: answer
                     fixed_input:
                       data:

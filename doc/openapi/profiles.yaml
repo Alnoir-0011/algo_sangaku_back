@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Algo Sangaku Documentation
   version: 1.0.0
@@ -16,7 +16,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 128
+        example: 546
       responses:
         '200':
           description: 奉納済み算額一覧を返す（タイトル・神社名を含む）
@@ -44,7 +44,7 @@ paths:
                           dedicated_sangaku_count:
                             type: integer
                           answer_count:
-                            nullable: true
+                            type: 'null'
                           dedicated_sangakus:
                             type: array
                             items:
@@ -75,15 +75,15 @@ paths:
                 - data
               example:
                 data:
-                  id: '128'
+                  id: '546'
                   type: profile
                   attributes:
                     nickname: test nickname
-                    created_at: '2026-04-17T12:08:47.942+09:00'
+                    created_at: '2026-09-01T00:01:42.113+09:00'
                     sangaku_count: 2
                     dedicated_sangaku_count: 1
                     answer_count:
                     dedicated_sangakus:
-                    - id: 128
+                    - id: 201
                       title: test_title
                       shrine_name: test_shrine

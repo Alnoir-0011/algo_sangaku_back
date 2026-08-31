@@ -101,14 +101,14 @@ paths:
                 - data
               example:
                 data:
-                - id: '19'
+                - id: '143'
                   type: shrine
                   attributes:
                     name: test_shrine
                     address: test_address
                     latitude: 35.70204829610801
                     longitude: 139.76789333814216
-                    place_id: test_place_id_9
+                    place_id: test_place_id_51
                     sangaku_count: 1
   "/api/v1/shrines/{id}":
     get:
@@ -121,7 +121,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 21
+        example: 145
       responses:
         '200':
           description: return sangaku_count
@@ -168,12 +168,12 @@ paths:
                 - data
               example:
                 data:
-                  id: '21'
+                  id: '145'
                   type: shrine
                   attributes:
                     name: test_shrine
                     address: test_address
                     latitude: 35.70204829610801
                     longitude: 139.76789333814216
-                    place_id: test_place_id_12
+                    place_id: test_place_id_54
                     sangaku_count: 3

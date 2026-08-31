@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Algo Sangaku Documentation
   version: 1.0.0
@@ -39,7 +39,11 @@ paths:
                             user_name:
                               type: string
                             shrine_name:
-                              nullable: true
+                              type: 'null'
+                            description:
+                              type: string
+                            source:
+                              type: string
                           required:
                           - title
                           - difficulty
@@ -54,12 +58,14 @@ paths:
                 - data
               example:
                 data:
-                - id: '91'
+                - id: '169'
                   type: sangaku
                   attributes:
                     title: test_title
+                    description: test_description
+                    source: puts 'Hello world'
                     difficulty: easy
-                    created_at: '2026-05-08T00:15:50.908+09:00'
+                    created_at: '2026-09-01T00:01:40.910+09:00'
                     user_name: test nickname
                     shrine_name:
         '401':
@@ -100,7 +106,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 101
+        example: 186
       responses:
         '200':
           description: returns 200 and deletes the sangaku
@@ -128,7 +134,11 @@ paths:
                           user_name:
                             type: string
                           shrine_name:
-                            nullable: true
+                            type: 'null'
+                          description:
+                            type: string
+                          source:
+                            type: string
                         required:
                         - title
                         - difficulty
@@ -143,14 +153,16 @@ paths:
                 - data
               example:
                 data:
-                  id: '98'
+                  id: '182'
                   type: sangaku
                   attributes:
                     title: test_title
                     difficulty: easy
-                    created_at: '2026-05-08T00:15:51.247+09:00'
+                    created_at: '2026-09-01T00:01:41.200+09:00'
                     user_name: test nickname
                     shrine_name:
+                    description: test_description
+                    source: puts 'Hello world'
         '401':
           description: returns 401
           content:
@@ -188,7 +200,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 97
+        example: 175
       responses:
         '200':
           description: returns 200 with sangaku attributes
@@ -216,7 +228,11 @@ paths:
                           user_name:
                             type: string
                           shrine_name:
-                            nullable: true
+                            type: 'null'
+                          description:
+                            type: string
+                          source:
+                            type: string
                         required:
                         - title
                         - difficulty
@@ -231,12 +247,140 @@ paths:
                 - data
               example:
                 data:
-                  id: '94'
+                  id: '172'
                   type: sangaku
                   attributes:
                     title: test_title
                     difficulty: easy
-                    created_at: '2026-05-08T00:15:51.118+09:00'
+                    created_at: '2026-09-01T00:01:40.999+09:00'
+                    user_name: test nickname
+                    shrine_name:
+                    description: test_description
+                    source: puts 'Hello world'
+        '401':
+          description: returns 401
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'HTTP Token: Access denied.
+
+                '
+        '403':
+          description: returns 403
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors: []
+    patch:
+      summary: update
+      tags:
+      - Api::V1::Admin::Sangaku
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 181
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sangaku:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    difficulty:
+                      type: string
+                    description:
+                      type: string
+                    source:
+                      type: string
+                  required:
+                  - title
+                  - difficulty
+                  - description
+                  - source
+              required:
+              - sangaku
+            example:
+              sangaku:
+                title: 更新タイトル
+                difficulty: normal
+                description: 更新説明文
+                source: puts 'updated'
+      responses:
+        '200':
+          description: returns 200 and updates the sangaku
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description:
+                            type: string
+                          source:
+                            type: string
+                          difficulty:
+                            type: string
+                          created_at:
+                            type: string
+                          user_name:
+                            type: string
+                          shrine_name:
+                            type: 'null'
+                        required:
+                        - title
+                        - description
+                        - source
+                        - difficulty
+                        - created_at
+                        - user_name
+                        - shrine_name
+                    required:
+                    - id
+                    - type
+                    - attributes
+                required:
+                - data
+              example:
+                data:
+                  id: '176'
+                  type: sangaku
+                  attributes:
+                    title: 更新タイトル
+                    description: 更新説明文
+                    source: puts 'updated'
+                    difficulty: normal
+                    created_at: '2026-09-01T00:01:41.047+09:00'
                     user_name: test nickname
                     shrine_name:
         '401':

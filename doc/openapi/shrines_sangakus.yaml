@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Algo Sangaku Documentation
   version: 1.0.0
@@ -22,7 +22,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 67
+        example: 134
       - name: title
         in: query
         required: false
@@ -31,7 +31,7 @@ paths:
         example: test_title
       responses:
         '200':
-          description: return sangakus in json format
+          description: issues a query with an explicit ascending id order
           content:
             application/json:
               schema:
@@ -113,7 +113,25 @@ paths:
                 - data
               example:
                 data:
-                - id: '94'
+                - id: '220'
+                  type: sangaku
+                  attributes:
+                    title: other_title
+                    description: test_description
+                    difficulty: normal
+                    inputs: []
+                    author_name: test nickname
+                    shrine_name: test_shrine
+                  relationships:
+                    user:
+                      data:
+                        id: '569'
+                        type: user
+                    shrine:
+                      data:
+                        id: '134'
+                        type: shrine
+                - id: '221'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -125,9 +143,9 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '118'
+                        id: '568'
                         type: user
                     shrine:
                       data:
-                        id: '67'
+                        id: '134'
                         type: shrine

@@ -1,0 +1,51 @@
+---
+openapi: 3.2.0
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/shrines":
+    get:
+      summary: index
+      tags:
+      - Api::V1::Shrine
+      responses:
+        '400':
+          description: passes verification and reaches the controller action
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                required:
+                - message
+                - errors
+              example:
+                message: Bad Request
+                errors:
+                - invalid params
+        '403':
+          description: returns 403 Forbidden even when a header is sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items: {}
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors: []

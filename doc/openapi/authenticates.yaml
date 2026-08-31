@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.3
+openapi: 3.2.0
 info:
   title: Algo Sangaku Documentation
   version: 1.0.0
@@ -9,9 +9,9 @@ paths:
     delete:
       summary: destroy
       tags:
-        - Api::V1::Authenticate
+      - Api::V1::Authenticate
       responses:
-        "200":
+        '200':
           description: return success message with json format
           content:
             application/json:
@@ -21,13 +21,13 @@ paths:
                   message:
                     type: string
                 required:
-                  - message
+                - message
               example:
                 message: signout successful
     post:
       summary: create
       tags:
-        - Api::V1::Authenticate
+      - Api::V1::Authenticate
       requestBody:
         content:
           application/json:
@@ -37,11 +37,11 @@ paths:
                 token:
                   type: string
               required:
-                - token
+              - token
             example:
               token: dummy_idtoken
       responses:
-        "200":
+        '200':
           description: user does not create
           content:
             application/json:
@@ -68,30 +68,33 @@ paths:
                             type: string
                           nickname:
                             type: string
+                          role:
+                            type: string
                         required:
-                          - provider
-                          - uid
-                          - name
-                          - email
-                          - nickname
+                        - provider
+                        - uid
+                        - name
+                        - email
+                        - nickname
                     required:
-                      - id
-                      - type
-                      - attributes
+                    - id
+                    - type
+                    - attributes
                 required:
-                  - data
+                - data
               example:
                 data:
-                  id: "53"
+                  id: '538'
                   type: user
                   attributes:
                     provider: google
-                    uid: 5dbecd5d-7faa-485d-afd4-871960a06e6c
+                    uid: 5b74ab97-c691-44e9-8f7d-5b3306588279
                     name: test user
-                    email: user_2@example.com
+                    email: user_156@example.com
                     nickname: test nickname
-        "400":
-          description: invalid or expired token
+                    role: general
+        '400':
+          description: returns 400 bad request
           content:
             application/json:
               schema:
@@ -99,7 +102,13 @@ paths:
                 properties:
                   message:
                     type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
                 required:
-                  - message
+                - message
               example:
-                message: invalid token
+                message: Bad Request
+                errors:
+                - invalid token
