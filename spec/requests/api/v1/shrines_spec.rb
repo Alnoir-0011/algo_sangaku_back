@@ -27,14 +27,27 @@ RSpec.describe "Api::V1::Shrines", type: :request do
           expect { http_request }.to change(Shrine, :count).by(1)
           expect(response).to have_http_status(:ok)
         end
+
+        it "return sangaku_count as zero" do
+          http_request
+
+          expect(body['data'][0]['attributes']['sangaku_count']).to eq(0)
+        end
       end
 
       context "shrines already created" do
         let!(:shrine) { create(:shrine, place_id: shrine_attributes[:place_id]) }
+        let!(:sangaku) { create(:sangaku, shrine: shrine) }
 
         it "shrines does not create" do
           expect { http_request }.to change(Shrine, :count).by(0)
           expect(response).to have_http_status(:ok)
+        end
+
+        it "return sangaku_count" do
+          http_request
+
+          expect(body['data'][0]['attributes']['sangaku_count']).to eq(1)
         end
       end
 
@@ -60,14 +73,27 @@ RSpec.describe "Api::V1::Shrines", type: :request do
           expect { http_request }.to change(Shrine, :count).by(1)
           expect(response).to have_http_status(:ok)
         end
+
+        it "return sangaku_count as zero" do
+          http_request
+
+          expect(body['data'][0]['attributes']['sangaku_count']).to eq(0)
+        end
       end
 
       context "shrines already created" do
         let!(:shrine) { create(:shrine, place_id: shrine_attributes[:place_id]) }
+        let!(:sangaku) { create(:sangaku, shrine: shrine) }
 
         it "shrines does not create" do
           expect { http_request }.to change(Shrine, :count).by(0)
           expect(response).to have_http_status(:ok)
+        end
+
+        it "return sangaku_count" do
+          http_request
+
+          expect(body['data'][0]['attributes']['sangaku_count']).to eq(1)
         end
       end
 
@@ -97,6 +123,17 @@ RSpec.describe "Api::V1::Shrines", type: :request do
         expect(response).to have_http_status(200)
         expect(response).to be_successful
         expect(body["data"]["attributes"]["name"]).to eq shrine.name
+        expect(body["data"]["attributes"]["sangaku_count"]).to eq(0)
+      end
+
+      context "with sangakus dedicated to the shrine" do
+        before { create_list(:sangaku, 3, shrine: shrine) }
+
+        it "return sangaku_count" do
+          http_request
+
+          expect(body["data"]["attributes"]["sangaku_count"]).to eq(3)
+        end
       end
     end
 
