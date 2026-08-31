@@ -13,7 +13,8 @@ module Api
         end
 
         if shrines
-          render json: ShrineSerializer.new(shrines).serializable_hash.to_json, status: :ok
+          sangaku_counts = Sangaku.where(shrine_id: shrines.map(&:id)).group(:shrine_id).count
+          render json: ShrineSerializer.new(shrines, params: { sangaku_counts: sangaku_counts }).serializable_hash.to_json, status: :ok
         else
           render_400(nil, "invalid params")
         end
@@ -21,7 +22,8 @@ module Api
 
       def show
         shrine = Shrine.find(params[:id])
-        render json: ShrineSerializer.new(shrine).serializable_hash.to_json, status: :ok
+        sangaku_counts = { shrine.id => shrine.sangakus.count }
+        render json: ShrineSerializer.new(shrine, params: { sangaku_counts: sangaku_counts }).serializable_hash.to_json, status: :ok
       end
     end
   end
