@@ -15,6 +15,7 @@ Route53 (A alias)
 
 - **Terraform state**: ローカル管理（`back/terraform/terraform.tfstate`）
 - **ECS タスク定義**: `lifecycle { ignore_changes = [container_definitions] }` のため、Terraform は初回作成のみ管理。以降のイメージ更新・secrets 追加は手動または GitHub Actions が担う。
+  - **注意**: `ignore_changes` はインプレース更新（in-place update）にのみ効く。`volume` ブロックや `network_mode` など、他の属性の変更でタスク定義が **replace（destroy & create）** される場合、新しいリソース全体が現在の HCL から再計算されるため、`container_definitions` も `ignore_changes` に関わらず現在の設定（`var.initial_image_tag` のブートストラップ用タグ含む）で上書きされる。`volume` 等を変更する際は、`terraform plan` の `container_definitions` 差分を必ず確認し、意図しないイメージタグ巻き戻りがあれば `-var="initial_image_tag=<現在稼働中のタグ>"` を指定して apply すること（実際にこれでイメージがブートストラップタグへ巻き戻る事故が発生した実績あり）
 
 ---
 
