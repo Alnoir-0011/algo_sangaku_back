@@ -35,12 +35,6 @@ plugin :tmp_restart
 
 app_root = File.expand_path("../..", __FILE__)
 
-# Docker on Mac では Unix ソケットが ENOTSUP になるため、development は TCP のみ使用する
-# RAILS_ENV 未設定時は development として扱う（rspec 実行時に RAILS_ENV が変わっても影響しないよう ENV に依存しない）
-unless ENV.fetch("RAILS_ENV", "development") == "development"
-  bind "unix://#{app_root}/tmp/sockets/puma.sock"
-end
-
 stdout_redirect "#{app_root}/log/puma.stdout.log", "#{app_root}/log/puma.stderr.log", true
 
 # Specify the PID file. Defaults to tmp/pids/server.pid in development.
