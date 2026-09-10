@@ -7,8 +7,8 @@ Route53 (A alias)
   └─ CloudFront (HTTPS / ACM us-east-1)
        └─ EC2 t4g.small / AL2023 arm64 (Elastic IP)
             └─ ECS on EC2 (bridge mode)
-                 ├─ nginx コンテナ (port 80, links=["web"] で web:3000 に TCP 到達)
-                 ├─ web コンテナ (Rails/Puma, TCP:3000。ホストへは公開しない)
+                 ├─ nginx コンテナ (port 80)
+                 ├─ web コンテナ (Rails/Puma, unix socket)
                  └─ queue コンテナ (Solid Queue)
                       └─ RDS PostgreSQL db.t4g.micro (private subnet)
 ```
@@ -193,47 +193,6 @@ aws ecs update-service \
 
 ---
 
-## コンテナ構成（volume / mountPoints / links / portMappings / healthCheck 等）を変更するときのフロー
-
-`.github/workflows/autodeploy.yml` は **稼働中のタスク定義をそのまま複製し、イメージタグだけ差し替えて**登録する。そのため `terraform/ecs.tf` の構造的な変更（今回の unix socket → TCP+links 移行など）は、通常のマージ→オートデプロイだけでは**一切反映されない**。
-
-さらに危険なのは順序で、**先に新しいイメージだけを autodeploy で本番に流してしまうと**、新イメージ内の設定（例: `nginx.conf.template` の `upstream` が `web:3000` 決め打ち）と、旧タスク定義（`links` 未設定）の組み合わせになり、両者が噛み合わずに **即座に全断する**。
-
-### 必須の順序
-
-1. **先に** `terraform apply` でタスク定義の構造変更を本番に反映する（下記の一時解除が必要）
-2. 反映を確認してから、`main` へのマージ・`autodeploy.yml` の実行（イメージ更新）を行う
-
-### `terraform apply` で構造変更を反映する手順
-
-```bash
-cd back/terraform
-# 1. aws_ecs_task_definition.main と aws_ecs_service.main の
-#    lifecycle { ignore_changes = [...] } を一時的にコメントアウトする
-# 2. plan で意図した差分のみになっているか確認（イメージタグが古いものに巻き戻る差分が
-#    混ざっていないか要注意）
-terraform plan
-# 3. 問題なければ apply
-terraform apply
-# 4. 反映確認
-aws ecs describe-task-definition --task-definition algo-sangaku \
-  --query "taskDefinition.containerDefinitions[?name=='nginx'].links" --output json
-# 5. ignore_changes のコメントアウトを元に戻し、コミットする
-#    (以降の autodeploy がこのリビジョンをベースに複製する)
-```
-
-### 補足
-
-- ステップ2の `plan` で `initial_image_tag` ベースの古いイメージタグに巻き戻る差分が出た場合は、`terraform.tfvars` の `initial_image_tag` を現在稼働中のタグに更新してから apply する（ブートストラップ用タグへの巻き戻りを防ぐため）
-- `links` を使う変更（今回のような nginx⇔web 間通信の変更）を反映した後は、Docker legacy links がリンク元コンテナの環境変数を `WEB_ENV_<NAME>` のような形でリンク先へ注入しないか、本番で一度だけ確認しておくとよい
-  ```bash
-  aws ecs execute-command --cluster algo-sangaku-cluster --task <TASK_ID> --container nginx \
-    --interactive --command "sh -c 'env | grep -c WEB_ENV_'"
-  ```
-  0 以外なら、リンク先コンテナの secrets 構成を見直す
-
----
-
 ## トラブルシューティング
 
 | 症状 | 確認コマンド | 対処 |
@@ -241,7 +200,7 @@ aws ecs describe-task-definition --task-definition algo-sangaku \
 | ECS タスクが起動しない | `aws ecs describe-tasks --cluster algo-sangaku-cluster --tasks <TASK_ID>` | `stoppedReason` と `containers[].reason` を確認 |
 | 環境変数が見つからない | `aws logs tail /ecs/algo-sangaku/web --since 5m` | secrets に対象の SSM パラメータが含まれているか確認。含まれていない場合は「シークレット追加フロー ステップ 3」を実施 |
 | DB 接続エラー | `aws logs tail /ecs/algo-sangaku/web --since 5m` | RDS SG の 5432 inbound が EC2 SG からのみ許可されているか確認 |
-| 502/503 が返る | `aws logs tail /ecs/algo-sangaku/nginx --since 5m` | nginx→web は TCP (`links=["web"]`, `web:3000`) 経由。web コンテナが HEALTHY か、タスク定義に `links` が含まれているか（「コンテナ構成を変更するときのフロー」参照）を確認 |
+| 503 が返る | `aws logs tail /ecs/algo-sangaku/nginx --since 5m` | web コンテナの HEALTHY 待ち or unix socket パス（`/tmp/puma`）を確認 |
 | CloudFront で 403/502 | nginx ログを確認 | `X-CloudFront-Secret` ヘッダー値が SSM と一致しているか確認 |
 | ACM 証明書が検証されない | `aws acm describe-certificate --certificate-arn <ARN> --region us-east-1` | Route53 に CNAME 検証レコードが作成されているか確認 |
 | ECS タスクが一切スケジュールされない | `aws ecs describe-container-instances --cluster algo-sangaku-cluster --container-instances <ID> --query 'containerInstances[0].agentConnected'` | `false` ならエージェント障害。「EC2 ホストに入る」で `/var/log/ecs/ecs-agent.log` を確認する |

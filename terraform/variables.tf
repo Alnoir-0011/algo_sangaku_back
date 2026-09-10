@@ -134,13 +134,6 @@ variable "cloudfront_secret_header_value" {
     condition     = length(var.cloudfront_secret_header_value) >= 32
     error_message = "cloudfront_secret_header_value は 32 文字以上のランダムな文字列を使用してください。"
   }
-
-  validation {
-    # ダブルクォートやセミコロン・改行が混入すると envsubst 後の nginx.conf が壊れて起動不能になるため、
-    # openssl rand -hex 相当の安全な文字種に制限する
-    condition     = can(regex("^[A-Za-z0-9_-]+$", var.cloudfront_secret_header_value))
-    error_message = "cloudfront_secret_header_value は英数字・ハイフン・アンダースコアのみ使用してください。"
-  }
 }
 
 # --- GitHub Actions OIDC ---
