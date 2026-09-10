@@ -1,19 +1,5 @@
 upstream algo_sangaku_back {
-  server web:3000;
-}
-
-# ECS ヘルスチェック専用 (nginx -> web の実リクエスト経路を検査する)。
-# 127.0.0.1 限定で外部公開せず、CLOUDFRONT_SECRET を経由しないため
-# シークレット未設定時のフェイルオープンや、ヘルスチェックコマンドの
-# argv にシークレットが露出する問題を避けられる。DB 接続を見ない
-# rails/health (/up) を使うことで、DB瞬断時に web と道連れで
-# unhealthy 判定にならないようにする。
-server {
-  listen 127.0.0.1:8081;
-
-  location = /up {
-    proxy_pass http://algo_sangaku_back/up;
-  }
+  server unix:///algo_sangaku_back/tmp/sockets/puma.sock;
 }
 
 server {
