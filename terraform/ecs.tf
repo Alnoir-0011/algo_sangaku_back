@@ -17,9 +17,11 @@ resource "aws_ecs_task_definition" "main" {
   task_role_arn            = aws_iam_role.ecs_task.arn
 
   # unix socket を nginx と web で共有するためのボリューム
+  # /tmp や /var/tmp は systemd-tmpfiles-clean.timer により10日間未アクセスで
+  # 自動削除されるため (systemd公式ドキュメント参照)、対象外の /var/lib 配下に置く
   volume {
     name      = "puma-socket"
-    host_path = "/tmp/puma"
+    host_path = "/var/lib/algo_sangaku/sockets"
   }
 
   container_definitions = jsonencode([
