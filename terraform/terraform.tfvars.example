@@ -35,3 +35,8 @@ openai_api_key             = ""
 
 # GitHub Actions OIDC
 github_repo = "Alnoir-0011/algo_sangaku_back"
+
+# CloudWatch アラーム通知先メールアドレス
+# apply 後に届く確認メール (SubscribeConfirmation) を承認しないと購読が
+# PendingConfirmation のままになり、通知が届かない点に注意
+alert_email = ""

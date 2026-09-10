@@ -142,3 +142,10 @@ variable "github_repo" {
   type        = string
   default     = "Alnoir-0011/algo_sangaku_back"
 }
+
+# --- CloudWatch 監視 ---
+variable "alert_email" {
+  description = "CloudWatch アラーム通知の送信先メールアドレス"
+  type        = string
+  sensitive   = true
+}
