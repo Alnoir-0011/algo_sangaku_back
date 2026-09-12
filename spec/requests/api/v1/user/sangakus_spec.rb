@@ -98,7 +98,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
   describe "POST /user/sangakus" do
     context "with_accesstoken" do
       let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
-      let(:params) { { sangaku: attributes_for(:sangaku), fixed_inputs: [ attributes_for(:fixed_input)[:content] ] } }
+      let(:params) { { sangaku: attributes_for(:sangaku_params), fixed_inputs: [ attributes_for(:fixed_input)[:content] ] } }
       let!(:user) { create(:user) }
 
       it "success to create sangaku" do
@@ -115,7 +115,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
 
     context "without access_token", openapi: false do
       let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' } }
-      let(:params) { { sangaku: attributes_for(:sangaku) } }
+      let(:params) { { sangaku: attributes_for(:sangaku_params) } }
 
       it "return 401 errors" do
         expect {
@@ -127,7 +127,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
 
     context "with invalid params", openapi: false do
       let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
-      let(:params) { { sangaku: attributes_for(:sangaku, title: "") } }
+      let(:params) { { sangaku: attributes_for(:sangaku_params, title: "") } }
       let!(:user) { create(:user) }
 
       it "return 400 errors" do
@@ -137,6 +137,60 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
           post api_v1_user_sangakus_path, headers: headers, params: params.to_json
         }.not_to change(Sangaku, :count)
         expect(response).to have_http_status(400)
+      end
+    end
+
+    # front は項目ごとのエラー表示に errors のキー名を使っているため、
+    # delegated_type 移行後もキー名が変わらないことを固定する特性テスト（issue #278）。
+    describe "error keys in the 400 response" do
+      let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
+      let!(:user) { create(:user) }
+      let(:error_keys) { body["errors"].map(&:first) }
+
+      before { authenticate_stub(user) }
+
+      context "without a title", openapi: false do
+        let(:params) { { sangaku: attributes_for(:sangaku_params, title: ""), fixed_inputs: [ "input_a" ] } }
+
+        it "returns the title error key" do
+          post api_v1_user_sangakus_path, headers: headers, params: params.to_json
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include "title"
+        end
+      end
+
+      context "without a description", openapi: false do
+        let(:params) { { sangaku: attributes_for(:sangaku_params, description: ""), fixed_inputs: [ "input_a" ] } }
+
+        it "returns the description error key" do
+          post api_v1_user_sangakus_path, headers: headers, params: params.to_json
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include "description"
+        end
+      end
+
+      context "without a source", openapi: false do
+        let(:params) { { sangaku: attributes_for(:sangaku_params, source: ""), fixed_inputs: [ "input_a" ] } }
+
+        it "returns the source error key" do
+          post api_v1_user_sangakus_path, headers: headers, params: params.to_json
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include "source"
+        end
+      end
+
+      context "with duplicated fixed_inputs", openapi: false do
+        let(:params) { { sangaku: attributes_for(:sangaku_params), fixed_inputs: [ "duplicated", "duplicated" ] } }
+
+        it "returns the fixed_inputs error key" do
+          post api_v1_user_sangakus_path, headers: headers, params: params.to_json
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include "fixed_inputs"
+        end
       end
     end
   end
@@ -203,7 +257,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
     context "with_accesstoken" do
       let!(:sangaku) { create(:sangaku, title: "before_changed",  user: user) }
       let(:http_request) { patch api_v1_user_sangaku_path(sangaku.id), headers:, params: }
-      let(:params) { { sangaku: attributes_for(:sangaku, title: "changed_title"), fixed_inputs: [ "a" ] }.to_json }
+      let(:params) { { sangaku: attributes_for(:sangaku_params, title: "changed_title"), fixed_inputs: [ "a" ] }.to_json }
 
       it "success to update sangaku" do
         authenticate_stub(user)
@@ -216,7 +270,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
     end
 
     context "with nonexistent id", openapi: false do
-      let(:params) { { sangaku:  attributes_for(:sangaku, title: "changed_title")  }.to_json }
+      let(:params) { { sangaku:  attributes_for(:sangaku_params, title: "changed_title")  }.to_json }
       let(:http_request) { patch api_v1_user_sangaku_path(1000000), headers:, params: }
 
       it "return 404" do
@@ -230,7 +284,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
 
     context "without access_token", openapi: false do
       let!(:sangaku) { create(:sangaku, title: "before_changed", user: user) }
-      let(:params) { { sangaku: attributes_for(:sangaku, title: "changed_title") }.to_json }
+      let(:params) { { sangaku: attributes_for(:sangaku_params, title: "changed_title") }.to_json }
       let(:http_request) { patch api_v1_user_sangaku_path(sangaku.id), headers: { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' }, params: }
 
       it "return 401 errors" do
@@ -243,7 +297,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
 
     context "with invalid params", openapi: false do
       let!(:sangaku) { create(:sangaku, title: "before_changed", user: user) }
-      let(:params) { { sangaku: attributes_for(:sangaku, title: "") }.to_json }
+      let(:params) { { sangaku: attributes_for(:sangaku_params, title: "") }.to_json }
       let(:http_request) { patch api_v1_user_sangaku_path(sangaku.id), headers:, params: }
 
       it "return 400 errors" do
@@ -256,10 +310,64 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       end
     end
 
+    # front は項目ごとのエラー表示に errors のキー名を使っているため、
+    # delegated_type 移行後もキー名が変わらないことを固定する特性テスト（issue #278）。
+    describe "error keys in the 400 response" do
+      let!(:sangaku) { create(:sangaku, title: "before_changed", user: user) }
+      let(:error_keys) { body["errors"].map(&:first) }
+      let(:http_request) { patch api_v1_user_sangaku_path(sangaku.id), headers:, params: }
+
+      before { authenticate_stub(user) }
+
+      context "without a title", openapi: false do
+        let(:params) { { sangaku: attributes_for(:sangaku_params, title: ""), fixed_inputs: [ "input_a" ] }.to_json }
+
+        it "returns the title error key" do
+          http_request
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include "title"
+        end
+      end
+
+      context "without a description", openapi: false do
+        let(:params) { { sangaku: attributes_for(:sangaku_params, description: ""), fixed_inputs: [ "input_a" ] }.to_json }
+
+        it "returns the description error key" do
+          http_request
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include "description"
+        end
+      end
+
+      context "without a source", openapi: false do
+        let(:params) { { sangaku: attributes_for(:sangaku_params, source: ""), fixed_inputs: [ "input_a" ] }.to_json }
+
+        it "returns the source error key" do
+          http_request
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include "source"
+        end
+      end
+
+      context "with duplicated fixed_inputs", openapi: false do
+        let(:params) { { sangaku: attributes_for(:sangaku_params), fixed_inputs: [ "duplicated", "duplicated" ] }.to_json }
+
+        it "returns the fixed_inputs error key" do
+          http_request
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include "fixed_inputs"
+        end
+      end
+    end
+
     context "with anotheruser's sangaku id", openapi: false do
       let!(:another_user) { create(:user) }
       let!(:another_sangaku) { create(:sangaku, user: another_user) }
-      let(:params) { { sangaku:  attributes_for(:sangaku, title: "changed_title") }.to_json }
+      let(:params) { { sangaku:  attributes_for(:sangaku_params, title: "changed_title") }.to_json }
       let(:http_request) { patch api_v1_user_sangaku_path(another_sangaku.id), headers:, params: }
 
       it "return 404" do
@@ -279,7 +387,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       before { sangaku.reload }
       let!(:user_sangaku_save) { create(:user_sangaku_save, sangaku: sangaku) }
       let!(:answer) { create(:answer, user_sangaku_save: user_sangaku_save) }
-      let(:params) { { sangaku: attributes_for(:sangaku, title: "changed_title"), fixed_inputs: [] }.to_json }
+      let(:params) { { sangaku: attributes_for(:sangaku_params, title: "changed_title"), fixed_inputs: [] }.to_json }
       let(:http_request) { patch api_v1_user_sangaku_path(sangaku.id), headers:, params: }
 
       it "success to update sangaku" do
