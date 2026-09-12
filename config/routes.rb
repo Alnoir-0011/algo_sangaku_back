@@ -33,13 +33,17 @@ Rails.application.routes.draw do
       end
 
       namespace :user do
-        resources :sangakus, only: %i[index show create update destroy], shallow: true do
+        resources :sangakus, only: %i[index show destroy], shallow: true do
+          resource :result, only: %i[show]
+          resource :dedicate, only: %i[create]
+        end
+        # コード記述形式に固有の作成・更新・模範解答生成（issue #278）。
+        # :id は親 sangakus.id を指す。
+        resources :code_sangakus, only: %i[create update] do
           collection do
             post :generate_source
             get :generate_source_usage
           end
-          resource :result, only: %i[show]
-          resource :dedicate, only: %i[create]
         end
         resources :answers, only: %i[show]
         resources :answer_results, only: %i[show]
