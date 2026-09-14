@@ -1,17 +1,6 @@
+# 一覧（GET /admin/sangakus）用のシリアライザ。
+# 件数分の code_blocks を含めると重くなるため、code_blocks は持たない（issue #278）。
 class Admin::SangakuSerializer
   include JSONAPI::Serializer
-
-  # description / difficulty は Sangaku から sangakuable へ delegate されている（issue #278）
-  attributes :title, :description, :difficulty, :created_at
-  attribute :source do |sangaku|
-    sangaku.sangakuable.source
-  end
-
-  attribute :user_name do |sangaku|
-    sangaku.user.nickname
-  end
-
-  attribute :shrine_name do |sangaku|
-    sangaku.shrine&.name
-  end
+  include Admin::SangakuSerializerAttributes
 end
