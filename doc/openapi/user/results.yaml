@@ -16,7 +16,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 247
+        example: 17478
       responses:
         '200':
           description: return result in json format

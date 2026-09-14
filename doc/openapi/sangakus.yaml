@@ -16,7 +16,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 217
+        example: 17363
       responses:
         '200':
           description: does not include source in response
@@ -48,6 +48,11 @@ paths:
                             type: string
                           shrine_name:
                             type: 'null'
+                          kind:
+                            type: string
+                          code_blocks:
+                            type: array
+                            items: {}
                         required:
                         - title
                         - description
@@ -91,7 +96,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '217'
+                  id: '17363'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -100,10 +105,12 @@ paths:
                     inputs: []
                     author_name: test nickname
                     shrine_name:
+                    kind: code
+                    code_blocks: []
                   relationships:
                     user:
                       data:
-                        id: '562'
+                        id: '32970'
                         type: user
                     shrine:
                       data:

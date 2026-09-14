@@ -16,7 +16,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 38
+        example: 5900
       responses:
         '200':
           description: return answer_result in json format
@@ -84,7 +84,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '38'
+                  id: '5900'
                   type: answer_result
                   attributes:
                     status: pending
@@ -93,7 +93,7 @@ paths:
                   relationships:
                     answer:
                       data:
-                        id: '38'
+                        id: '5251'
                         type: answer
                     fixed_input:
                       data:

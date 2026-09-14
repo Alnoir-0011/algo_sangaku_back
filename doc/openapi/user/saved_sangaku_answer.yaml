@@ -16,10 +16,10 @@ paths:
         required: true
         schema:
           type: integer
-        example: 290
+        example: 17566
       responses:
         '200':
-          description: return answer in json format
+          description: returns the status without a source and with no answer_results
           content:
             application/json:
               schema:
@@ -36,8 +36,12 @@ paths:
                         type: object
                         properties:
                           source:
-                            type: string
+                            type:
+                            - string
+                            - 'null'
                           status:
+                            type: string
+                          kind:
                             type: string
                         required:
                         - source
@@ -89,20 +93,19 @@ paths:
                 - data
               example:
                 data:
-                  id: '56'
+                  id: '5284'
                   type: answer
                   attributes:
-                    source: puts 'Hello world'
-                    status: pending
+                    source:
+                    status: correct
+                    kind: reorder
                   relationships:
                     user_sangaku_save:
                       data:
-                        id: '93'
+                        id: '8118'
                         type: user_sangaku_save
                     answer_results:
-                      data:
-                      - id: '56'
-                        type: answer_result
+                      data: []
     post:
       summary: create
       tags:
@@ -113,7 +116,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 283
+        example: 17548
       requestBody:
         content:
           application/json:
@@ -125,16 +128,21 @@ paths:
                   properties:
                     source:
                       type: string
-                  required:
-                  - source
+                    block_ids:
+                      type: array
+                      items:
+                        type: integer
               required:
               - answer
             example:
               answer:
                 source: puts 'Hello wourld'
+                block_ids:
+                - 14138
+                - 1014139
       responses:
         '200':
-          description: return answer in json format
+          description: returns 200 with an incorrect status and still saves the answer
           content:
             application/json:
               schema:
@@ -151,8 +159,12 @@ paths:
                         type: object
                         properties:
                           source:
-                            type: string
+                            type:
+                            - string
+                            - 'null'
                           status:
+                            type: string
+                          kind:
                             type: string
                         required:
                         - source
@@ -204,17 +216,16 @@ paths:
                 - data
               example:
                 data:
-                  id: '53'
+                  id: '5276'
                   type: answer
                   attributes:
-                    source: puts 'Hello wourld'
-                    status: pending
+                    source:
+                    status: incorrect
+                    kind: reorder
                   relationships:
                     user_sangaku_save:
                       data:
-                        id: '87'
+                        id: '8101'
                         type: user_sangaku_save
                     answer_results:
-                      data:
-                      - id: '53'
-                        type: answer_result
+                      data: []

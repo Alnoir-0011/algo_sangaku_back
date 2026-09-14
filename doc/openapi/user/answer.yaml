@@ -16,7 +16,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 43
+        example: 5256
       responses:
         '200':
           description: return answer in json format
@@ -38,6 +38,8 @@ paths:
                           source:
                             type: string
                           status:
+                            type: string
+                          kind:
                             type: string
                         required:
                         - source
@@ -89,17 +91,18 @@ paths:
                 - data
               example:
                 data:
-                  id: '43'
+                  id: '5256'
                   type: answer
                   attributes:
                     source: puts 'Hello world'
                     status: pending
+                    kind: code
                   relationships:
                     user_sangaku_save:
                       data:
-                        id: '77'
+                        id: '8073'
                         type: user_sangaku_save
                     answer_results:
                       data:
-                      - id: '43'
+                      - id: '5905'
                         type: answer_result

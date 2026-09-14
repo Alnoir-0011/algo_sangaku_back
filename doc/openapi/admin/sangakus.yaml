@@ -44,6 +44,8 @@ paths:
                               type: string
                             source:
                               type: string
+                            kind:
+                              type: string
                           required:
                           - title
                           - difficulty
@@ -58,14 +60,15 @@ paths:
                 - data
               example:
                 data:
-                - id: '169'
+                - id: '17268'
                   type: sangaku
                   attributes:
                     title: test_title
                     description: test_description
-                    source: puts 'Hello world'
                     difficulty: easy
-                    created_at: '2026-09-01T00:01:40.910+09:00'
+                    created_at: '2026-09-14T17:28:52.588+09:00'
+                    kind: code
+                    source: puts 'Hello world'
                     user_name: test nickname
                     shrine_name:
         '401':
@@ -106,7 +109,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 186
+        example: 17317
       responses:
         '200':
           description: returns 200 and deletes the sangaku
@@ -139,6 +142,11 @@ paths:
                             type: string
                           source:
                             type: string
+                          kind:
+                            type: string
+                          code_blocks:
+                            type: array
+                            items: {}
                         required:
                         - title
                         - difficulty
@@ -153,16 +161,18 @@ paths:
                 - data
               example:
                 data:
-                  id: '182'
-                  type: sangaku
+                  id: '17313'
+                  type: sangaku_detail
                   attributes:
                     title: test_title
                     difficulty: easy
-                    created_at: '2026-09-01T00:01:41.200+09:00'
+                    created_at: '2026-09-14T17:28:53.417+09:00'
                     user_name: test nickname
                     shrine_name:
                     description: test_description
                     source: puts 'Hello world'
+                    kind: code
+                    code_blocks: []
         '401':
           description: returns 401
           content:
@@ -200,7 +210,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 175
+        example: 17293
       responses:
         '200':
           description: returns 200 with sangaku attributes
@@ -233,6 +243,11 @@ paths:
                             type: string
                           source:
                             type: string
+                          kind:
+                            type: string
+                          code_blocks:
+                            type: array
+                            items: {}
                         required:
                         - title
                         - difficulty
@@ -247,16 +262,18 @@ paths:
                 - data
               example:
                 data:
-                  id: '172'
-                  type: sangaku
+                  id: '17280'
+                  type: sangaku_detail
                   attributes:
                     title: test_title
                     difficulty: easy
-                    created_at: '2026-09-01T00:01:40.999+09:00'
+                    created_at: '2026-09-14T17:28:52.818+09:00'
                     user_name: test nickname
                     shrine_name:
                     description: test_description
                     source: puts 'Hello world'
+                    kind: code
+                    code_blocks: []
         '401':
           description: returns 401
           content:
@@ -294,7 +311,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 181
+        example: 17312
       requestBody:
         content:
           application/json:
@@ -357,12 +374,17 @@ paths:
                             type: string
                           shrine_name:
                             type: 'null'
+                          kind:
+                            type: string
+                          code_blocks:
+                            type: array
+                            items: {}
                         required:
                         - title
                         - description
-                        - source
                         - difficulty
                         - created_at
+                        - source
                         - user_name
                         - shrine_name
                     required:
@@ -373,16 +395,18 @@ paths:
                 - data
               example:
                 data:
-                  id: '176'
-                  type: sangaku
+                  id: '17294'
+                  type: sangaku_detail
                   attributes:
                     title: 更新タイトル
                     description: 更新説明文
                     source: puts 'updated'
                     difficulty: normal
-                    created_at: '2026-09-01T00:01:41.047+09:00'
+                    created_at: '2026-09-14T17:28:53.045+09:00'
                     user_name: test nickname
                     shrine_name:
+                    kind: code
+                    code_blocks: []
         '401':
           description: returns 401
           content:

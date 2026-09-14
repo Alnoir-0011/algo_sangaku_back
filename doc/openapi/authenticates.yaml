@@ -84,13 +84,13 @@ paths:
                 - data
               example:
                 data:
-                  id: '538'
+                  id: '32940'
                   type: user
                   attributes:
                     provider: google
-                    uid: 5b74ab97-c691-44e9-8f7d-5b3306588279
+                    uid: 18100997-6ed2-40d0-a67b-ab96cc2aaaef
                     name: test user
-                    email: user_156@example.com
+                    email: user_199@example.com
                     nickname: test nickname
                     role: general
         '400':
