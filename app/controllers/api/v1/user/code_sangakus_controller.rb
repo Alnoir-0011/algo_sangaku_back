@@ -3,10 +3,12 @@ module Api
     # コード記述形式に固有の作成・更新・模範解答生成を扱う（issue #278）。
     # 一覧・詳細・削除・奉納は形式に依存しないため User::SangakusController に残す。
     class User::CodeSangakusController < BaseController
+      include Api::SangakuableForm
+
       before_action :set_code_sangaku, only: %i[update]
 
       def create
-        code_sangaku = CodeSangaku.new(code_sangaku_params)
+        code_sangaku = CodeSangaku.new(sangakuable_params)
         code_sangaku.build_sangaku(parent_params.merge(user: current_user))
 
         if code_sangaku.save_with_inputs(params[:fixed_inputs])
@@ -19,7 +21,7 @@ module Api
       def update
         # has_one 側から辿った親に代入することで、save_with_inputs が同じインスタンスを保存できる
         @code_sangaku.sangaku.assign_attributes(parent_params)
-        @code_sangaku.assign_attributes(code_sangaku_params)
+        @code_sangaku.assign_attributes(sangakuable_params)
 
         if @code_sangaku.save_with_inputs(params[:fixed_inputs])
           render json: SangakuSerializer.new(@code_sangaku.sangaku.reload).serializable_hash.to_json, status: :ok
@@ -103,12 +105,8 @@ module Api
 
       private
 
-      # :id は親 sangakus.id。形式は作成後に変更できないため、別形式の id には 404 を返す。
       def set_code_sangaku
-        sangaku = current_user.sangakus.find(params[:id])
-        raise ActiveRecord::RecordNotFound unless sangaku.code_sangaku?
-
-        @code_sangaku = sangaku.sangakuable
+        @code_sangaku = find_own_sangakuable!(:code_sangaku)
       end
 
       def check_generate_source_rate_limit!
@@ -119,21 +117,6 @@ module Api
 
       def sangaku_params
         params.require(:sangaku).permit(:title, :description, :source, :difficulty)
-      end
-
-      # title は親、description / source / difficulty は形式固有テーブルが持つ
-      def parent_params
-        sangaku_params.slice(:title)
-      end
-
-      def code_sangaku_params
-        sangaku_params.slice(:description, :source, :difficulty)
-      end
-
-      # front は項目ごとのエラー表示にキー名を使うため、親と子のエラーを一つにまとめて返す
-      def merged_errors(code_sangaku)
-        parent_errors = code_sangaku.sangaku&.errors&.messages || {}
-        parent_errors.merge(code_sangaku.errors.messages)
       end
     end
   end

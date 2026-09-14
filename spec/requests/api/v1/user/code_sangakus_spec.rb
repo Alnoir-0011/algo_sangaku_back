@@ -87,6 +87,17 @@ RSpec.describe "Api::V1::User::CodeSangakus", type: :request do
         end
       end
 
+      context "without both a title and a description", openapi: false do
+        let(:params) { { sangaku: attributes_for(:sangaku_params, title: "", description: ""), fixed_inputs: [ "input_a" ] } }
+
+        it "returns both the title and description error keys" do
+          post api_v1_user_code_sangakus_path, headers: headers, params: params.to_json
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include("title", "description")
+        end
+      end
+
       context "with duplicated fixed_inputs", openapi: false do
         let(:params) { { sangaku: attributes_for(:sangaku_params), fixed_inputs: [ "duplicated", "duplicated" ] } }
 
@@ -248,6 +259,23 @@ RSpec.describe "Api::V1::User::CodeSangakus", type: :request do
         expect(response).to have_http_status(:ok)
         expect(response).to be_successful
         expect(FixedInput.exists?(fixed_input.id)).to eq false
+      end
+    end
+
+    context "with a reorder_sangaku's id", openapi: false do
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user: user) }
+      let(:params) { { sangaku: attributes_for(:sangaku_params, title: "changed_title") }.to_json }
+      let(:http_request) { patch api_v1_user_code_sangaku_path(reorder_sangaku.id), headers:, params: }
+
+      it "return 404" do
+        # set_code_sangaku の別形式ガード（sangaku.code_sangaku?）は実装済みだが、
+        # 並べ替え形式の sangaku を作れなかったためこれまで検証できていなかった。
+        # ReorderSangaku の追加により初めてテスト可能になった経路（新規のRED/GREENではなく特性テスト）
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:not_found)
+        expect(response).not_to be_successful
       end
     end
   end

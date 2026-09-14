@@ -45,6 +45,7 @@ Rails.application.routes.draw do
             get :generate_source_usage
           end
         end
+        resources :reorder_sangakus, only: %i[create update]
         resources :answers, only: %i[show]
         resources :answer_results, only: %i[show]
         resources :saved_sangakus, only: %i[index show] do
