@@ -39,6 +39,32 @@ RSpec.describe Sangaku, type: :model do
 
       expect(CodeSangaku.exists?(code_sangaku.id)).to eq false
     end
+
+    context 'when the sangakuable is a reorder_sangaku' do
+      it 'has a reorder_sangaku as its sangakuable' do
+        sangaku = create(:sangaku, :reorder)
+
+        expect(sangaku.reorder_sangaku?).to eq true
+        expect(sangaku.code_sangaku?).to eq false
+        expect(sangaku.sangakuable).to be_a ReorderSangaku
+      end
+
+      it 'delegates description and difficulty to the sangakuable' do
+        sangaku = create(:sangaku, :reorder, description: "delegated_description", difficulty: "normal")
+
+        expect(sangaku.description).to eq "delegated_description"
+        expect(sangaku.difficulty).to eq "normal"
+      end
+
+      it 'destroys the sangakuable when it is destroyed' do
+        sangaku = create(:sangaku, :reorder)
+        reorder_sangaku = sangaku.sangakuable
+
+        sangaku.destroy!
+
+        expect(ReorderSangaku.exists?(reorder_sangaku.id)).to eq false
+      end
+    end
   end
 
   describe '.search' do
@@ -72,6 +98,16 @@ RSpec.describe Sangaku, type: :model do
 
       expect { sangaku.destroy! }.not_to raise_error
       expect(FixedInput.exists?(fixed_input.id)).to eq false
+    end
+
+    it 'destroys associated code_blocks without raising a foreign key violation when the sangakuable is a reorder_sangaku' do
+      sangaku = create(:sangaku, :reorder)
+      # :reorder trait 側で correct_position 1, 2 の code_block が既に存在するため、
+      # 衝突を避けるためダミーブロック（correct_position: nil）を追加する
+      code_block = create(:code_block, :dummy, reorder_sangaku: sangaku.sangakuable)
+
+      expect { sangaku.destroy! }.not_to raise_error
+      expect(CodeBlock.exists?(code_block.id)).to eq false
     end
   end
 

@@ -6,8 +6,14 @@ FactoryBot.define do
 
     transient do
       source { "puts 'Hello world'" }
+      result { :correct }
     end
 
     answerable { association(:code_answer, source:) }
+
+    # 並べ替え形式（ReorderAnswer）を answerable にする（issue #278）
+    trait :reorder do
+      answerable { association(:reorder_answer, result:) }
+    end
   end
 end

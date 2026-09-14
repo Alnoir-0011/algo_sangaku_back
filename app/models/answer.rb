@@ -8,7 +8,7 @@ class Answer < ApplicationRecord
   after_create :create_answerable_results
   after_initialize :prevent_overwriting_existing_answer, if: :new_record?
 
-  delegated_type :answerable, types: %w[CodeAnswer], dependent: :destroy
+  delegated_type :answerable, types: %w[CodeAnswer ReorderAnswer], dependent: :destroy
 
   belongs_to :user_sangaku_save
 

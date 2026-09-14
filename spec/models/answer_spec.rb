@@ -40,6 +40,37 @@ RSpec.describe Answer, type: :model do
 
       expect(CodeAnswer.exists?(code_answer.id)).to eq false
     end
+
+    it "has a reorder_answer as its answerable" do
+      answer = create(:answer, :reorder)
+
+      expect(answer.reorder_answer?).to eq true
+      expect(answer.code_answer?).to eq false
+      expect(answer.answerable).to be_a ReorderAnswer
+    end
+
+    it "returns nil as the source when the answerable is a reorder_answer" do
+      answer = create(:answer, :reorder)
+
+      expect(answer.source).to be_nil
+    end
+
+    it "destroys the reorder_answer when it is destroyed" do
+      answer = create(:answer, :reorder)
+      reorder_answer = answer.answerable
+
+      answer.destroy!
+
+      expect(ReorderAnswer.exists?(reorder_answer.id)).to eq false
+    end
+  end
+
+  describe "#create_answerable_results" do
+    it "does not create any AnswerResult when the answerable is a reorder_answer" do
+      expect {
+        create(:answer, :reorder)
+      }.not_to change(AnswerResult, :count)
+    end
   end
 
   describe "preventing overwriting an existing answer" do
@@ -142,7 +173,7 @@ RSpec.describe Answer, type: :model do
         { statuses: %w[correct error],     expected: "incorrect" },
         { statuses: %w[error error],       expected: "incorrect" }
       ].each do |c|
-        it "#status と scope の該当が #{c[:statuses]} -> #{c[:expected]} で一致する" do
+        it "matches #status and the status_correct/status_incorrect scopes for #{c[:statuses]} -> #{c[:expected]}" do
           answer_results.zip(c[:statuses]).each { |result, status| result.update!(status:) }
 
           expect(answer.status).to eq c[:expected]
@@ -150,6 +181,45 @@ RSpec.describe Answer, type: :model do
           expect(Answer.status_incorrect.include?(answer)).to eq(c[:expected] == "incorrect")
         end
       end
+    end
+  end
+
+  describe "#status" do
+    it "returns the reorder_answer's status when the answerable is a reorder_answer" do
+      answer = create(:answer, :reorder, result: :incorrect)
+
+      expect(answer.status).to eq "incorrect"
+    end
+  end
+
+  describe "status_correct / status_incorrect scopes across answerable types" do
+    let!(:code_correct_answer) do
+      answer = create(:answer)
+      answer.answerable.answer_results.first.update!(status: "correct")
+      answer
+    end
+    let!(:code_incorrect_answer) do
+      answer = create(:answer)
+      answer.answerable.answer_results.first.update!(status: "incorrect")
+      answer
+    end
+    let!(:reorder_correct_answer) { create(:answer, :reorder, result: :correct) }
+    let!(:reorder_incorrect_answer) { create(:answer, :reorder, result: :incorrect) }
+
+    it "includes correct answers of both the code and reorder formats in status_correct" do
+      expect(Answer.status_correct).to include(code_correct_answer, reorder_correct_answer)
+    end
+
+    it "excludes incorrect answers of both formats from status_correct" do
+      expect(Answer.status_correct).not_to include(code_incorrect_answer, reorder_incorrect_answer)
+    end
+
+    it "includes incorrect answers of both the code and reorder formats in status_incorrect" do
+      expect(Answer.status_incorrect).to include(code_incorrect_answer, reorder_incorrect_answer)
+    end
+
+    it "excludes correct answers of both formats from status_incorrect" do
+      expect(Answer.status_incorrect).not_to include(code_correct_answer, reorder_correct_answer)
     end
   end
 end

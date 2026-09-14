@@ -14,6 +14,13 @@ FactoryBot.define do
 
     sangakuable { association(:code_sangaku, description:, source:, difficulty:) }
 
+    # 並べ替え形式（ReorderSangaku）を sangakuable にする（issue #278）
+    # 正解ブロックが常に必須になったため、:with_code_blocks trait を付けて
+    # 常に valid な reorder_sangaku を組み立てる
+    trait :reorder do
+      sangakuable { association(:reorder_sangaku, :with_code_blocks, description:, difficulty:) }
+    end
+
     trait :with_fixed_inputs do
       transient do
         fixed_input_contents { %w[input_1 input_2 input_3] }

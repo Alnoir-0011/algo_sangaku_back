@@ -5,7 +5,7 @@ class Sangaku < ApplicationRecord
 
   DEFAULT_DEDICATE_DISTANCE = 0.1 # km
 
-  delegated_type :sangakuable, types: %w[CodeSangaku], dependent: :destroy
+  delegated_type :sangakuable, types: %w[CodeSangaku ReorderSangaku], dependent: :destroy
 
   belongs_to :user
   belongs_to :shrine, optional: true
