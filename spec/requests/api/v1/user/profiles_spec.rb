@@ -28,6 +28,41 @@ RSpec.describe "Api::V1::User::Profiles", type: :request do
       end
     end
 
+    context "when the user has sangakus in both code and reorder format", openapi: false do
+      let!(:shrine) { create(:shrine) }
+      let!(:dedicated_code_sangaku) { create(:sangaku, user:, shrine:) }
+      let!(:dedicated_reorder_sangaku) { create(:sangaku, :reorder, user:, shrine:) }
+      let!(:undedicated_sangaku) { create(:sangaku, :reorder, user:) }
+
+      it "sums sangaku_count across both formats" do
+        authenticate_stub(user)
+        http_request
+
+        expect(body["data"]["attributes"]["sangaku_count"]).to eq 3
+      end
+
+      it "sums dedicated_sangaku_count across both formats" do
+        authenticate_stub(user)
+        http_request
+
+        expect(body["data"]["attributes"]["dedicated_sangaku_count"]).to eq 2
+      end
+    end
+
+    context "when the user has saved sangakus in both code and reorder format", openapi: false do
+      let!(:code_sangaku) { create(:sangaku) }
+      let!(:reorder_sangaku) { create(:sangaku, :reorder) }
+      let!(:code_save) { create(:user_sangaku_save, user:, sangaku: code_sangaku) }
+      let!(:reorder_save) { create(:user_sangaku_save, user:, sangaku: reorder_sangaku) }
+
+      it "sums saved_sangaku_count across both formats" do
+        authenticate_stub(user)
+        http_request
+
+        expect(body["data"]["attributes"]["saved_sangaku_count"]).to eq 2
+      end
+    end
+
     context "with a real raw token issued for the user" do
       let(:raw_token) { SecureRandom.uuid }
       let!(:api_key) { create(:api_key, user:, raw_token:) }

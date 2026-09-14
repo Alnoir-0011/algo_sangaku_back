@@ -72,4 +72,35 @@ RSpec.describe "Api::V1::Profiles", type: :request do
       end
     end
   end
+
+  # describe "GET /show" 直下の let! (shrine / dedicated_sangaku / undedicated_sangaku) を
+  # 継承すると集計値が汚染されるため、独立した describe として自己完結するデータを組み立てる。
+  describe "GET /show (aggregation across formats)" do
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' } }
+    let(:http_request) { get api_v1_profile_path(user.id), headers: }
+
+    context "when the user has sangakus in both code and reorder format", openapi: false do
+      let!(:user) { create(:user) }
+      let!(:code_sangaku) { create(:sangaku, user:) }
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user:) }
+
+      it "sums sangaku_count across both formats" do
+        http_request
+        expect(body["data"]["attributes"]["sangaku_count"]).to eq 2
+      end
+    end
+
+    context "when the user has dedicated sangakus in both code and reorder format and one undedicated sangaku", openapi: false do
+      let!(:user) { create(:user) }
+      let!(:shrine) { create(:shrine) }
+      let!(:dedicated_code_sangaku) { create(:sangaku, user:, shrine:) }
+      let!(:dedicated_reorder_sangaku) { create(:sangaku, :reorder, user:, shrine:) }
+      let!(:undedicated_sangaku) { create(:sangaku, :reorder, user:) }
+
+      it "sums dedicated_sangaku_count across both formats" do
+        http_request
+        expect(body["data"]["attributes"]["dedicated_sangaku_count"]).to eq 2
+      end
+    end
+  end
 end

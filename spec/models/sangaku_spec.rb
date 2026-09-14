@@ -116,6 +116,30 @@ RSpec.describe Sangaku, type: :model do
       expect { sangaku.destroy! }.not_to raise_error
       expect(CodeBlock.exists?(code_block.id)).to eq false
     end
+
+    it 'destroys the sangaku and its associated saves and answers without raising a foreign key violation when it is a reorder_sangaku saved and answered by another user' do
+      sangaku = create(:sangaku, :reorder)
+      reorder_sangaku_id = sangaku.sangakuable.id
+      # 生成直後の code_blocks は :reorder trait 側のキャッシュが残る可能性があるため pluck で取り直す
+      code_block_ids = sangaku.sangakuable.code_blocks.pluck(:id)
+      other_user = create(:user)
+      user_sangaku_save = create(:user_sangaku_save, user: other_user, sangaku: sangaku)
+      answer = create(:answer, :reorder, user_sangaku_save: user_sangaku_save)
+
+      sangaku_id = sangaku.id
+      user_sangaku_save_id = user_sangaku_save.id
+      answer_id = answer.id
+      reorder_answer_id = answer.answerable.id
+
+      expect { sangaku.destroy! }.not_to raise_error
+
+      expect(Sangaku.exists?(sangaku_id)).to eq false
+      expect(ReorderSangaku.exists?(reorder_sangaku_id)).to eq false
+      expect(CodeBlock.where(id: code_block_ids).exists?).to eq false
+      expect(UserSangakuSave.exists?(user_sangaku_save_id)).to eq false
+      expect(Answer.exists?(answer_id)).to eq false
+      expect(ReorderAnswer.exists?(reorder_answer_id)).to eq false
+    end
   end
 
   # lat/lng はクライアント（HTTPリクエストパラメータ）からそのまま渡される申告値であり、
