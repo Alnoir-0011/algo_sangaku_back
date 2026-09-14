@@ -35,21 +35,42 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
     end
 
     context "with multiple unsolved saved sangakus created out of id order" do
-      let!(:other_sangaku) { create(:sangaku, id: sangaku.id - 1, title: "other", user: author, shrine:) }
-      let!(:other_sangaku_save_relation) { create(:user_sangaku_save, sangaku: other_sangaku, user: user) }
-
-      it "returns sangakus in ascending id order regardless of creation order" do
+      it "returns sangakus ordered by save time descending, independent of sangaku creation time" do
         authenticate_stub(user)
+        newer_sangaku = create(:sangaku, title: "newer_sangaku", user: author, shrine:, created_at: 1.day.ago)
+        older_sangaku = create(:sangaku, title: "older_sangaku", user: author, shrine:, created_at: 3.days.ago)
+
+        # 保存日時は older_sangaku の方が新しい。保存レコードは older_sangaku を先に作り、
+        # 保存の id の順（older < newer）と保存日時の順を逆にして、保存の id で並べる誤りも検出する
+        create(:user_sangaku_save, sangaku: older_sangaku, user:, created_at: 1.hour.ago)
+        create(:user_sangaku_save, sangaku: newer_sangaku, user:, created_at: 2.days.ago)
+
         http_request
 
         returned_ids = body["data"].map { |d| d["id"].to_i }
-        expect(returned_ids).to eq([ other_sangaku.id, sangaku.id ])
+        target_ids = returned_ids & [ older_sangaku.id, newer_sangaku.id ]
+        expect(target_ids).to eq([ older_sangaku.id, newer_sangaku.id ])
       end
 
-      it "issues a query with an explicit ascending id order" do
+      it "returns sangakus ordered by save id descending when saved_at is the same" do
         authenticate_stub(user)
-        queries = capture_executed_sql { http_request }
-        expect(queries).to include(a_string_matching(/ORDER BY "sangakus"\."id" ASC/i))
+        # 算額の id は s1 < s2 < s3
+        s1 = create(:sangaku, title: "s1", user: author, shrine:)
+        s2 = create(:sangaku, title: "s2", user: author, shrine:)
+        s3 = create(:sangaku, title: "s3", user: author, shrine:)
+
+        # 保存を s2 → s3 → s1 の順に作り、保存の id を s2 < s3 < s1 にする
+        same_time = 1.day.ago
+        create(:user_sangaku_save, sangaku: s2, user:, created_at: same_time)
+        create(:user_sangaku_save, sangaku: s3, user:, created_at: same_time)
+        create(:user_sangaku_save, sangaku: s1, user:, created_at: same_time)
+
+        http_request
+
+        returned_ids = body["data"].map { |d| d["id"].to_i }
+        target_ids = returned_ids & [ s1.id, s2.id, s3.id ]
+        # 保存の id の降順は [s1, s3, s2]。算額の id の昇順 [s1, s2, s3] とも降順 [s3, s2, s1] とも異なる
+        expect(target_ids).to eq([ s1.id, s3.id, s2.id ])
       end
     end
 
@@ -58,6 +79,274 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
         http_request
 
         expect(response).to have_http_status(401)
+      end
+    end
+  end
+
+  describe "GET /index with kind param" do
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
+    let(:http_request) { get api_v1_user_saved_sangakus_path, headers:, params: }
+
+    context "without type param" do
+      let!(:user) { create(:user) }
+      let!(:code_sangaku) { create(:sangaku, user: create(:user)) }
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user: create(:user)) }
+
+      before do
+        create(:user_sangaku_save, sangaku: code_sangaku, user:)
+        create(:user_sangaku_save, sangaku: reorder_sangaku, user:)
+      end
+
+      context "with kind=code" do
+        let(:params) { { kind: "code" } }
+
+        it "returns only code sangakus" do
+          authenticate_stub(user)
+          http_request
+
+          expect(response).to have_http_status(:ok)
+          returned_ids = body["data"].map { |d| d["id"] }
+          expect(returned_ids).to include(code_sangaku.id.to_s)
+          expect(returned_ids).not_to include(reorder_sangaku.id.to_s)
+        end
+      end
+
+      context "with kind=reorder", openapi: false do
+        let(:params) { { kind: "reorder" } }
+
+        it "returns only reorder sangakus" do
+          authenticate_stub(user)
+          http_request
+
+          expect(response).to have_http_status(:ok)
+          returned_ids = body["data"].map { |d| d["id"] }
+          expect(returned_ids).to include(reorder_sangaku.id.to_s)
+          expect(returned_ids).not_to include(code_sangaku.id.to_s)
+        end
+      end
+
+      context "without kind param", openapi: false do
+        let(:params) { {} }
+
+        it "returns both code and reorder sangakus" do
+          authenticate_stub(user)
+          http_request
+
+          expect(response).to have_http_status(:ok)
+          returned_ids = body["data"].map { |d| d["id"] }
+          expect(returned_ids).to include(code_sangaku.id.to_s, reorder_sangaku.id.to_s)
+        end
+      end
+
+      context "with an unknown kind value", openapi: false do
+        let(:params) { { kind: "unknown" } }
+
+        it "ignores the kind param and returns both code and reorder sangakus" do
+          authenticate_stub(user)
+          http_request
+
+          expect(response).to have_http_status(:ok)
+          returned_ids = body["data"].map { |d| d["id"] }
+          expect(returned_ids).to include(code_sangaku.id.to_s, reorder_sangaku.id.to_s)
+        end
+      end
+    end
+
+    # index_scope は type によって search を通らない分岐があるため、
+    # kind が type の指定に関わらず効くことを別途確かめる
+    context "with type=before_answer", openapi: false do
+      let!(:user) { create(:user) }
+      let!(:code_sangaku) { create(:sangaku, user: create(:user)) }
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user: create(:user)) }
+
+      before do
+        create(:user_sangaku_save, sangaku: code_sangaku, user:)
+        create(:user_sangaku_save, sangaku: reorder_sangaku, user:)
+      end
+
+      context "with kind=code" do
+        let(:params) { { type: "before_answer", kind: "code" } }
+
+        it "returns only code sangakus" do
+          authenticate_stub(user)
+          http_request
+
+          expect(response).to have_http_status(:ok)
+          returned_ids = body["data"].map { |d| d["id"] }
+          expect(returned_ids).to include(code_sangaku.id.to_s)
+          expect(returned_ids).not_to include(reorder_sangaku.id.to_s)
+        end
+      end
+
+      context "with kind=reorder" do
+        let(:params) { { type: "before_answer", kind: "reorder" } }
+
+        it "returns only reorder sangakus" do
+          authenticate_stub(user)
+          http_request
+
+          expect(response).to have_http_status(:ok)
+          returned_ids = body["data"].map { |d| d["id"] }
+          expect(returned_ids).to include(reorder_sangaku.id.to_s)
+          expect(returned_ids).not_to include(code_sangaku.id.to_s)
+        end
+      end
+    end
+
+    # difficulty は形式ごとのテーブルが持つため、type=before_answer で両形式に絞り込みが効くことを確かめる。
+    # type を指定しない保存一覧は difficulty の絞り込みを効かせない仕様のため、ここでは検証しない。
+    context "with type=before_answer, when filtering by difficulty", openapi: false do
+      let!(:user) { create(:user) }
+      let!(:code_normal) { create(:sangaku, difficulty: "normal", user: create(:user)) }
+      let!(:code_easy) { create(:sangaku, difficulty: "easy", user: create(:user)) }
+      let!(:reorder_normal) { create(:sangaku, :reorder, difficulty: "normal", user: create(:user)) }
+      let!(:reorder_easy) { create(:sangaku, :reorder, difficulty: "easy", user: create(:user)) }
+      let(:created_ids) { [ code_normal.id, code_easy.id, reorder_normal.id, reorder_easy.id ].map(&:to_s) }
+
+      before do
+        create(:user_sangaku_save, sangaku: code_normal, user:)
+        create(:user_sangaku_save, sangaku: code_easy, user:)
+        create(:user_sangaku_save, sangaku: reorder_normal, user:)
+        create(:user_sangaku_save, sangaku: reorder_easy, user:)
+      end
+
+      context "with difficulty=normal" do
+        let(:params) { { type: "before_answer", difficulty: "normal" } }
+
+        it "returns only the normal difficulty sangakus from both formats" do
+          authenticate_stub(user)
+          http_request
+
+          expect(response).to have_http_status(:ok)
+          returned_ids = body["data"].map { |d| d["id"] }
+          target_ids = returned_ids & created_ids
+          expect(target_ids.sort).to eq([ code_normal.id.to_s, reorder_normal.id.to_s ].sort)
+        end
+      end
+    end
+
+    # index_scope は type によって search を通らない分岐があるため、
+    # kind が type の指定に関わらず効くことを別途確かめる
+    context "with type=answered", openapi: false do
+      let!(:user) { create(:user) }
+      let!(:code_sangaku) { create(:sangaku, user: create(:user)) }
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user: create(:user)) }
+      let!(:code_save) { create(:user_sangaku_save, sangaku: code_sangaku, user:) }
+      let!(:reorder_save) { create(:user_sangaku_save, sangaku: reorder_sangaku, user:) }
+
+      before do
+        create(:answer, user_sangaku_save: code_save)
+        create(:answer, :reorder, user_sangaku_save: reorder_save)
+      end
+
+      context "with kind=code" do
+        let(:params) { { type: "answered", kind: "code" } }
+
+        it "returns only code sangakus" do
+          authenticate_stub(user)
+          http_request
+
+          expect(response).to have_http_status(:ok)
+          returned_ids = body["data"].map { |d| d["id"] }
+          expect(returned_ids).to include(code_sangaku.id.to_s)
+          expect(returned_ids).not_to include(reorder_sangaku.id.to_s)
+        end
+      end
+
+      context "with kind=reorder" do
+        let(:params) { { type: "answered", kind: "reorder" } }
+
+        it "returns only reorder sangakus" do
+          authenticate_stub(user)
+          http_request
+
+          expect(response).to have_http_status(:ok)
+          returned_ids = body["data"].map { |d| d["id"] }
+          expect(returned_ids).to include(reorder_sangaku.id.to_s)
+          expect(returned_ids).not_to include(code_sangaku.id.to_s)
+        end
+      end
+    end
+  end
+
+  describe "GET /index ordered by save time", openapi: false do
+    let!(:user) { create(:user) }
+    let!(:author) { create(:user, nickname: "author") }
+    let!(:shrine) { create(:shrine) }
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
+    let(:http_request) { get api_v1_user_saved_sangakus_path, headers:, params: }
+
+    # 算額の id（s1 < s2 < s3）・保存の id・保存日時の順番がすべて異なるデータを作る。
+    # 保存日時の降順は [s1, s3, s2] で、算額の id の昇順 [s1, s2, s3]・降順 [s3, s2, s1]、
+    # 保存の id の降順 [s2, s3, s1] のどれとも一致しないため、並べ方を取り違えると失敗する。
+    # 戻り値は [保存日時の降順に並べた算額, 保存レコードの配列]
+    def create_saves_in_mixed_order(titles: %w[s1 s2 s3])
+      s1, s2, s3 = titles.map { |title| create(:sangaku, title:, user: author, shrine:) }
+      saves = [
+        create(:user_sangaku_save, sangaku: s1, user:, created_at: 1.day.ago),
+        create(:user_sangaku_save, sangaku: s3, user:, created_at: 2.days.ago),
+        create(:user_sangaku_save, sangaku: s2, user:, created_at: 3.days.ago)
+      ]
+      [ [ s1, s3, s2 ], saves ]
+    end
+
+    def returned_ids_of(sangakus)
+      body["data"].map { |d| d["id"].to_i } & sangakus.map(&:id)
+    end
+
+    context "without type param" do
+      let(:params) { {} }
+
+      it "returns saved sangakus ordered by save time descending" do
+        expected, = create_saves_in_mixed_order
+        authenticate_stub(user)
+        http_request
+
+        expect(returned_ids_of(expected)).to eq(expected.map(&:id))
+      end
+    end
+
+    context "with type=before_answer" do
+      let(:params) { { type: "before_answer" } }
+
+      it "returns saved sangakus ordered by save time descending" do
+        expected, = create_saves_in_mixed_order
+        authenticate_stub(user)
+        http_request
+
+        expect(returned_ids_of(expected)).to eq(expected.map(&:id))
+      end
+    end
+
+    context "with type=answered" do
+      let(:params) { { type: "answered" } }
+
+      it "returns saved sangakus ordered by save time descending" do
+        expected, saves = create_saves_in_mixed_order
+        saves.each { |save| create(:answer, user_sangaku_save: save) }
+        authenticate_stub(user)
+        http_request
+
+        expect(returned_ids_of(expected)).to eq(expected.map(&:id))
+      end
+    end
+
+    context "when combining type=before_answer with a title filter" do
+      let(:params) { { type: "before_answer", title: "shared_keyword" } }
+
+      # DISTINCT を使う検索と保存日時での ORDER BY を組み合わせると
+      # PostgreSQL の "for SELECT DISTINCT, ORDER BY expressions must appear in select list" が
+      # 発生しやすい箇所のため、200 で返ることと並び順の両方を確認する
+      it "returns 200 and orders the filtered results by save time descending" do
+        expected, = create_saves_in_mixed_order(titles: %w[shared_keyword_1 shared_keyword_2 shared_keyword_3])
+        # 一致しない算額は保存日時が最も新しくても返らない
+        non_matching = create(:sangaku, title: "excluded_title", user: author, shrine:)
+        create(:user_sangaku_save, sangaku: non_matching, user:, created_at: 1.hour.ago)
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"].map { |d| d["id"].to_i }).to eq(expected.map(&:id))
       end
     end
   end

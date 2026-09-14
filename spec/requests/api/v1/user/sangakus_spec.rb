@@ -23,6 +23,36 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       end
     end
 
+    context "with multiple sangakus created out of id order", openapi: false do
+      let(:params) { {} }
+
+      it "returns sangakus ordered by creation time descending regardless of id order" do
+        authenticate_stub(user)
+        oldest = create(:sangaku, id: sangaku.id + 100, user:, created_at: 3.days.ago)
+        newest = create(:sangaku, id: sangaku.id + 200, user:, created_at: 1.day.ago)
+        middle = create(:sangaku, id: sangaku.id + 300, user:, created_at: 2.days.ago)
+
+        http_request
+
+        returned_ids = body["data"].map { |d| d["id"].to_i }
+        target_ids = returned_ids & [ newest.id, middle.id, oldest.id ]
+        expect(target_ids).to eq([ newest.id, middle.id, oldest.id ])
+      end
+
+      it "returns sangakus ordered by id descending when created_at is the same" do
+        authenticate_stub(user)
+        same_time = 1.day.ago
+        first_created = create(:sangaku, id: sangaku.id + 100, user:, created_at: same_time)
+        second_created = create(:sangaku, id: sangaku.id + 200, user:, created_at: same_time)
+
+        http_request
+
+        returned_ids = body["data"].map { |d| d["id"].to_i }
+        target_ids = returned_ids & [ second_created.id, first_created.id ]
+        expect(target_ids).to eq([ second_created.id, first_created.id ])
+      end
+    end
+
     # 一覧は件数分のブロックが乗って重くなるため code_blocks を返さない。
     # 奉納確認モーダルなど、ブロックが必要な画面は詳細（GET /user/sangakus/:id）を取り直す（issue #278）
     context "with a reorder sangaku in the list", openapi: false do
@@ -97,6 +127,83 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
         expect(body["data"].count).to eq 1
         expect(body["data"][0]["id"]).to eq sangaku.id.to_s
         expect(body["data"][0]["attributes"]["title"]).to eq sangaku.title
+      end
+    end
+
+    context "with kind=code" do
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user:) }
+      let(:params) { { kind: "code" } }
+
+      it "returns only code sangakus" do
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        returned_ids = body["data"].map { |d| d["id"] }
+        expect(returned_ids).to include(sangaku.id.to_s)
+        expect(returned_ids).not_to include(reorder_sangaku.id.to_s)
+      end
+    end
+
+    context "with kind=reorder", openapi: false do
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user:) }
+      let(:params) { { kind: "reorder" } }
+
+      it "returns only reorder sangakus" do
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        returned_ids = body["data"].map { |d| d["id"] }
+        expect(returned_ids).to include(reorder_sangaku.id.to_s)
+        expect(returned_ids).not_to include(sangaku.id.to_s)
+      end
+    end
+
+    context "without kind param", openapi: false do
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user:) }
+      let(:params) { {} }
+
+      it "returns both code and reorder sangakus" do
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        returned_ids = body["data"].map { |d| d["id"] }
+        expect(returned_ids).to include(sangaku.id.to_s, reorder_sangaku.id.to_s)
+      end
+    end
+
+    context "with an unknown kind value", openapi: false do
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user:) }
+      let(:params) { { kind: "unknown" } }
+
+      it "ignores the kind param and returns both code and reorder sangakus" do
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        returned_ids = body["data"].map { |d| d["id"] }
+        expect(returned_ids).to include(sangaku.id.to_s, reorder_sangaku.id.to_s)
+      end
+    end
+
+    context "with difficulty=normal", openapi: false do
+      let!(:code_normal) { create(:sangaku, difficulty: "normal", user:) }
+      let!(:code_easy) { create(:sangaku, difficulty: "easy", user:) }
+      let!(:reorder_normal) { create(:sangaku, :reorder, difficulty: "normal", user:) }
+      let!(:reorder_easy) { create(:sangaku, :reorder, difficulty: "easy", user:) }
+      let(:created_ids) { [ code_normal.id, code_easy.id, reorder_normal.id, reorder_easy.id ].map(&:to_s) }
+      let(:params) { { difficulty: "normal" } }
+
+      it "returns only the normal difficulty sangakus from both formats" do
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        returned_ids = body["data"].map { |d| d["id"] }
+        target_ids = returned_ids & created_ids
+        expect(target_ids.sort).to eq([ code_normal.id.to_s, reorder_normal.id.to_s ].sort)
       end
     end
 

@@ -6,7 +6,7 @@ module Api
       before_action :set_sangaku, only: %i[show destroy]
 
       def index
-        @pagy, sangakus = pagy(current_user.sangakus.search(search_params).order(:id).includes(:user, :shrine, sangakuable: :fixed_inputs))
+        @pagy, sangakus = pagy(current_user.sangakus.search(search_params).order(created_at: :desc, id: :desc).includes(:user, :shrine, sangakuable: :fixed_inputs))
         render json: SangakuSerializer.new(sangakus).serializable_hash.to_json, status: :ok
       end
 
@@ -22,7 +22,7 @@ module Api
       private
 
       def search_params
-        params.permit(:title, :shrine_id, :difficulty)
+        params.permit(:title, :shrine_id, :difficulty, :kind)
       end
 
       def set_sangaku

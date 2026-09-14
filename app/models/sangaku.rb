@@ -29,6 +29,12 @@ class Sangaku < ApplicationRecord
 
   scope :title_contain, ->(title) { where("title LIKE ?", "%#{sanitize_sql_like(title)}%") }
 
+  # kind（"code" / "reorder"）で出題形式を絞り込む。KINDS のキーで判定するため、
+  # 形式を追加してもこのスコープは変更しなくてよい。
+  scope :with_kind, ->(kind) {
+    KINDS.key?(kind) ? where(sangakuable_type: KINDS[kind]) : all
+  }
+
   # difficulty は形式固有テーブルにあるため、形式ごとの子テーブルを横断して絞り込む。
   # 形式の一覧は delegated_type が生成する sangakuable_types から取るので、
   # 形式を追加してもこのスコープは変更しなくてよい。
@@ -58,6 +64,10 @@ class Sangaku < ApplicationRecord
 
     if params[:difficulty] && difficulty_names.include?(params[:difficulty])
       relation = relation.with_difficulty(params[:difficulty])
+    end
+
+    if params[:kind]
+      relation = relation.with_kind(params[:kind])
     end
 
     words = params[:title].present? ? params[:title].split(nil) : []
