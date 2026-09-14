@@ -98,6 +98,17 @@ RSpec.describe "Api::V1::User::CodeSangakus", type: :request do
         end
       end
 
+      context "with an unknown difficulty", openapi: false do
+        let(:params) { { sangaku: attributes_for(:sangaku_params, difficulty: "invalid_value"), fixed_inputs: [ "input_a" ] } }
+
+        it "returns 400 with the difficulty error key" do
+          post api_v1_user_code_sangakus_path, headers: headers, params: params.to_json
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include "difficulty"
+        end
+      end
+
       context "with duplicated fixed_inputs", openapi: false do
         let(:params) { { sangaku: attributes_for(:sangaku_params), fixed_inputs: [ "duplicated", "duplicated" ] } }
 

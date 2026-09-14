@@ -20,6 +20,12 @@ RSpec.describe CodeSangaku, type: :model do
       expect(code_sangaku.errors[:source]).to eq [ 'を入力してください' ]
     end
 
+    it 'is invalid with an unknown difficulty instead of raising an error' do
+      code_sangaku = build(:code_sangaku, difficulty: "invalid_value")
+      expect(code_sangaku).to be_invalid
+      expect(code_sangaku.errors[:difficulty]).to be_present
+    end
+
     it 'is invalid with duplicated fixed_inputs' do
       code_sangaku = build(:code_sangaku)
       code_sangaku.fixed_inputs.build(content: "duplicated")

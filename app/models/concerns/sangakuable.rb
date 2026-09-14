@@ -7,9 +7,12 @@ module Sangakuable
     has_one :sangaku, as: :sangakuable, touch: true
     delegate :title, :user, :shrine, :user_id, :shrine_id, :created_at, :dedicate, to: :sangaku
 
+    # validate を付けないと、不正な値の代入で ArgumentError が起き 500 になる。
+    # allow_nil は、未入力のときのエラーを presence の「を入力してください」だけにするため。
     enum :difficulty,
          { easy: 0, normal: 10, difficult: 20, very_difficult: 30 },
-         prefix: true
+         prefix: true,
+         validate: { allow_nil: true }
 
     validates :description, presence: true, length: { maximum: 65_535 }
     validates :difficulty, presence: true

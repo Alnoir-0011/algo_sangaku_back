@@ -128,6 +128,17 @@ RSpec.describe "Api::V1::User::ReorderSangakus", type: :request do
         end
       end
 
+      context "with an unknown difficulty", openapi: false do
+        let(:params) { { sangaku: attributes_for(:reorder_sangaku_params, difficulty: "invalid_value"), code_blocks: code_blocks_params } }
+
+        it "returns 400 with the difficulty error key" do
+          post api_v1_user_reorder_sangakus_path, headers: headers, params: params.to_json
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include "difficulty"
+        end
+      end
+
       # 大量の要素を送られてもメモリを使い切らないよう、ブロックを組み立てる前に件数で弾く
       context "with more code_blocks than MAX_CODE_BLOCKS", openapi: false do
         let(:code_blocks_params) { Array.new(ReorderSangaku::MAX_CODE_BLOCKS + 1) { |i| { content: "block_#{i}", correct_position: i + 1 } } }

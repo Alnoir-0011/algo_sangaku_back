@@ -27,6 +27,12 @@ RSpec.describe ReorderSangaku, type: :model do
       expect(reorder_sangaku.errors[:difficulty]).to eq [ 'を入力してください' ]
     end
 
+    it 'is invalid with an unknown difficulty instead of raising an error' do
+      reorder_sangaku = build(:reorder_sangaku, :with_code_blocks, difficulty: "invalid_value")
+      expect(reorder_sangaku).to be_invalid
+      expect(reorder_sangaku.errors[:difficulty]).to be_present
+    end
+
     it 'responds to the prefixed difficulty predicate method' do
       reorder_sangaku = build(:reorder_sangaku, difficulty: "normal")
       expect(reorder_sangaku.difficulty_normal?).to eq true
