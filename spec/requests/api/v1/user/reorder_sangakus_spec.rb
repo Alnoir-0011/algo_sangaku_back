@@ -45,6 +45,16 @@ RSpec.describe "Api::V1::User::ReorderSangakus", type: :request do
 
         expect(body["data"]["attributes"]["title"]).to eq "test_title"
       end
+
+      it "returns code_blocks with correct_position matching the submitted blocks", openapi: false do
+        post api_v1_user_reorder_sangakus_path, headers: headers, params: params.to_json
+
+        code_blocks = body["data"]["attributes"]["code_blocks"]
+        expected_positions = code_blocks_params.map { |block| block[:correct_position] }
+
+        expect(code_blocks.count).to eq code_blocks_params.count
+        expect(code_blocks.map { |block| block["correct_position"] }).to match_array(expected_positions)
+      end
     end
 
     context "without access token", openapi: false do

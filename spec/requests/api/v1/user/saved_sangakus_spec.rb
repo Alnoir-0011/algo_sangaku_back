@@ -62,6 +62,28 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
     end
   end
 
+  describe "GET /index with a saved reorder sangaku", openapi: false do
+    let!(:user) { create(:user) }
+    let!(:code_sangaku) { create(:sangaku, user: create(:user)) }
+    let!(:reorder_sangaku) { create(:sangaku, :reorder, user: create(:user)) }
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
+
+    before do
+      create(:user_sangaku_save, sangaku: code_sangaku, user:)
+      create(:user_sangaku_save, sangaku: reorder_sangaku, user:)
+    end
+
+    it "returns both formats with empty inputs for the reorder sangaku" do
+      authenticate_stub(user)
+      get api_v1_user_saved_sangakus_path, headers:, params: { type: "before_answer" }
+
+      expect(response).to have_http_status(:ok)
+      expect(body["data"].map { |d| d["id"] }).to include(code_sangaku.id.to_s, reorder_sangaku.id.to_s)
+      reorder_data = body["data"].find { |d| d["id"] == reorder_sangaku.id.to_s }
+      expect(reorder_data["attributes"]["inputs"]).to eq []
+    end
+  end
+
   describe "GET /index with multiple users' answer status" do
     let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
     let(:http_request) { get api_v1_user_saved_sangakus_path, headers:, params: }
@@ -166,6 +188,117 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
 
         expect(response).to have_http_status(401)
       end
+    end
+  end
+
+  describe "GET /show with a saved reorder sangaku", openapi: false do
+    let!(:user) { create(:user) }
+    let!(:reorder_sangaku) { create(:sangaku, :reorder, user: create(:user)) }
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
+
+    before { create(:user_sangaku_save, sangaku: reorder_sangaku, user:) }
+
+    it "returns the reorder sangaku with empty inputs" do
+      authenticate_stub(user)
+      get api_v1_user_saved_sangaku_path(reorder_sangaku.id), headers:, params: { type: "before_answer" }
+
+      expect(response).to have_http_status(:ok)
+      expect(body["data"]["attributes"]["title"]).to eq reorder_sangaku.title
+      expect(body["data"]["attributes"]["inputs"]).to eq []
+    end
+  end
+
+  # 解答画面で使う保存済み問題の詳細も、GET /sangakus/:id と同様に
+  # 正解順（correct_position）やダミーかどうかが推測できない形で code_blocks を返す必要がある
+  describe "GET /show with a saved reorder sangaku, when checking solver-facing code_blocks", openapi: false do
+    let!(:user) { create(:user) }
+    let!(:reorder_sangaku) do
+      reorder = create(:sangaku, :reorder, user: create(:user)).sangakuable
+      reorder.code_blocks.destroy_all
+      12.times { |i| create(:code_block, reorder_sangaku: reorder, content: "block_#{i + 1}", correct_position: i + 1) }
+      create(:code_block, reorder_sangaku: reorder, content: "dummy", correct_position: nil)
+      reorder
+    end
+    let(:sangaku) { reorder_sangaku.sangaku }
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
+
+    before { create(:user_sangaku_save, sangaku:, user:) }
+
+    it "returns code_blocks whose elements have only id and content keys" do
+      authenticate_stub(user)
+      get api_v1_user_saved_sangaku_path(sangaku.id), headers:, params: { type: "before_answer" }
+
+      code_blocks = body["data"]["attributes"]["code_blocks"]
+      expect(code_blocks.map { |block| block.keys.sort }.uniq).to eq [ %w[content id] ]
+    end
+
+    it "returns all blocks including dummy blocks" do
+      authenticate_stub(user)
+      get api_v1_user_saved_sangaku_path(sangaku.id), headers:, params: { type: "before_answer" }
+
+      code_blocks = body["data"]["attributes"]["code_blocks"]
+      expect(code_blocks.size).to eq(13)
+      expect(code_blocks.map { |block| block["content"] }.sort).to eq(reorder_sangaku.code_blocks.reload.pluck(:content).sort)
+    end
+
+    it "returns ids that belong to the sangaku's code blocks" do
+      authenticate_stub(user)
+      get api_v1_user_saved_sangaku_path(sangaku.id), headers:, params: { type: "before_answer" }
+
+      code_blocks = body["data"]["attributes"]["code_blocks"]
+      expect(code_blocks.map { |block| block["id"] }.sort).to eq(reorder_sangaku.code_blocks.reload.pluck(:id).sort)
+    end
+
+    it "does not leak correct_position in the response body" do
+      authenticate_stub(user)
+      get api_v1_user_saved_sangaku_path(sangaku.id), headers:, params: { type: "before_answer" }
+
+      expect(response.body).not_to include("correct_position")
+    end
+
+    it "returns blocks in a different order across multiple requests" do
+      authenticate_stub(user)
+
+      orders = Array.new(5) do
+        get api_v1_user_saved_sangaku_path(sangaku.id), headers:, params: { type: "before_answer" }
+        body["data"]["attributes"]["code_blocks"].map { |block| block["id"] }
+      end
+
+      expect(orders.uniq.size).to be > 1
+    end
+  end
+
+  describe "GET /show with a saved code sangaku, when checking code_blocks", openapi: false do
+    let!(:user) { create(:user) }
+    let!(:author) { create(:user, nickname: "author") }
+    let!(:sangaku) { create(:sangaku, user: author) }
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
+
+    before { create(:user_sangaku_save, sangaku:, user:) }
+
+    it "returns an empty array for code_blocks" do
+      authenticate_stub(user)
+      get api_v1_user_saved_sangaku_path(sangaku.id), headers:, params: { type: "before_answer" }
+
+      expect(body["data"]["attributes"]["code_blocks"]).to eq []
+    end
+  end
+
+  # 保存一覧は件数分のブロックが乗って重くなるため code_blocks を返さない
+  describe "GET /index with a saved reorder sangaku, when checking code_blocks", openapi: false do
+    let!(:user) { create(:user) }
+    let!(:reorder_sangaku) { create(:sangaku, :reorder, user: create(:user)) }
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
+
+    before { create(:user_sangaku_save, sangaku: reorder_sangaku, user:) }
+
+    it "does not include code_blocks key in any sangaku's attributes" do
+      authenticate_stub(user)
+      get api_v1_user_saved_sangakus_path, headers:, params: { type: "before_answer" }
+
+      expect(response).to have_http_status(:ok)
+      expect(body["data"].map { |d| d["id"] }).to include(reorder_sangaku.id.to_s)
+      expect(body["data"].map { |d| d["attributes"].key?("code_blocks") }.uniq).to eq [ false ]
     end
   end
 

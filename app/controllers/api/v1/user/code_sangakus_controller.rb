@@ -12,7 +12,7 @@ module Api
         code_sangaku.build_sangaku(parent_params.merge(user: current_user))
 
         if code_sangaku.save_with_inputs(params[:fixed_inputs])
-          render json: SangakuSerializer.new(code_sangaku.sangaku).serializable_hash.to_json, status: :ok
+          render json: SangakuDetailSerializer.new(code_sangaku.sangaku).serializable_hash.to_json, status: :ok
         else
           render_400(nil, merged_errors(code_sangaku))
         end
@@ -24,7 +24,7 @@ module Api
         @code_sangaku.assign_attributes(sangakuable_params)
 
         if @code_sangaku.save_with_inputs(params[:fixed_inputs])
-          render json: SangakuSerializer.new(@code_sangaku.sangaku.reload).serializable_hash.to_json, status: :ok
+          render json: SangakuDetailSerializer.new(@code_sangaku.sangaku.reload).serializable_hash.to_json, status: :ok
         else
           render_400(nil, merged_errors(@code_sangaku))
         end

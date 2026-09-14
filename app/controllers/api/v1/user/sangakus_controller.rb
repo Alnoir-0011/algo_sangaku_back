@@ -11,12 +11,12 @@ module Api
       end
 
       def show
-        render json: SangakuSerializer.new(@sangaku).serializable_hash.to_json, status: :ok
+        render json: SangakuDetailSerializer.new(@sangaku).serializable_hash.to_json, status: :ok
       end
 
       def destroy
         @sangaku.destroy!
-        render json: SangakuSerializer.new(@sangaku).serializable_hash.to_json, status: :ok
+        render json: SangakuDetailSerializer.new(@sangaku).serializable_hash.to_json, status: :ok
       end
 
       private

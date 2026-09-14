@@ -8,7 +8,7 @@ module Api
 
       def show
         saved_sangaku = show_scope.find(params[:id])
-        render json: PublicSangakuSerializer.new(saved_sangaku).serializable_hash.to_json
+        render json: PublicSangakuDetailSerializer.new(saved_sangaku).serializable_hash.to_json
       end
 
       private

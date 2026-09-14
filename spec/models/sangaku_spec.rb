@@ -16,6 +16,13 @@ RSpec.describe Sangaku, type: :model do
   end
 
   # 形式固有のカラムは sangakuable が持つ（issue #278）
+  # 形式を追加して KINDS を更新し忘れると、レスポンスの kind が null になり、kind フィルターも効かない
+  describe 'KINDS' do
+    it 'covers every sangakuable type registered in delegated_type' do
+      expect(Sangaku::KINDS.values).to match_array(Sangaku.sangakuable_types)
+    end
+  end
+
   describe 'delegated_type' do
     it 'has a code_sangaku as its sangakuable' do
       sangaku = create(:sangaku)

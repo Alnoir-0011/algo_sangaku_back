@@ -19,6 +19,15 @@ class Answer < ApplicationRecord
 
   delegate :status, to: :answerable
 
+  # API で使う出題形式名と answerable_type の対応。形式を追加するときはここに足す（issue #278）
+  KINDS = { "code" => "CodeAnswer", "reorder" => "ReorderAnswer" }.freeze
+
+  # レスポンスで出題形式を判別するための識別子。
+  # KINDS が delegated_type の全形式を含むことは spec で確かめている（足し忘れは本番ではなく CI で気づく）
+  def kind
+    KINDS.key(answerable_type)
+  end
+
   # 各形式が持つ同名スコープを OR でまとめ、作者向けの結果が形式をまたいで合算されるようにする。
   # 形式の一覧は answerable_types から取るため、形式を追加してもこのスコープは変更しなくてよい。
   scope :status_correct, -> { answerable_condition(:status_correct) }

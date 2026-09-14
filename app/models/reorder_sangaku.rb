@@ -49,6 +49,14 @@ class ReorderSangaku < ApplicationRecord
     false
   end
 
+  # 正解ブロック（correct_position が非nil）を correct_position の昇順、ダミー（nil）を id の昇順で
+  # 並べる。作者向け（SangakuDetailSerializer）・管理画面向け（Admin::SangakuDetailSerializer）の
+  # 詳細レスポンスで共通して使うロジックのため、ここに切り出す（issue #278）。
+  def self.ordered_code_blocks(blocks)
+    correct_blocks, dummy_blocks = blocks.partition { |block| block.correct_position.present? }
+    correct_blocks.sort_by(&:correct_position) + dummy_blocks.sort_by(&:id)
+  end
+
   # 与えられた block_ids の順序で並べた content 列が、正解順序（correct_position 昇順）の
   # content 列と一致するかを判定する。id ではなく content で比較することで、同一 content の
   # ブロックが複数あっても、どの id を使ったかに関わらず正しく判定できる。

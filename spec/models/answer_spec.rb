@@ -18,6 +18,13 @@ RSpec.describe Answer, type: :model do
   end
 
   # 形式固有の提出物・判定結果は answerable が持つ（issue #278）
+  # 形式を追加して KINDS を更新し忘れると、レスポンスの kind が null になる
+  describe "KINDS" do
+    it "covers every answerable type registered in delegated_type" do
+      expect(Answer::KINDS.values).to match_array(Answer.answerable_types)
+    end
+  end
+
   describe "delegated_type" do
     it "has a code_answer as its answerable" do
       answer = create(:answer)

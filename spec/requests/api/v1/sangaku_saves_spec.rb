@@ -39,6 +39,33 @@ RSpec.describe "Api::V1::Sangakus", type: :request do
       end
     end
 
+    context "with a reorder sangaku", openapi: false do
+      let!(:sangaku) { create(:sangaku, :reorder) }
+
+      it "saves the sangaku and returns it" do
+        authenticate_stub(user)
+
+        expect {
+          http_request
+        }.to change(user.saved_sangakus, :count).by(1)
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"]["title"]).to eq sangaku.title
+      end
+    end
+
+    context "with a reorder sangaku, when checking code_blocks", openapi: false do
+      let!(:sangaku) { create(:sangaku, :reorder) }
+
+      it "does not include code_blocks key in the response" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"].key?("code_blocks")).to be false
+      end
+    end
+
     context "without access_token", openapi: false do
       it "return 401 errors" do
         http_request

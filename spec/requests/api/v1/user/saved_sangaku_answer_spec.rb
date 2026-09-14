@@ -358,5 +358,32 @@ RSpec.describe "Api::V1::User::SavedSangakus::Answer", type: :request do
         expect(body["data"]["relationships"]["answer_results"]["data"]).to eq []
       end
     end
+
+    context "with a code answer", openapi: false do
+      it "returns kind code in the response" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"]["kind"]).to eq "code"
+      end
+    end
+
+    context "with a reorder answer", openapi: false do
+      let!(:sangaku) { create(:sangaku, :reorder, user: author) }
+      let!(:sangaku_save_relation) { create(:user_sangaku_save, sangaku:, user: user) }
+      let!(:answer) { create(:answer, :reorder, user_sangaku_save: sangaku_save_relation, result: :correct) }
+      let(:http_request) { get api_v1_user_saved_sangaku_answer_path(sangaku.id), headers: }
+
+      it "returns kind reorder in the response" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"]["kind"]).to eq "reorder"
+      end
+    end
   end
 end

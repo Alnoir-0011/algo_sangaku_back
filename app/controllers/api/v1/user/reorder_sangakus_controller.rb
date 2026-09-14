@@ -15,7 +15,7 @@ module Api
         reorder_sangaku.build_sangaku(parent_params.merge(user: current_user))
 
         if reorder_sangaku.save_with_code_blocks(code_blocks_params)
-          render json: SangakuSerializer.new(reorder_sangaku.sangaku).serializable_hash.to_json, status: :ok
+          render json: SangakuDetailSerializer.new(reorder_sangaku.sangaku).serializable_hash.to_json, status: :ok
         else
           render_400(nil, merged_errors(reorder_sangaku))
         end
@@ -29,7 +29,7 @@ module Api
         @reorder_sangaku.assign_attributes(sangakuable_params)
 
         if @reorder_sangaku.save_with_code_blocks(code_blocks_params)
-          render json: SangakuSerializer.new(@reorder_sangaku.sangaku.reload).serializable_hash.to_json, status: :ok
+          render json: SangakuDetailSerializer.new(@reorder_sangaku.sangaku.reload).serializable_hash.to_json, status: :ok
         else
           render_400(nil, merged_errors(@reorder_sangaku))
         end

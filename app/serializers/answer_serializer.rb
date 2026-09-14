@@ -1,6 +1,6 @@
 class AnswerSerializer
   include JSONAPI::Serializer
-  attributes :source
+  attributes :source, :kind
   attribute :status do |answer|
     answer.status
   end

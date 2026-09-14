@@ -23,6 +23,22 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       end
     end
 
+    # 一覧は件数分のブロックが乗って重くなるため code_blocks を返さない。
+    # 奉納確認モーダルなど、ブロックが必要な画面は詳細（GET /user/sangakus/:id）を取り直す（issue #278）
+    context "with a reorder sangaku in the list", openapi: false do
+      let(:params) { {} }
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user:) }
+
+      it "does not include code_blocks for any sangaku" do
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"].map { |d| d["id"] }).to include(reorder_sangaku.id.to_s)
+        expect(body["data"].map { |d| d["attributes"].key?("code_blocks") }.uniq).to eq [ false ]
+      end
+    end
+
     context "search by title" do
       let(:params) { { title: "another" } }
       let!(:another_sangaku) { create(:sangaku, title: 'another_title', user:) }
@@ -145,6 +161,71 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
         http_request
 
         expect(response).to have_http_status(404)
+      end
+    end
+
+    context "with a code sangaku", openapi: false do
+      it "returns kind code and type sangaku in the response" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["type"]).to eq "sangaku"
+        expect(body["data"]["attributes"]["kind"]).to eq "code"
+      end
+    end
+
+    context "with a reorder sangaku", openapi: false do
+      let(:sangaku) { create(:sangaku, :reorder, user:) }
+
+      it "returns kind reorder in the response" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"]["kind"]).to eq "reorder"
+      end
+    end
+
+    context "with a code sangaku, when checking code_blocks", openapi: false do
+      it "returns an empty array for code_blocks" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"]["code_blocks"]).to eq []
+      end
+    end
+
+    context "with a reorder sangaku that includes dummy blocks inserted out of correct_position order", openapi: false do
+      let(:sangaku) { create(:sangaku, :reorder, user:) }
+      let(:reorder_sangaku) { sangaku.sangakuable }
+
+      before { reorder_sangaku.code_blocks.destroy_all }
+
+      # id の昇順とは違う順序になるよう、正解順・ダミーを混ぜてINSERTする
+      let!(:dummy_first_inserted) { create(:code_block, reorder_sangaku:, content: "dummy_first_inserted", correct_position: nil) }
+      let!(:second) { create(:code_block, reorder_sangaku:, content: "second", correct_position: 2) }
+      let!(:dummy_second_inserted) { create(:code_block, reorder_sangaku:, content: "dummy_second_inserted", correct_position: nil) }
+      let!(:first) { create(:code_block, reorder_sangaku:, content: "first", correct_position: 1) }
+
+      it "returns code_blocks ordered by correct_position ascending then dummies by id ascending, each with id, content, and correct_position" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"]["code_blocks"]).to eq(
+          [
+            { "id" => first.id, "content" => "first", "correct_position" => 1 },
+            { "id" => second.id, "content" => "second", "correct_position" => 2 },
+            { "id" => dummy_first_inserted.id, "content" => "dummy_first_inserted", "correct_position" => nil },
+            { "id" => dummy_second_inserted.id, "content" => "dummy_second_inserted", "correct_position" => nil }
+          ]
+        )
       end
     end
   end

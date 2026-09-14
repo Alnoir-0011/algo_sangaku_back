@@ -18,6 +18,15 @@ class Sangaku < ApplicationRecord
 
   delegate :description, :difficulty, to: :sangakuable
 
+  # API で使う出題形式名と sangakuable_type の対応。形式を追加するときはここに足す（issue #278）
+  KINDS = { "code" => "CodeSangaku", "reorder" => "ReorderSangaku" }.freeze
+
+  # レスポンスで出題形式を判別するための識別子。
+  # KINDS が delegated_type の全形式を含むことは spec で確かめている（足し忘れは本番ではなく CI で気づく）
+  def kind
+    KINDS.key(sangakuable_type)
+  end
+
   scope :title_contain, ->(title) { where("title LIKE ?", "%#{sanitize_sql_like(title)}%") }
 
   # difficulty は形式固有テーブルにあるため、形式ごとの子テーブルを横断して絞り込む。
