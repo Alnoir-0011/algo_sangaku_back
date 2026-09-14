@@ -5,6 +5,6 @@
 # See the ActiveSupport::ParameterFilter documentation for supported notations and behaviors.
 Rails.application.config.filter_parameters += [
   :passw, :email, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn, :cvv, :cvc,
-  # 並べ替え問題の正解順をログに残さない（issue #278）
-  :correct_position
+  # 並べ替え問題の正解順と、それを含む解答をログに残さない（issue #278）
+  :correct_position, :block_ids
 ]
