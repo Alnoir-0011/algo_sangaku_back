@@ -61,7 +61,7 @@ RSpec.describe AnswerResult, type: :model do
 
       it "runs the answer's source and then the sangaku's source to determine the expected output" do
         expect(answer_result).to receive(:run_source).with(answer.source, fixed_input.content).ordered.and_call_original
-        expect(answer_result).to receive(:run_source).with(sangaku.source, fixed_input.content).ordered.and_call_original
+        expect(answer_result).to receive(:run_source).with(sangaku.sangakuable.source, fixed_input.content).ordered.and_call_original
 
         answer_result.update_status
 
@@ -70,13 +70,13 @@ RSpec.describe AnswerResult, type: :model do
     end
 
     context "when there is no fixed_input" do
-      # sangaku に fixed_input がないため、Answer#create_results により fixed_input: nil の
+      # sangaku に fixed_input がないため、CodeAnswer#create_results により fixed_input: nil の
       # answer_result が既に1件自動生成されている（uniqueness制約のため二重に作成できない）
-      let!(:answer_result) { answer.answer_results.first }
+      let!(:answer_result) { answer.answerable.answer_results.first }
 
       it "runs the answer's source and then the sangaku's source with an empty input" do
         expect(answer_result).to receive(:run_source).with(answer.source, "").ordered.and_call_original
-        expect(answer_result).to receive(:run_source).with(sangaku.source, "").ordered.and_call_original
+        expect(answer_result).to receive(:run_source).with(sangaku.sangakuable.source, "").ordered.and_call_original
 
         answer_result.update_status
 

@@ -1,49 +1,37 @@
+# 出題形式に依存しない部分を持つ共通テーブル（delegated_type の親）。
+# 形式固有のカラムは sangakuable（CodeSangaku / ReorderSangaku）が持つ（issue #278）。
 class Sangaku < ApplicationRecord
   include SphericalCosineTheorem
 
   DEFAULT_DEDICATE_DISTANCE = 0.1 # km
 
+  delegated_type :sangakuable, types: %w[CodeSangaku], dependent: :destroy
+
   belongs_to :user
   belongs_to :shrine, optional: true
 
-  has_many :fixed_inputs, dependent: :destroy
   has_many :user_sangaku_saves, dependent: :destroy, class_name: "UserSangakuSave"
   has_many :saved_by_users, through: :user_sangaku_saves, source: :user
   has_many :answers, through: :user_sangaku_saves
 
   validates :title, presence: true, length: { maximum: 255 }
-  validates :description, presence: true, length: { maximum: 65_535 }
-  validates :source, presence: true, length: { maximum: 65_535 }
 
-  validate :fixed_inputs_uniqueness
-
-  enum :difficulty,
-        { easy: 0, normal: 10, difficult: 20, very_difficult: 30 },
-        prefix: true
+  delegate :description, :difficulty, to: :sangakuable
 
   scope :title_contain, ->(title) { where("title LIKE ?", "%#{sanitize_sql_like(title)}%") }
 
-  def save_with_inputs(new_contents) # (str[] | nil) => boolean
-    new_contents ||= []
+  # difficulty は形式固有テーブルにあるため、形式ごとの子テーブルを横断して絞り込む。
+  # 形式の一覧は delegated_type が生成する sangakuable_types から取るので、
+  # 形式を追加してもこのスコープは変更しなくてよい。
+  scope :with_difficulty, ->(difficulty) {
+    where(id: sangakuable_types.map { |type|
+      Sangaku.where(sangakuable_type: type, sangakuable_id: type.constantize.where(difficulty:).select(:id)).select(:id)
+    }.reduce { |left, right| left.or(right) })
+  }
 
-    old_contents = self.fixed_inputs.pluck(:content)
-    delete_contents = old_contents - new_contents
-    add_contents = new_contents - old_contents
-    add_inputs = add_contents.map { |content| self.fixed_inputs.build(content:) }
-
-    inputs_invalid = add_inputs.map(&:invalid?).any?(true)
-
-    return false if invalid? || inputs_invalid
-
-    ActiveRecord::Base.transaction do
-      save!
-      fixed_inputs.where(content: delete_contents).destroy_all
-      fixed_inputs << add_inputs
-    end
-
-    true
-  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
-    false
+  # 形式をまたいで有効な難易度名の一覧。
+  def self.difficulty_names
+    sangakuable_types.flat_map { |type| type.constantize.difficulties.keys }.uniq
   end
 
   def self.search(params)
@@ -59,8 +47,8 @@ class Sangaku < ApplicationRecord
       end
     end
 
-    if params[:difficulty] && Sangaku.difficulties.include?(params[:difficulty])
-      relation = relation.where(difficulty: params[:difficulty])
+    if params[:difficulty] && difficulty_names.include?(params[:difficulty])
+      relation = relation.with_difficulty(params[:difficulty])
     end
 
     words = params[:title].present? ? params[:title].split(nil) : []
@@ -82,15 +70,5 @@ class Sangaku < ApplicationRecord
     true
   rescue ActiveRecord::RecordInvalid
     false
-  end
-
-  private
-
-  def fixed_inputs_uniqueness
-    content_ary = fixed_inputs.map(&:content)
-
-    if content_ary.uniq.length != content_ary.length
-      errors.add(:fixed_inputs, "が重複しています")
-    end
   end
 end

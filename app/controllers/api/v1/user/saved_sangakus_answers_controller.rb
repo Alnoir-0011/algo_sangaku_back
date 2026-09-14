@@ -8,12 +8,13 @@ module Api
           return render_error(409, "Conflict", "この算額にはすでに解答が存在します")
         end
 
-        answer = sangaku_save.build_answer(answer_params)
+        answerable = CodeAnswer.new(source: answer_params[:source])
+        answer = sangaku_save.build_answer(answerable:)
 
         if answer.save
           render json: AnswerSerializer.new(answer).serializable_hash.to_json, status: :ok
         else
-          render_400(nil, answer.errors.messages)
+          render_400(nil, answerable.errors.messages.merge(answer.errors.messages))
         end
       rescue Answer::AlreadyAnsweredError
         render_error(409, "Conflict", "この算額にはすでに解答が存在します")

@@ -14,10 +14,19 @@ module Api
         end
 
         def update
-          if @sangaku.update(sangaku_params)
-            render json: ::Admin::SangakuSerializer.new(@sangaku).serializable_hash.to_json, status: :ok
+          code_sangaku = @sangaku.sangakuable
+          parent = code_sangaku.sangaku
+          parent.assign_attributes(sangaku_params.slice(:title))
+          code_sangaku.assign_attributes(sangaku_params.slice(:description, :source, :difficulty))
+
+          if parent.valid? && code_sangaku.valid?
+            ActiveRecord::Base.transaction do
+              code_sangaku.save!
+              parent.save!
+            end
+            render json: ::Admin::SangakuSerializer.new(parent.reload).serializable_hash.to_json, status: :ok
           else
-            render_400(nil, @sangaku.errors.full_messages)
+            render_400(nil, parent.errors.full_messages + code_sangaku.errors.full_messages)
           end
         end
 

@@ -13,17 +13,52 @@ RSpec.describe Sangaku, type: :model do
       expect(sangaku).to be_invalid
       expect(sangaku.errors[:title]).to eq [ 'を入力してください' ]
     end
+  end
 
-    it 'is invalid without description' do
-      sangaku = build(:sangaku, description: "")
-      expect(sangaku).to be_invalid
-      expect(sangaku.errors[:description]).to eq [ 'を入力してください' ]
+  # 形式固有のカラムは sangakuable が持つ（issue #278）
+  describe 'delegated_type' do
+    it 'has a code_sangaku as its sangakuable' do
+      sangaku = create(:sangaku)
+
+      expect(sangaku.code_sangaku?).to eq true
+      expect(sangaku.sangakuable).to be_a CodeSangaku
     end
 
-    it 'is invalid without source' do
-      sangaku = build(:sangaku, source: "")
-      expect(sangaku).to be_invalid
-      expect(sangaku.errors[:source]).to eq [ 'を入力してください' ]
+    it 'delegates description and difficulty to the sangakuable' do
+      sangaku = create(:sangaku, description: "delegated_description", difficulty: "normal")
+
+      expect(sangaku.description).to eq "delegated_description"
+      expect(sangaku.difficulty).to eq "normal"
+    end
+
+    it 'destroys the sangakuable when it is destroyed' do
+      sangaku = create(:sangaku)
+      code_sangaku = sangaku.sangakuable
+
+      sangaku.destroy!
+
+      expect(CodeSangaku.exists?(code_sangaku.id)).to eq false
+    end
+  end
+
+  describe '.search' do
+    it 'filters by difficulty even though the column lives on the sangakuable' do
+      easy_sangaku = create(:sangaku, difficulty: "easy")
+      normal_sangaku = create(:sangaku, difficulty: "normal")
+
+      result = Sangaku.search({ difficulty: "normal" })
+
+      expect(result).to include normal_sangaku
+      expect(result).not_to include easy_sangaku
+    end
+
+    it 'ignores an unknown difficulty value' do
+      easy_sangaku = create(:sangaku, difficulty: "easy")
+      normal_sangaku = create(:sangaku, difficulty: "normal")
+
+      result = Sangaku.search({ difficulty: "unknown" })
+
+      expect(result).to include easy_sangaku, normal_sangaku
     end
   end
 
@@ -37,40 +72,6 @@ RSpec.describe Sangaku, type: :model do
 
       expect { sangaku.destroy! }.not_to raise_error
       expect(FixedInput.exists?(fixed_input.id)).to eq false
-    end
-  end
-
-  describe '#save_with_inputs' do
-    it 'removes a fixed_input that has answer_results without raising a foreign key violation' do
-      sangaku = create(:sangaku)
-      fixed_input = create(:fixed_input, sangaku: sangaku, content: "old_input")
-      sangaku.reload
-      user_sangaku_save = create(:user_sangaku_save, sangaku: sangaku)
-      create(:answer, user_sangaku_save: user_sangaku_save)
-
-      expect(sangaku.save_with_inputs([])).to eq true
-      expect(FixedInput.exists?(fixed_input.id)).to eq false
-    end
-
-    it 'returns false when save! raises ActiveRecord::RecordInvalid' do
-      sangaku = create(:sangaku)
-      allow(sangaku).to receive(:save!).and_raise(ActiveRecord::RecordInvalid.new(sangaku))
-
-      expect(sangaku.save_with_inputs([])).to eq false
-    end
-
-    it 'returns false when save! raises ActiveRecord::RecordNotUnique' do
-      sangaku = create(:sangaku)
-      allow(sangaku).to receive(:save!).and_raise(ActiveRecord::RecordNotUnique.new("duplicate key"))
-
-      expect(sangaku.save_with_inputs([])).to eq false
-    end
-
-    it 'raises when an unexpected error occurs' do
-      sangaku = create(:sangaku)
-      allow(sangaku).to receive(:save!).and_raise(StandardError, "unexpected error")
-
-      expect { sangaku.save_with_inputs([]) }.to raise_error(StandardError, "unexpected error")
     end
   end
 

@@ -8,18 +8,37 @@ RSpec.describe Answer, type: :model do
       expect(answer.errors).to be_empty
     end
 
-    it "is invalid without source" do
-      answer = build(:answer, source: "")
-      expect(answer).to be_invalid
-      expect(answer.errors[:source]).to eq [ "を入力してください" ]
-    end
-
     it "raises ActiveRecord::RecordNotUnique when user_sangaku_save_id duplicates at the database level" do
       existing_answer = create(:answer)
-      another_answer = Answer.new(source: "test")
+      another_answer = Answer.new(answerable: create(:code_answer))
       another_answer.user_sangaku_save_id = existing_answer.user_sangaku_save_id
 
       expect { another_answer.save }.to raise_error(ActiveRecord::RecordNotUnique)
+    end
+  end
+
+  # 形式固有の提出物・判定結果は answerable が持つ（issue #278）
+  describe "delegated_type" do
+    it "has a code_answer as its answerable" do
+      answer = create(:answer)
+
+      expect(answer.code_answer?).to eq true
+      expect(answer.answerable).to be_a CodeAnswer
+    end
+
+    it "returns the source of the answerable" do
+      answer = create(:answer, source: "puts 'delegated'")
+
+      expect(answer.source).to eq "puts 'delegated'"
+    end
+
+    it "destroys the answerable when it is destroyed" do
+      answer = create(:answer)
+      code_answer = answer.answerable
+
+      answer.destroy!
+
+      expect(CodeAnswer.exists?(code_answer.id)).to eq false
     end
   end
 
@@ -29,13 +48,13 @@ RSpec.describe Answer, type: :model do
 
     it "raises AlreadyAnsweredError when building another answer for the same user_sangaku_save" do
       expect {
-        user_sangaku_save.build_answer(source: "new")
+        user_sangaku_save.build_answer(answerable: build(:code_answer))
       }.to raise_error(Answer::AlreadyAnsweredError)
     end
 
     it "does not delete the existing answer" do
       expect {
-        user_sangaku_save.build_answer(source: "new")
+        user_sangaku_save.build_answer(answerable: build(:code_answer))
       }.to raise_error(Answer::AlreadyAnsweredError)
 
       expect(Answer.exists?(existing_answer.id)).to be true
@@ -50,24 +69,25 @@ RSpec.describe Answer, type: :model do
     let!(:fixed_input_2) { create(:fixed_input, sangaku:) }
     let!(:user_sangaku_save) { create(:user_sangaku_save, sangaku: sangaku.reload) }
     let!(:answer) { create(:answer, user_sangaku_save:) }
+    let(:answer_results) { answer.answerable.answer_results }
 
     describe "#status" do
       it "returns pending when pending and error are both present" do
-        answer.answer_results.first.update!(status: "error")
-        answer.answer_results.second.update!(status: "pending")
+        answer_results.first.update!(status: "error")
+        answer_results.second.update!(status: "pending")
 
         expect(answer.status).to eq "pending"
       end
 
       it "returns incorrect when incorrect and error are both present" do
-        answer.answer_results.first.update!(status: "incorrect")
-        answer.answer_results.second.update!(status: "error")
+        answer_results.first.update!(status: "incorrect")
+        answer_results.second.update!(status: "error")
 
         expect(answer.status).to eq "incorrect"
       end
 
       it "returns correct when all answer_results are correct" do
-        answer.answer_results.each { |result| result.update!(status: "correct") }
+        answer_results.each { |result| result.update!(status: "correct") }
 
         expect(answer.status).to eq "correct"
       end
@@ -75,37 +95,37 @@ RSpec.describe Answer, type: :model do
 
     describe "status_correct / status_incorrect scopes" do
       it "matches only correct when all results are correct" do
-        answer.answer_results.each { |result| result.update!(status: "correct") }
+        answer_results.each { |result| result.update!(status: "correct") }
 
         expect(Answer.status_correct).to include(answer)
         expect(Answer.status_incorrect).not_to include(answer)
       end
 
       it "matches only incorrect when incorrect and error are mixed without pending" do
-        answer.answer_results.first.update!(status: "incorrect")
-        answer.answer_results.second.update!(status: "error")
+        answer_results.first.update!(status: "incorrect")
+        answer_results.second.update!(status: "error")
 
         expect(Answer.status_incorrect).to include(answer)
         expect(Answer.status_correct).not_to include(answer)
       end
 
       it "matches incorrect when all results are error" do
-        answer.answer_results.each { |result| result.update!(status: "error") }
+        answer_results.each { |result| result.update!(status: "error") }
 
         expect(Answer.status_incorrect).to include(answer)
         expect(Answer.status_correct).not_to include(answer)
       end
 
       it "matches neither scope when all results are pending" do
-        answer.answer_results.each { |result| result.update!(status: "pending") }
+        answer_results.each { |result| result.update!(status: "pending") }
 
         expect(Answer.status_correct).not_to include(answer)
         expect(Answer.status_incorrect).not_to include(answer)
       end
 
       it "matches neither scope when pending and correct are mixed" do
-        answer.answer_results.first.update!(status: "pending")
-        answer.answer_results.second.update!(status: "correct")
+        answer_results.first.update!(status: "pending")
+        answer_results.second.update!(status: "correct")
 
         expect(Answer.status_correct).not_to include(answer)
         expect(Answer.status_incorrect).not_to include(answer)
@@ -123,7 +143,7 @@ RSpec.describe Answer, type: :model do
         { statuses: %w[error error],       expected: "incorrect" }
       ].each do |c|
         it "#status と scope の該当が #{c[:statuses]} -> #{c[:expected]} で一致する" do
-          answer.answer_results.zip(c[:statuses]).each { |result, status| result.update!(status:) }
+          answer_results.zip(c[:statuses]).each { |result, status| result.update!(status:) }
 
           expect(answer.status).to eq c[:expected]
           expect(Answer.status_correct.include?(answer)).to eq(c[:expected] == "correct")

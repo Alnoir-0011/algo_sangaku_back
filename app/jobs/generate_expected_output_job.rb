@@ -4,7 +4,7 @@ class GenerateExpectedOutputJob < ApplicationJob
   queue_as :default
 
   def perform(fixed_input)
-    result = run_source(fixed_input.sangaku.source, fixed_input.content)
+    result = run_source(fixed_input.code_sangaku.source, fixed_input.content)
     fixed_input.update_columns(expected_output: result["stdout"])
   rescue StandardError => e
     # PaizaIO 失敗時は nil のまま。採点時に都度実行するフォールバックに任せる

@@ -2,9 +2,13 @@ class SangakuSerializer
   include JSONAPI::Serializer
 
   set_type :sangaku
-  attributes :title, :description, :source, :difficulty
+  # description / difficulty は Sangaku から sangakuable へ delegate されている（issue #278）
+  attributes :title, :description, :difficulty
+  attribute :source do |sangaku|
+    sangaku.sangakuable.source
+  end
   attribute :inputs do |sangaku|
-    inputs = sangaku.fixed_inputs
+    inputs = sangaku.sangakuable.fixed_inputs
     inputs.map { |input| { id: input.id, content: input.content } }
   end
   attribute :author_name do |sangaku|
@@ -15,7 +19,6 @@ class SangakuSerializer
     sangaku.shrine&.name
   end
 
-  # has_many :fixed_inputs
   belongs_to :user
   belongs_to :shrine
 end

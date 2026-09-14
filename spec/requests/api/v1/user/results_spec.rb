@@ -13,7 +13,7 @@ RSpec.describe "Api::V1::User::Results", type: :request do
 
     context "with access_token" do
       it "return result in json format" do
-        answer.answer_results.first.update(output: "Hello world\n", status: "correct")
+        answer.answerable.answer_results.first.update(output: "Hello world\n", status: "correct")
         authenticate_stub(user)
 
         http_request
@@ -24,7 +24,7 @@ RSpec.describe "Api::V1::User::Results", type: :request do
       end
 
       it "counts an answer with all-error results as incorrect", openapi: false do
-        answer.answer_results.first.update!(status: "error")
+        answer.answerable.answer_results.first.update!(status: "error")
         authenticate_stub(user)
 
         http_request

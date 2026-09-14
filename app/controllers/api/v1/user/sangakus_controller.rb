@@ -4,7 +4,7 @@ module Api
       before_action :set_sangaku, only: %i[show update destroy]
 
       def index
-        @pagy, sangakus = pagy(current_user.sangakus.search(search_params).order(:id).includes(:fixed_inputs, :user, :shrine))
+        @pagy, sangakus = pagy(current_user.sangakus.search(search_params).order(:id).includes(:user, :shrine, sangakuable: :fixed_inputs))
         render json: SangakuSerializer.new(sangakus).serializable_hash.to_json, status: :ok
       end
 
@@ -13,23 +13,26 @@ module Api
       end
 
       def create
-        @sangaku = current_user.sangakus.new(sangaku_params)
+        code_sangaku = CodeSangaku.new(code_sangaku_params)
+        code_sangaku.build_sangaku(parent_params.merge(user: current_user))
 
-        if @sangaku.save_with_inputs(params[:fixed_inputs])
-          render json: SangakuSerializer.new(@sangaku).serializable_hash.to_json, status: :ok
+        if code_sangaku.save_with_inputs(params[:fixed_inputs])
+          render json: SangakuSerializer.new(code_sangaku.sangaku).serializable_hash.to_json, status: :ok
         else
-          render_400(nil, @sangaku.errors.messages)
+          render_400(nil, merged_errors(code_sangaku))
         end
       end
 
       def update
-        @sangaku.assign_attributes(sangaku_params)
+        code_sangaku = @sangaku.sangakuable
+        # has_one 側から辿った親に代入することで、save_with_inputs が同じインスタンスを保存できる
+        code_sangaku.sangaku.assign_attributes(parent_params)
+        code_sangaku.assign_attributes(code_sangaku_params)
 
-        if @sangaku.save_with_inputs(params[:fixed_inputs])
-          sangaku = current_user.sangakus.find(params[:id])
-          render json: SangakuSerializer.new(sangaku).serializable_hash.to_json, status: :ok
+        if code_sangaku.save_with_inputs(params[:fixed_inputs])
+          render json: SangakuSerializer.new(code_sangaku.sangaku.reload).serializable_hash.to_json, status: :ok
         else
-          render_400(nil, @sangaku.errors.messages)
+          render_400(nil, merged_errors(code_sangaku))
         end
       end
 
@@ -129,6 +132,21 @@ module Api
 
       def sangaku_params
         params.require(:sangaku).permit(:title, :description, :source, :difficulty)
+      end
+
+      # title は親、description / source / difficulty は形式固有テーブルが持つ（issue #278）
+      def parent_params
+        sangaku_params.slice(:title)
+      end
+
+      def code_sangaku_params
+        sangaku_params.slice(:description, :source, :difficulty)
+      end
+
+      # front は項目ごとのエラー表示にキー名を使うため、親と子のエラーを一つにまとめて返す
+      def merged_errors(code_sangaku)
+        parent_errors = code_sangaku.sangaku&.errors&.messages || {}
+        parent_errors.merge(code_sangaku.errors.messages)
       end
     end
   end

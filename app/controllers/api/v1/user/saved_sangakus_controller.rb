@@ -2,7 +2,7 @@ module Api
   module V1
     class User::SavedSangakusController < BaseController
       def index
-        @pagy, saved_sangakus = pagy(index_scope.includes(:fixed_inputs, :user, :shrine))
+        @pagy, saved_sangakus = pagy(index_scope.includes(:user, :shrine, sangakuable: :fixed_inputs))
         render json: PublicSangakuSerializer.new(saved_sangakus).serializable_hash.to_json
       end
 

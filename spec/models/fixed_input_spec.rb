@@ -43,7 +43,7 @@ RSpec.describe FixedInput, type: :model do
       sangaku.reload
       user_sangaku_save = create(:user_sangaku_save, sangaku: sangaku)
       answer = create(:answer, user_sangaku_save: user_sangaku_save)
-      answer_result = answer.answer_results.find_by(fixed_input: fixed_input)
+      answer_result = answer.answerable.answer_results.find_by(fixed_input: fixed_input)
 
       expect { fixed_input.destroy! }.not_to raise_error
       expect(AnswerResult.exists?(answer_result.id)).to eq false

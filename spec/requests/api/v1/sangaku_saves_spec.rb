@@ -25,7 +25,7 @@ RSpec.describe "Api::V1::Sangakus", type: :request do
 
         json = JSON.parse(response.body)
         expect(json["data"]["attributes"]).not_to have_key("source")
-        expect(response.body).not_to include(sangaku.source)
+        expect(response.body).not_to include(sangaku.sangakuable.source)
       end
 
       it "returns 409 when the sangaku is already saved" do

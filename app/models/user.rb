@@ -4,7 +4,9 @@ class User < ApplicationRecord
   has_many :user_sangaku_saves, dependent: :destroy, class_name: "UserSangakuSave"
   has_many :saved_sangakus, through: :user_sangaku_saves, source: :sangaku
   has_many :answers, through: :user_sangaku_saves
-  has_many :answer_results, through: :answers
+  # answer_results は code_answers 経由に張り替える（AnswerResult の FK 付け替えに伴う。issue #278）
+  has_many :code_answers, through: :answers, source: :answerable, source_type: "CodeAnswer"
+  has_many :answer_results, through: :code_answers
   has_many :generate_source_call_logs, dependent: :destroy
 
   enum :role, { general: 0, admin: 1 }
