@@ -152,5 +152,35 @@ RSpec.describe "Api::V1::Sangakus", type: :request do
         expect(body["data"]["attributes"]["code_blocks"]).to eq []
       end
     end
+
+    # 解答済みなら本人は既に解き終えているためネタバレにならない。
+    # 公開詳細も保存済み算額の詳細と同じ扱いにする（issue #92）
+    context "with a reorder sangaku the current_user has already answered", openapi: false do
+      let!(:reorder_sangaku) do
+        reorder = create(:sangaku, :reorder, user: create(:user)).sangakuable
+        reorder.code_blocks.destroy_all
+        create(:code_block, reorder_sangaku: reorder, content: "dummy", correct_position: nil)
+        create(:code_block, reorder_sangaku: reorder, content: "second", correct_position: 2)
+        create(:code_block, reorder_sangaku: reorder, content: "first", correct_position: 1)
+        reorder
+      end
+      let(:sangaku) { reorder_sangaku.sangaku }
+      let!(:user_sangaku_save) { create(:user_sangaku_save, sangaku:, user:) }
+      let(:http_request) { get api_v1_sangaku_path(sangaku.id), headers: }
+
+      before { create(:answer, :reorder, user_sangaku_save:, result: :correct) }
+
+      it "returns code_blocks in correct_position order with correct_position included" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"]["code_blocks"].map { |block| block["content"] }).to eq(
+          [ "first", "second", "dummy" ]
+        )
+        expect(body["data"]["attributes"]["code_blocks"].last["correct_position"]).to be_nil
+      end
+    end
   end
 end

@@ -557,6 +557,65 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
     end
   end
 
+  # 並べ替え形式は提出した並びを保存しないため、解答結果の画面には正解コードを表示する。
+  # 本人が解き終えた後はネタバレにならないため、解答済みのときだけ正解順で返す（issue #92）
+  describe "GET /show with an answered reorder sangaku, when checking code_blocks", openapi: false do
+    let!(:user) { create(:user) }
+    let!(:reorder_sangaku) do
+      reorder = create(:sangaku, :reorder, user: create(:user)).sangakuable
+      reorder.code_blocks.destroy_all
+      # id の昇順とは違う順序になるよう、正解順・ダミーを混ぜて INSERT する
+      create(:code_block, reorder_sangaku: reorder, content: "dummy_first_inserted", correct_position: nil)
+      create(:code_block, reorder_sangaku: reorder, content: "second", correct_position: 2)
+      create(:code_block, reorder_sangaku: reorder, content: "dummy_second_inserted", correct_position: nil)
+      create(:code_block, reorder_sangaku: reorder, content: "first", correct_position: 1)
+      reorder
+    end
+    let(:sangaku) { reorder_sangaku.sangaku }
+    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
+    let!(:user_sangaku_save) { create(:user_sangaku_save, sangaku:, user:) }
+
+    before { create(:answer, :reorder, user_sangaku_save:, result: :incorrect) }
+
+    it "returns code_blocks ordered by correct_position ascending then dummies by id ascending, each with correct_position" do
+      authenticate_stub(user)
+      get api_v1_user_saved_sangaku_path(sangaku.id), headers: headers
+
+      blocks_by_content = reorder_sangaku.code_blocks.reload.index_by(&:content)
+      expect(body["data"]["attributes"]["code_blocks"]).to eq(
+        [
+          { "id" => blocks_by_content["first"].id, "content" => "first", "correct_position" => 1 },
+          { "id" => blocks_by_content["second"].id, "content" => "second", "correct_position" => 2 },
+          { "id" => blocks_by_content["dummy_first_inserted"].id, "content" => "dummy_first_inserted", "correct_position" => nil },
+          { "id" => blocks_by_content["dummy_second_inserted"].id, "content" => "dummy_second_inserted", "correct_position" => nil }
+        ]
+      )
+    end
+
+    it "returns the same order across multiple requests" do
+      authenticate_stub(user)
+
+      orders = Array.new(3) do
+        get api_v1_user_saved_sangaku_path(sangaku.id), headers: headers
+        body["data"]["attributes"]["code_blocks"].map { |block| block["id"] }
+      end
+
+      expect(orders.uniq.size).to eq 1
+    end
+
+    # 他人が解答していても、自分が未解答なら正解は見えてはいけない
+    it "does not leak correct_position to a user who has not answered it" do
+      another_user = create(:user)
+      create(:user_sangaku_save, sangaku:, user: another_user)
+      authenticate_stub(another_user)
+
+      get api_v1_user_saved_sangaku_path(sangaku.id), headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include("correct_position")
+    end
+  end
+
   describe "GET /show with a saved code sangaku, when checking code_blocks", openapi: false do
     let!(:user) { create(:user) }
     let!(:author) { create(:user, nickname: "author") }

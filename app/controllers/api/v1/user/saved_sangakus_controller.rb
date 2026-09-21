@@ -11,7 +11,8 @@ module Api
 
       def show
         saved_sangaku = show_scope.find(params[:id])
-        render json: PublicSangakuDetailSerializer.new(saved_sangaku).serializable_hash.to_json
+        # 解答済みかどうかで code_blocks の見せ方が変わるため current_user を渡す（issue #92）
+        render json: PublicSangakuDetailSerializer.new(saved_sangaku, params: { current_user: }).serializable_hash.to_json
       end
 
       private

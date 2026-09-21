@@ -48,6 +48,11 @@ class User < ApplicationRecord
     saved_sangakus << sangaku
   end
 
+  # その算額に自分の解答があるか。解答済みの人には正解順を見せてよい（issue #92）
+  def answered?(sangaku)
+    user_sangaku_saves.answered.exists?(sangaku_id: sangaku.id)
+  end
+
   def dedicated_sangakus_with_shrine
     @dedicated_sangakus_with_shrine ||= sangakus.where.not(shrine_id: nil).includes(:shrine).to_a
   end

@@ -199,6 +199,44 @@ RSpec.describe User, type: :model do
     end
   end
 
+  # 解答済みかどうかで、解答者に見せるレスポンスの中身が変わる（issue #92）
+  describe "#answered?" do
+    it "returns true when the user has answered the sangaku" do
+      user = create(:user)
+      sangaku = create(:sangaku, user: create(:user))
+      user_sangaku_save = create(:user_sangaku_save, user:, sangaku:)
+      create(:answer, user_sangaku_save:)
+
+      expect(user.answered?(sangaku)).to eq true
+    end
+
+    it "returns false when the user has saved the sangaku but has not answered it" do
+      user = create(:user)
+      sangaku = create(:sangaku, user: create(:user))
+      create(:user_sangaku_save, user:, sangaku:)
+
+      expect(user.answered?(sangaku)).to eq false
+    end
+
+    it "returns false when another user has answered the sangaku" do
+      user = create(:user)
+      another_user = create(:user)
+      sangaku = create(:sangaku, user: create(:user))
+      create(:user_sangaku_save, user:, sangaku:)
+      another_save = create(:user_sangaku_save, user: another_user, sangaku:)
+      create(:answer, user_sangaku_save: another_save)
+
+      expect(user.answered?(sangaku)).to eq false
+    end
+
+    it "returns false when the user has not saved the sangaku" do
+      user = create(:user)
+      sangaku = create(:sangaku, user: create(:user))
+
+      expect(user.answered?(sangaku)).to eq false
+    end
+  end
+
   describe "#destroy" do
     it "destroys the user's own reorder-format sangaku and their save/answer on another user's reorder-format sangaku without raising a foreign key violation, while leaving the other user's sangaku intact" do
       user = create(:user)
