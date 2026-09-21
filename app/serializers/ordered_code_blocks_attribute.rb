@@ -12,12 +12,7 @@ module OrderedCodeBlocksAttribute
     attribute :code_blocks do |sangaku|
       next [] unless sangaku.reorder_sangaku?
 
-      blocks = sangaku.sangakuable.code_blocks.to_a
-      ordered_blocks = ReorderSangaku.ordered_code_blocks(blocks)
-
-      ordered_blocks.map do |block|
-        { id: block.id, content: block.content, correct_position: block.correct_position }
-      end
+      ReorderSangaku.ordered_code_blocks_payload(sangaku.sangakuable.code_blocks.to_a)
     end
   end
 end

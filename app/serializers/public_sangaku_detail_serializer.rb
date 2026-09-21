@@ -16,14 +16,26 @@ class PublicSangakuDetailSerializer
   attribute :code_blocks do |sangaku, params|
     next [] unless sangaku.reorder_sangaku?
 
+    viewer = params[:current_user]
+    # params は自由形式のハッシュで、ここに入る値の型は呼び出し側任せになる。
+    # 認可の判断材料のため、User 以外が渡されたら黙って伏せずに落とし、
+    # 「誤った相手を渡している」実装ミスを本番より先に見つける（issue #92）。
+    raise ArgumentError, "current_user must be a User" unless viewer.nil? || viewer.is_a?(User)
+
     blocks = sangaku.sangakuable.code_blocks.to_a
 
-    if params[:current_user]&.answered?(sangaku)
-      ReorderSangaku.ordered_code_blocks(blocks).map do |block|
-        { id: block.id, content: block.content, correct_position: block.correct_position }
-      end
+    if reveal_correct_order?(sangaku, viewer)
+      ReorderSangaku.ordered_code_blocks_payload(blocks)
     else
       blocks.shuffle(random: SecureRandom).map { |block| { id: block.id, content: block.content } }
     end
+  end
+
+  # 正解順を見せてよい相手か。current_user が渡らない経路では伏せる側に倒す。
+  # 作者は作者向けの詳細（SangakuDetailSerializer）で既に全て見られるため、ここでも見せる。
+  def self.reveal_correct_order?(sangaku, viewer)
+    return false if viewer.nil?
+
+    sangaku.user_id == viewer.id || viewer.answered?(sangaku)
   end
 end

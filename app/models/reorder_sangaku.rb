@@ -57,6 +57,14 @@ class ReorderSangaku < ApplicationRecord
     correct_blocks.sort_by(&:correct_position) + dummy_blocks.sort_by(&:id)
   end
 
+  # 正解順を見せてよい相手（作者・管理者・解答済みの本人）に返す code_blocks の形。
+  # キー構成を 1 箇所にまとめ、返す項目を変えるときの直し漏れを防ぐ（issue #92）。
+  def self.ordered_code_blocks_payload(blocks)
+    ordered_code_blocks(blocks).map do |block|
+      { id: block.id, content: block.content, correct_position: block.correct_position }
+    end
+  end
+
   # 与えられた block_ids の順序で並べた content 列が、正解順序（correct_position 昇順）の
   # content 列と一致するかを判定する。id ではなく content で比較することで、同一 content の
   # ブロックが複数あっても、どの id を使ったかに関わらず正しく判定できる。

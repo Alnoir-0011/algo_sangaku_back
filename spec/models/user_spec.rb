@@ -235,6 +235,18 @@ RSpec.describe User, type: :model do
 
       expect(user.answered?(sangaku)).to eq false
     end
+
+    # sangaku_id の条件が抜けると、1 問でも解けば全問の正解順が見えてしまう
+    it "returns false when the user has answered a different sangaku" do
+      user = create(:user)
+      sangaku = create(:sangaku, user: create(:user))
+      other_sangaku = create(:sangaku, user: create(:user))
+      create(:user_sangaku_save, user:, sangaku:)
+      other_save = create(:user_sangaku_save, user:, sangaku: other_sangaku)
+      create(:answer, user_sangaku_save: other_save)
+
+      expect(user.answered?(sangaku)).to eq false
+    end
   end
 
   describe "#destroy" do

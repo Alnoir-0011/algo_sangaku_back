@@ -48,7 +48,13 @@ class User < ApplicationRecord
     saved_sangakus << sangaku
   end
 
-  # その算額に自分の解答があるか。解答済みの人には正解順を見せてよい（issue #92）
+  # その算額に自分の解答行があるか。
+  # 【重要】これを正解順の開示条件に使ってよいのは「1 算額 1 ユーザー 1 解答・やり直し不可」が
+  # 成り立つ間だけ。この前提は answers.user_sangaku_save_id の unique index、
+  # Answer#prevent_overwriting_existing_answer、解答 API の 409、そして保存・解答に
+  # destroy / update のルートが無いこと（spec/requests/api/v1/user/saved_sangakus_spec.rb で固定）
+  # に分散している。保存解除や再解答を足すと「わざと外して解答 → 正解順を取得 → やり直し」が
+  # 成立してしまうため、そのときは開示条件をここから見直すこと（issue #92）。
   def answered?(sangaku)
     user_sangaku_saves.answered.exists?(sangaku_id: sangaku.id)
   end

@@ -513,7 +513,8 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
 
     before { create(:user_sangaku_save, sangaku:, user:) }
 
-    it "returns code_blocks whose elements have only id and content keys" do
+    # 未解答のレスポンス（correct_position なし）も front との契約としてドキュメントに残す
+    it "returns code_blocks whose elements have only id and content keys", openapi: {} do
       authenticate_stub(user)
       get api_v1_user_saved_sangaku_path(sangaku.id), headers:, params: { type: "before_answer" }
 
@@ -577,7 +578,8 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
 
     before { create(:answer, :reorder, user_sangaku_save:, result: :incorrect) }
 
-    it "returns code_blocks ordered by correct_position ascending then dummies by id ascending, each with correct_position" do
+    # 解答済みのレスポンス（correct_position 込み）を front との契約としてドキュメントに残す
+    it "returns code_blocks ordered by correct_position ascending then dummies by id ascending, each with correct_position", openapi: {} do
       authenticate_stub(user)
       get api_v1_user_saved_sangaku_path(sangaku.id), headers: headers
 
@@ -603,6 +605,13 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
       expect(orders.uniq.size).to eq 1
     end
 
+    it "does not put the response in a shared cache" do
+      authenticate_stub(user)
+      get api_v1_user_saved_sangaku_path(sangaku.id), headers: headers
+
+      expect(response.headers["Cache-Control"]).to include "no-store"
+    end
+
     # 他人が解答していても、自分が未解答なら正解は見えてはいけない
     it "does not leak correct_position to a user who has not answered it" do
       another_user = create(:user)
@@ -613,6 +622,28 @@ RSpec.describe "Api::V1::User::SavedSangakus", type: :request, openapi: { tags: 
 
       expect(response).to have_http_status(:ok)
       expect(response.body).not_to include("correct_position")
+    end
+  end
+
+  # 解答済みの本人に正解順を見せてよいのは「1 算額 1 解答・やり直し不可」が前提（User#answered? のコメント）。
+  # 保存解除や再解答のルートが増えると「わざと外して解答 → 正解順を取得 → やり直し」が成立するため、
+  # ルートが増えたことをここで検知する（issue #92）
+  describe "routes that would break the one-answer-per-sangaku assumption", openapi: false do
+    # 未定義のパスへのリクエストは 404 を返す設定のため、ルーティング表そのものを見る
+    def recognize(method, path)
+      Rails.application.routes.recognize_path(path, method:)
+    end
+
+    it "does not route unsaving a sangaku" do
+      expect { recognize(:delete, "/api/v1/user/saved_sangakus/1") }.to raise_error(ActionController::RoutingError)
+    end
+
+    it "does not route deleting an answer" do
+      expect { recognize(:delete, "/api/v1/user/saved_sangakus/1/answer") }.to raise_error(ActionController::RoutingError)
+    end
+
+    it "does not route updating an answer" do
+      expect { recognize(:patch, "/api/v1/user/saved_sangakus/1/answer") }.to raise_error(ActionController::RoutingError)
     end
   end
 

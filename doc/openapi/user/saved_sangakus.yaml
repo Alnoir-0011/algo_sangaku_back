@@ -125,7 +125,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 17662
+        example: 6497
       - name: type
         in: query
         required: false
@@ -167,7 +167,20 @@ paths:
                             type: string
                           code_blocks:
                             type: array
-                            items: {}
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                content:
+                                  type: string
+                                correct_position:
+                                  type:
+                                  - integer
+                                  - 'null'
+                              required:
+                              - id
+                              - content
                         required:
                         - title
                         - description
@@ -211,7 +224,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '17661'
+                  id: '6496'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -225,7 +238,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '33353'
+                        id: '11456'
                         type: user
                     shrine:
                       data:

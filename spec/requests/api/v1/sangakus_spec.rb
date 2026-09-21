@@ -83,7 +83,8 @@ RSpec.describe "Api::V1::Sangakus", type: :request do
     # ダミーかどうかが推測できない形で返す必要がある
     context "with a reorder sangaku, when checking solver-facing code_blocks", openapi: false do
       let!(:reorder_sangaku) do
-        reorder = create(:sangaku, :reorder, user:).sangakuable
+        # 作者には正解順を見せるため、解答者としての振る舞いを見るここでは別のユーザーが作った算額を使う
+        reorder = create(:sangaku, :reorder, user: create(:user)).sangakuable
         reorder.code_blocks.destroy_all
         12.times { |i| create(:code_block, reorder_sangaku: reorder, content: "block_#{i + 1}", correct_position: i + 1) }
         create(:code_block, reorder_sangaku: reorder, content: "dummy", correct_position: nil)
@@ -166,7 +167,7 @@ RSpec.describe "Api::V1::Sangakus", type: :request do
       end
       let(:sangaku) { reorder_sangaku.sangaku }
       let!(:user_sangaku_save) { create(:user_sangaku_save, sangaku:, user:) }
-      let(:http_request) { get api_v1_sangaku_path(sangaku.id), headers: }
+      let(:http_request) { get api_v1_sangaku_path(sangaku.id) }
 
       before { create(:answer, :reorder, user_sangaku_save:, result: :correct) }
 
@@ -180,6 +181,29 @@ RSpec.describe "Api::V1::Sangakus", type: :request do
           [ "first", "second", "dummy" ]
         )
         expect(body["data"]["attributes"]["code_blocks"].last["correct_position"]).to be_nil
+      end
+
+      it "does not put the response in a shared cache" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response.headers["Cache-Control"]).to include "no-store"
+      end
+    end
+
+    # 作者は作者向けの詳細で既に正解順を見られるため、この経路でも隠す意味がない（issue #92）
+    context "with a reorder sangaku the current_user is the author of", openapi: false do
+      let!(:sangaku) { create(:sangaku, :reorder, user:) }
+      let(:http_request) { get api_v1_sangaku_path(sangaku.id) }
+
+      it "returns code_blocks with correct_position to the author" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"]["code_blocks"].map { |block| block["correct_position"] }).to eq [ 1, 2 ]
       end
     end
   end
