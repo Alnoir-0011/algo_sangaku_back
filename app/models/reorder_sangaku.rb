@@ -24,6 +24,9 @@ class ReorderSangaku < ApplicationRecord
   # id は連番で振られるため、correct_position 順のまま INSERT すると id の昇順だけで
   # 正解順が判明してしまう。それを防ぐため INSERT 順に shuffler を適用する。
   # 既定の shuffler は SecureRandom を使い、並び（＝ id の順）を予測されにくくする。
+  # このシャッフルは PublicSangakuDetailSerializer が返すたびに行うシャッフルと対になっている。
+  # こちら側だけだと毎回同じ並びを返すことになり、あちら側だけだと id の昇順が正解順のままになる。
+  # 片方だけ外すと正解順が推測できるため、どちらも必要。
   def save_with_code_blocks(new_blocks, shuffler: ->(items) { items.shuffle(random: SecureRandom) })
     new_blocks ||= []
     ordered_blocks = shuffler.call(new_blocks)

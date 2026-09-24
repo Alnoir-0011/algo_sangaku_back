@@ -9,6 +9,10 @@ class PublicSangakuDetailSerializer
   # 取り出すといった処理はせず、読み込んだブロックをそのままシャッフルする。
   # 返すたびに並びが変わるよう、ReorderSangaku#save_with_code_blocks と同じく SecureRandom を使う。
   #
+  # このシャッフルは ReorderSangaku#save_with_code_blocks の INSERT 前のシャッフルと対になっている。
+  # 保存側だけだと毎回同じ並びを返すため並びを覚えられ、こちら側だけだと id の昇順が正解順のままになる。
+  # 片方だけ外すと正解順が推測できるため、どちらも必要（issue #278）。
+  #
   # 解答済みの場合は、その人は既に解き終えていてネタバレにならないため、正解順で
   # correct_position 込みで返す。並べ替え形式は提出した並びを保存しないため、解答結果の画面は
   # これを使って正解コードを組み立てる（issue #92）。
