@@ -57,7 +57,7 @@ group :development, :test do
   gem "pry-doc", "~> 1.7"
 
   gem "propshaft"
-  gem "mission_control-jobs", "~> 1.2"
+  gem "mission_control-jobs", "~> 1.3"
 end
 
 group :test do
