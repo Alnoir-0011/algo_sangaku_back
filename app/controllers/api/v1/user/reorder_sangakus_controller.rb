@@ -10,6 +10,7 @@ module Api
 
       def create
         return render_too_many_code_blocks if too_many_code_blocks?
+        return render_malformed_code_blocks if malformed_code_blocks?
 
         reorder_sangaku = ReorderSangaku.new(sangakuable_params)
         reorder_sangaku.build_sangaku(parent_params.merge(user: current_user))
@@ -23,6 +24,7 @@ module Api
 
       def update
         return render_too_many_code_blocks if too_many_code_blocks?
+        return render_malformed_code_blocks if malformed_code_blocks?
 
         # has_one 側から辿った親に代入することで、save_with_code_blocks が同じインスタンスを保存できる
         @reorder_sangaku.sangaku.assign_attributes(parent_params)
@@ -47,6 +49,10 @@ module Api
 
       def render_too_many_code_blocks
         render_400(nil, { code_blocks: [ "は#{ReorderSangaku::MAX_CODE_BLOCKS}個以内にしてください" ] })
+      end
+
+      def render_malformed_code_blocks
+        render_400(nil, { code_blocks: [ "の形式が不正です" ] })
       end
     end
   end

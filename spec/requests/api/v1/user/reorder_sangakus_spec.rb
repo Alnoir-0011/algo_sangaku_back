@@ -170,6 +170,30 @@ RSpec.describe "Api::V1::User::ReorderSangakus", type: :request do
         end
       end
 
+      # permit はハッシュ以外の要素を黙って捨てるため、そのままだと送った数より
+      # 少ないブロックで保存されてしまう。組み立てる前に弾く
+      context "with a non-hash element mixed into code_blocks", openapi: false do
+        let(:code_blocks_params) do
+          [
+            { content: "puts 1", correct_position: 1 },
+            "not_a_hash",
+            { content: "puts 2", correct_position: 2 }
+          ]
+        end
+
+        it "returns 400 without creating a sangaku" do
+          expect_any_instance_of(ReorderSangaku).not_to receive(:save_with_code_blocks)
+
+          expect {
+            post api_v1_user_reorder_sangakus_path, headers: headers, params: params.to_json
+          }.not_to change(Sangaku, :count)
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include "code_blocks"
+          expect(body["errors"].to_h["code_blocks"]).to include "の形式が不正です"
+        end
+      end
+
       # どのブロックが問題か front で示せるよう、メッセージに送信順の位置を入れる
       context "with a blank content in one of the code_blocks", openapi: false do
         let(:code_blocks_params) do
@@ -372,6 +396,27 @@ RSpec.describe "Api::V1::User::ReorderSangakus", type: :request do
           expect(response).to have_http_status(400)
           expect(error_keys).to include "code_blocks"
           expect(sangaku.sangakuable.code_blocks.count).to eq 2
+        end
+      end
+
+      context "with a non-hash element mixed into code_blocks", openapi: false do
+        let(:code_blocks_params) do
+          [
+            { content: "puts 1", correct_position: 1 },
+            [ "not_a_hash" ],
+            { content: "puts 2", correct_position: 2 }
+          ]
+        end
+        let(:params) { { sangaku: attributes_for(:reorder_sangaku_params), code_blocks: code_blocks_params }.to_json }
+
+        it "returns 400 without changing the code_blocks" do
+          expect_any_instance_of(ReorderSangaku).not_to receive(:save_with_code_blocks)
+
+          http_request
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include "code_blocks"
+          expect(sangaku.sangakuable.code_blocks.reload.count).to eq 2
         end
       end
 

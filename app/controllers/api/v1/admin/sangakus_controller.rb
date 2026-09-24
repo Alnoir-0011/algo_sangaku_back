@@ -25,6 +25,7 @@ module Api
           saved =
             if reorder_code_blocks_given?
               return render_too_many_code_blocks if too_many_code_blocks?
+              return render_malformed_code_blocks if malformed_code_blocks?
 
               sangakuable.save_with_code_blocks(code_blocks_params)
             else
@@ -68,6 +69,10 @@ module Api
 
         def render_too_many_code_blocks
           render_400(nil, [ "code_blocksは#{ReorderSangaku::MAX_CODE_BLOCKS}個以内にしてください" ])
+        end
+
+        def render_malformed_code_blocks
+          render_400(nil, [ "code_blocksの形式が不正です" ])
         end
 
         # code_blocks を伴わない通常の更新。バリデーションが通った場合のみ保存する（issue #278）。

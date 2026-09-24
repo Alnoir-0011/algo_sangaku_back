@@ -355,6 +355,37 @@ RSpec.describe "Api::V1::Admin::Sangakus", type: :request do
         end
       end
 
+      # permit はハッシュ以外の要素を黙って捨てるため、そのままだと送った数より
+      # 少ないブロックで保存されてしまう。組み立てる前に弾く
+      context "when a non-hash element is mixed into code_blocks for a reorder sangaku", openapi: false do
+        let!(:reorder_sangaku) { create(:sangaku, :reorder, user: general_user) }
+        let(:code_blocks_params) do
+          [
+            { content: "puts 1", correct_position: 1 },
+            "not_a_hash",
+            { content: "puts 2", correct_position: 2 }
+          ]
+        end
+        let(:params) { { sangaku: { title: "更新タイトル" }, code_blocks: code_blocks_params } }
+
+        it "returns 400 and does not change the code_blocks" do
+          # Arrange
+          authenticate_stub(admin_user)
+          expect_any_instance_of(ReorderSangaku).not_to receive(:save_with_code_blocks)
+
+          # Act
+          patch api_v1_admin_sangaku_path(reorder_sangaku.id),
+                params: params.to_json,
+                headers: headers
+
+          # Assert
+          expect(response).to have_http_status(:bad_request)
+          expect(body["errors"]).to include "code_blocksの形式が不正です"
+          expect(reorder_sangaku.sangakuable.code_blocks.reload.count).to eq 2
+          expect(reorder_sangaku.reload.title).not_to eq "更新タイトル"
+        end
+      end
+
       context "when code_blocks exceed MAX_CODE_BLOCKS for a reorder sangaku", openapi: false do
         let!(:reorder_sangaku) { create(:sangaku, :reorder, user: general_user) }
         let(:code_blocks_params) do

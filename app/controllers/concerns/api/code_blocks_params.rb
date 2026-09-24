@@ -17,6 +17,18 @@ module Api::CodeBlocksParams
     blocks.is_a?(Array) && blocks.size > ReorderSangaku::MAX_CODE_BLOCKS
   end
 
+  # permit はハッシュ以外の要素（文字列・数値・配列）を黙って除外するため、
+  # そのままだと送った数より少ないブロックで保存されてしまう。組み立てる前に形を確かめて弾く。
+  # 判定するのは「要素がハッシュか」までで、content の欠落や correct_position の型違いは
+  # 従来どおりモデルの検証に任せる（issue #278）。
+  def malformed_code_blocks?
+    blocks = params[:code_blocks]
+
+    return true unless blocks.is_a?(Array)
+
+    blocks.any? { |block| !block.is_a?(ActionController::Parameters) && !block.is_a?(Hash) }
+  end
+
   # ReorderSangaku#save_with_code_blocks が受け取る、シンボルキーのハッシュ配列にする
   def code_blocks_params
     blocks = params.permit(code_blocks: %i[content correct_position])[:code_blocks]
