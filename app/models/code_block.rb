@@ -5,5 +5,7 @@
 class CodeBlock < ApplicationRecord
   belongs_to :reorder_sangaku
 
-  validates :content, presence: true, length: { maximum: 2000 }
+  MAX_CONTENT_LENGTH = 2000
+
+  validates :content, presence: true, length: { maximum: MAX_CONTENT_LENGTH }
 end

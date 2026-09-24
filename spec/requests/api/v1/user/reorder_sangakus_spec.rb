@@ -170,6 +170,26 @@ RSpec.describe "Api::V1::User::ReorderSangakus", type: :request do
         end
       end
 
+      # どのブロックが問題か front で示せるよう、メッセージに送信順の位置を入れる
+      context "with a blank content in one of the code_blocks", openapi: false do
+        let(:code_blocks_params) do
+          [
+            { content: "puts 1", correct_position: 1 },
+            { content: "", correct_position: 2 }
+          ]
+        end
+
+        it "returns the code_blocks error key with the position of the blank block" do
+          expect {
+            post api_v1_user_reorder_sangakus_path, headers: headers, params: params.to_json
+          }.not_to change(Sangaku, :count)
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include "code_blocks"
+          expect(body["errors"].to_h["code_blocks"]).to include "の2番目の内容を入力してください"
+        end
+      end
+
       context "with a correct_position sequence that does not start from 1", openapi: false do
         let(:code_blocks_params) do
           [
@@ -352,6 +372,26 @@ RSpec.describe "Api::V1::User::ReorderSangakus", type: :request do
           expect(response).to have_http_status(400)
           expect(error_keys).to include "code_blocks"
           expect(sangaku.sangakuable.code_blocks.count).to eq 2
+        end
+      end
+
+      context "with a content longer than the limit in one of the code_blocks", openapi: false do
+        let(:code_blocks_params) do
+          [
+            { content: "puts 1", correct_position: 1 },
+            { content: "puts 2", correct_position: 2 },
+            { content: "a" * (CodeBlock::MAX_CONTENT_LENGTH + 1), correct_position: 3 }
+          ]
+        end
+        let(:params) { { sangaku: attributes_for(:reorder_sangaku_params), code_blocks: code_blocks_params }.to_json }
+
+        it "returns the code_blocks error key with the position of the too long block" do
+          http_request
+
+          expect(response).to have_http_status(400)
+          expect(error_keys).to include "code_blocks"
+          expect(body["errors"].to_h["code_blocks"]).to include "の3番目は#{CodeBlock::MAX_CONTENT_LENGTH}文字以内にしてください"
+          expect(sangaku.sangakuable.code_blocks.reload.count).to eq 2
         end
       end
 

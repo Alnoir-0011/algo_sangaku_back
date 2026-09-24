@@ -6,7 +6,12 @@ class ReorderSangaku < ApplicationRecord
 
   has_many :code_blocks, dependent: :destroy
 
+  # save_with_code_blocks に渡された送信順のブロック。エラーに送信順の位置を入れるために持つ。
+  # INSERT 前にシャッフルするため、保存する側（code_blocks）の並びは送信順とは一致しない。
+  attr_accessor :submitted_code_blocks
+
   validate :code_blocks_composition
+  validate :submitted_code_blocks_contents
 
   # 解答で送られた block_ids の「形」が正しいかを判定する（中身の正誤は correct? で判定する）。
   # 形が不正な解答は判定せずに 400 とし、解答を消費させない。
@@ -29,6 +34,7 @@ class ReorderSangaku < ApplicationRecord
   # 片方だけ外すと正解順が推測できるため、どちらも必要。
   def save_with_code_blocks(new_blocks, shuffler: ->(items) { items.shuffle(random: SecureRandom) })
     new_blocks ||= []
+    self.submitted_code_blocks = new_blocks
     ordered_blocks = shuffler.call(new_blocks)
 
     ActiveRecord::Base.transaction do
@@ -94,6 +100,25 @@ class ReorderSangaku < ApplicationRecord
       errors.add(:code_blocks, "は正解ブロックを2個以上指定してください")
     elsif correct_positions != (1..correct_positions.size).to_a
       errors.add(:code_blocks, "の正解順序は1から始まる連番にしてください")
+    end
+  end
+
+  # CodeBlock 側の検証だけだと、レスポンスは関連名に付く「は不正な値です」になり、
+  # どのブロックが原因か分からない。送信順の位置と理由をエラーに足す。
+  # 正解が画面やログに出ないよう、メッセージにブロックの内容そのものは含めない。
+  # エラーのキーは front が項目の出し分けに使っているため :code_blocks のまま変えない（issue #278）。
+  def submitted_code_blocks_contents
+    return if submitted_code_blocks.blank?
+
+    submitted_code_blocks.each_with_index do |block, index|
+      content = block[:content]
+      position = index + 1
+
+      if content.blank?
+        errors.add(:code_blocks, "の#{position}番目の内容を入力してください")
+      elsif content.length > CodeBlock::MAX_CONTENT_LENGTH
+        errors.add(:code_blocks, "の#{position}番目は#{CodeBlock::MAX_CONTENT_LENGTH}文字以内にしてください")
+      end
     end
   end
 end

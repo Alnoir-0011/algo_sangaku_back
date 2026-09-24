@@ -237,6 +237,63 @@ RSpec.describe ReorderSangaku, type: :model do
       expect(persisted_order).to eq [ 3, 2, 1 ]
     end
 
+    # どのブロックが問題かフロントで示せるよう、エラーに送信順の位置を入れる。
+    # INSERT 前にシャッフルするため、保存後の並びではなく送信順で番号を振る（issue #278）
+    context 'when a block has an invalid content' do
+      it 'reports the position of a blank content in the submitted order' do
+        sangaku = create(:sangaku, :reorder)
+        reorder_sangaku = sangaku.sangakuable
+        new_blocks = [
+          { content: "content_1", correct_position: 1 },
+          { content: "", correct_position: 2 },
+          { content: "content_3", correct_position: 3 }
+        ]
+
+        expect(reorder_sangaku.save_with_code_blocks(new_blocks)).to eq false
+        expect(reorder_sangaku.errors[:code_blocks]).to include "の2番目の内容を入力してください"
+      end
+
+      it 'reports the position of a too long content in the submitted order' do
+        sangaku = create(:sangaku, :reorder)
+        reorder_sangaku = sangaku.sangakuable
+        new_blocks = [
+          { content: "content_1", correct_position: 1 },
+          { content: "content_2", correct_position: 2 },
+          { content: "a" * 2001, correct_position: 3 }
+        ]
+
+        expect(reorder_sangaku.save_with_code_blocks(new_blocks)).to eq false
+        expect(reorder_sangaku.errors[:code_blocks]).to include "の3番目は2000文字以内にしてください"
+      end
+
+      # 番号が保存後の並び（シャッフル済み）ではなく送信順であることを、並びを固定して確かめる
+      it 'numbers the blocks by the submitted order even when the persisted order differs' do
+        sangaku = create(:sangaku, :reorder)
+        reorder_sangaku = sangaku.sangakuable
+        new_blocks = [
+          { content: "", correct_position: 1 },
+          { content: "content_2", correct_position: 2 }
+        ]
+        reverse_shuffler = ->(items) { items.reverse }
+
+        expect(reorder_sangaku.save_with_code_blocks(new_blocks, shuffler: reverse_shuffler)).to eq false
+        expect(reorder_sangaku.errors[:code_blocks]).to include "の1番目の内容を入力してください"
+      end
+
+      # 正解が画面やログに出ないよう、メッセージにブロックの内容そのものを含めない
+      it 'does not include the content itself in the message' do
+        sangaku = create(:sangaku, :reorder)
+        reorder_sangaku = sangaku.sangakuable
+        new_blocks = [
+          { content: "secret_answer_block", correct_position: 1 },
+          { content: "a" * 2001, correct_position: 2 }
+        ]
+
+        expect(reorder_sangaku.save_with_code_blocks(new_blocks)).to eq false
+        expect(reorder_sangaku.errors[:code_blocks].join).not_to include "secret_answer_block"
+      end
+    end
+
     context 'when the new composition is invalid' do
       it 'returns false and keeps the existing code_blocks unchanged' do
         sangaku = create(:sangaku, :reorder)
