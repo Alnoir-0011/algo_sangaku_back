@@ -56,7 +56,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '93'
+                - id: '6730'
                   type: shrine
                   attributes:
                     name: test_shrine
@@ -175,7 +175,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '101'
+                  id: '6740'
                   type: shrine
                   attributes:
                     name: 新しい神社
@@ -221,7 +221,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 117
+        example: 6756
       responses:
         '200':
           description: returns 200 and deletes shrine
@@ -266,7 +266,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '114'
+                  id: '6753'
                   type: shrine
                   attributes:
                     name: test_shrine
@@ -311,7 +311,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 99
+        example: 6738
       responses:
         '200':
           description: returns 200 with shrine attributes
@@ -356,7 +356,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '96'
+                  id: '6733'
                   type: shrine
                   attributes:
                     name: test_shrine
@@ -401,7 +401,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 113
+        example: 6752
       requestBody:
         content:
           application/json:
@@ -464,7 +464,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '108'
+                  id: '6747'
                   type: shrine
                   attributes:
                     name: 更新後の神社名

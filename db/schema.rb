@@ -10,27 +10,29 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_13_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_12_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "answer_results", force: :cascade do |t|
-    t.bigint "answer_id", null: false
+    t.bigint "code_answer_id", null: false
     t.datetime "created_at", null: false
     t.bigint "fixed_input_id"
     t.text "output"
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
-    t.index [ "answer_id" ], name: "index_answer_results_on_answer_id"
-    t.index [ "fixed_input_id", "answer_id" ], name: "index_answer_results_on_fixed_input_id_and_answer_id", unique: true
+    t.index [ "code_answer_id" ], name: "index_answer_results_on_code_answer_id"
+    t.index [ "fixed_input_id", "code_answer_id" ], name: "index_answer_results_on_fixed_input_id_and_code_answer_id", unique: true
     t.index [ "fixed_input_id" ], name: "index_answer_results_on_fixed_input_id"
   end
 
   create_table "answers", force: :cascade do |t|
+    t.bigint "answerable_id", null: false
+    t.string "answerable_type", null: false
     t.datetime "created_at", null: false
-    t.text "source", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_sangaku_save_id", null: false
+    t.index [ "answerable_type", "answerable_id" ], name: "index_answers_on_answerable_type_and_answerable_id", unique: true
     t.index [ "user_sangaku_save_id" ], name: "index_answers_on_user_sangaku_save_id_unique", unique: true
   end
 
@@ -45,14 +47,38 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_13_000000) do
     t.index [ "user_id" ], name: "index_api_keys_on_user_id"
   end
 
+  create_table "code_answers", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "source", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "code_blocks", force: :cascade do |t|
+    t.text "content", null: false
+    t.integer "correct_position"
+    t.datetime "created_at", null: false
+    t.bigint "reorder_sangaku_id", null: false
+    t.datetime "updated_at", null: false
+    t.index [ "reorder_sangaku_id", "correct_position" ], name: "index_code_blocks_on_reorder_sangaku_id_and_correct_position", unique: true
+    t.index [ "reorder_sangaku_id" ], name: "index_code_blocks_on_reorder_sangaku_id"
+  end
+
+  create_table "code_sangakus", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description", null: false
+    t.integer "difficulty", default: 0, null: false
+    t.text "source", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "fixed_inputs", force: :cascade do |t|
+    t.bigint "code_sangaku_id", null: false
     t.text "content", null: false
     t.datetime "created_at", null: false
     t.text "expected_output"
-    t.bigint "sangaku_id", null: false
     t.datetime "updated_at", null: false
-    t.index [ "content", "sangaku_id" ], name: "index_fixed_inputs_on_content_and_sangaku_id", unique: true
-    t.index [ "sangaku_id" ], name: "index_fixed_inputs_on_sangaku_id"
+    t.index [ "code_sangaku_id" ], name: "index_fixed_inputs_on_code_sangaku_id"
+    t.index [ "content", "code_sangaku_id" ], name: "index_fixed_inputs_on_content_and_code_sangaku_id", unique: true
   end
 
   create_table "generate_source_call_logs", force: :cascade do |t|
@@ -64,15 +90,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_13_000000) do
     t.index [ "user_id" ], name: "index_generate_source_call_logs_on_user_id"
   end
 
-  create_table "sangakus", force: :cascade do |t|
+  create_table "reorder_answers", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "result", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "reorder_sangakus", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description", null: false
     t.integer "difficulty", default: 0, null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "sangakus", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "sangakuable_id", null: false
+    t.string "sangakuable_type", null: false
     t.bigint "shrine_id"
-    t.text "source", null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index [ "sangakuable_type", "sangakuable_id" ], name: "index_sangakus_on_sangakuable_type_and_sangakuable_id", unique: true
     t.index [ "shrine_id" ], name: "index_sangakus_on_shrine_id"
     t.index [ "user_id" ], name: "index_sangakus_on_user_id"
   end
@@ -233,11 +272,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_13_000000) do
     t.index [ "uid" ], name: "index_users_on_uid", unique: true
   end
 
-  add_foreign_key "answer_results", "answers"
+  add_foreign_key "answer_results", "code_answers"
   add_foreign_key "answer_results", "fixed_inputs"
   add_foreign_key "answers", "user_sangaku_saves", column: "user_sangaku_save_id"
   add_foreign_key "api_keys", "users"
-  add_foreign_key "fixed_inputs", "sangakus"
+  add_foreign_key "code_blocks", "reorder_sangakus"
+  add_foreign_key "fixed_inputs", "code_sangakus"
   add_foreign_key "generate_source_call_logs", "users"
   add_foreign_key "sangakus", "shrines"
   add_foreign_key "sangakus", "users"

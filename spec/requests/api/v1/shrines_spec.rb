@@ -51,6 +51,18 @@ RSpec.describe "Api::V1::Shrines", type: :request do
         end
       end
 
+      context "with sangakus in both code and reorder format", openapi: false do
+        let!(:shrine) { create(:shrine, place_id: shrine_attributes[:place_id]) }
+        let!(:code_sangaku) { create(:sangaku, shrine:) }
+        let!(:reorder_sangaku) { create(:sangaku, :reorder, shrine:) }
+
+        it "sums sangaku_count across both formats" do
+          http_request
+
+          expect(body['data'][0]['attributes']['sangaku_count']).to eq(2)
+        end
+      end
+
       context "without params", openapi: false do
         let(:params) { { "searchType" => "Map" } }
 
@@ -133,6 +145,17 @@ RSpec.describe "Api::V1::Shrines", type: :request do
           http_request
 
           expect(body["data"]["attributes"]["sangaku_count"]).to eq(3)
+        end
+      end
+
+      context "with sangakus dedicated to the shrine in both code and reorder format", openapi: false do
+        let!(:code_sangaku) { create(:sangaku, shrine:) }
+        let!(:reorder_sangaku) { create(:sangaku, :reorder, shrine:) }
+
+        it "sums sangaku_count across both formats" do
+          http_request
+
+          expect(body["data"]["attributes"]["sangaku_count"]).to eq(2)
         end
       end
     end

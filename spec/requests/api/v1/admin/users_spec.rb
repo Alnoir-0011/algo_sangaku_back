@@ -138,6 +138,19 @@ RSpec.describe "Api::V1::Admin::Users", type: :request do
 
         expect(response).to have_http_status(:not_found)
       end
+
+      context "when the target user has sangakus in both code and reorder format", openapi: false do
+        let!(:target_user) { create(:user) }
+        let!(:code_sangaku) { create(:sangaku, user: target_user) }
+        let!(:reorder_sangaku) { create(:sangaku, :reorder, user: target_user) }
+
+        it "sums sangaku_count across both formats" do
+          authenticate_stub(admin_user)
+          get api_v1_admin_user_path(target_user.id), headers: headers
+
+          expect(body["data"]["attributes"]["sangaku_count"]).to eq(2)
+        end
+      end
     end
 
     context "as general user" do

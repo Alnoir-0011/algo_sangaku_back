@@ -17,12 +17,18 @@ paths:
         schema:
           type: string
         example: normal
+      - name: kind
+        in: query
+        required: false
+        schema:
+          type: string
+        example: code
       - name: shrine_id
         in: path
         required: true
         schema:
           type: integer
-        example: 134
+        example: 6777
       - name: title
         in: query
         required: false
@@ -31,7 +37,7 @@ paths:
         example: test_title
       responses:
         '200':
-          description: issues a query with an explicit ascending id order
+          description: returns only code sangakus
           content:
             application/json:
               schema:
@@ -61,6 +67,8 @@ paths:
                             author_name:
                               type: string
                             shrine_name:
+                              type: string
+                            kind:
                               type: string
                           required:
                           - title
@@ -113,39 +121,22 @@ paths:
                 - data
               example:
                 data:
-                - id: '220'
-                  type: sangaku
-                  attributes:
-                    title: other_title
-                    description: test_description
-                    difficulty: normal
-                    inputs: []
-                    author_name: test nickname
-                    shrine_name: test_shrine
-                  relationships:
-                    user:
-                      data:
-                        id: '569'
-                        type: user
-                    shrine:
-                      data:
-                        id: '134'
-                        type: shrine
-                - id: '221'
+                - id: '17381'
                   type: sangaku
                   attributes:
                     title: test_title
                     description: test_description
                     difficulty: normal
+                    kind: code
                     inputs: []
                     author_name: test nickname
                     shrine_name: test_shrine
                   relationships:
                     user:
                       data:
-                        id: '568'
+                        id: '32994'
                         type: user
                     shrine:
                       data:
-                        id: '134'
+                        id: '6777'
                         type: shrine

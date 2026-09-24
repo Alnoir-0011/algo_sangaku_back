@@ -1,0 +1,374 @@
+---
+openapi: 3.2.0
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/user/reorder_sangakus":
+    post:
+      summary: create
+      tags:
+      - Api::V1::User::ReorderSangaku
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sangaku:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    difficulty:
+                      type: string
+                  required:
+                  - title
+                  - description
+                  - difficulty
+                code_blocks:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      content:
+                        type: string
+                      correct_position:
+                        type:
+                        - integer
+                        - 'null'
+                    required:
+                    - content
+                    - correct_position
+              required:
+              - sangaku
+              - code_blocks
+            example:
+              sangaku:
+                title: test_title
+                description: test_description
+                difficulty: easy
+              code_blocks:
+              - content: puts 1
+                correct_position: 1
+              - content: puts 2
+                correct_position: 2
+              - content: dummy
+                correct_position:
+      responses:
+        '200':
+          description: returns the created sangaku's title in JSON:API format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description:
+                            type: string
+                          difficulty:
+                            type: string
+                          kind:
+                            type: string
+                          source:
+                            type: 'null'
+                          inputs:
+                            type: array
+                            items: {}
+                          author_name:
+                            type: string
+                          shrine_name:
+                            type: 'null'
+                          code_blocks:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                content:
+                                  type: string
+                                correct_position:
+                                  type:
+                                  - integer
+                                  - 'null'
+                              required:
+                              - id
+                              - content
+                              - correct_position
+                        required:
+                        - title
+                        - description
+                        - difficulty
+                        - kind
+                        - source
+                        - inputs
+                        - author_name
+                        - shrine_name
+                        - code_blocks
+                      relationships:
+                        type: object
+                        properties:
+                          user:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          shrine:
+                            type: object
+                            properties:
+                              data:
+                                type: 'null'
+                            required:
+                            - data
+                        required:
+                        - user
+                        - shrine
+                    required:
+                    - id
+                    - type
+                    - attributes
+                    - relationships
+                required:
+                - data
+              example:
+                data:
+                  id: '17458'
+                  type: sangaku
+                  attributes:
+                    title: test_title
+                    description: test_description
+                    difficulty: easy
+                    kind: reorder
+                    source:
+                    inputs: []
+                    author_name: test nickname
+                    shrine_name:
+                    code_blocks:
+                    - id: 14007
+                      content: puts 1
+                      correct_position: 1
+                    - id: 14006
+                      content: puts 2
+                      correct_position: 2
+                    - id: 14008
+                      content: dummy
+                      correct_position:
+                  relationships:
+                    user:
+                      data:
+                        id: '33105'
+                        type: user
+                    shrine:
+                      data:
+  "/api/v1/user/reorder_sangakus/{id}":
+    patch:
+      summary: update
+      tags:
+      - Api::V1::User::ReorderSangaku
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 17466
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sangaku:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    difficulty:
+                      type: string
+                  required:
+                  - title
+                  - description
+                  - difficulty
+                code_blocks:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      content:
+                        type: string
+                      correct_position:
+                        type:
+                        - integer
+                        - 'null'
+                    required:
+                    - content
+                    - correct_position
+              required:
+              - sangaku
+              - code_blocks
+            example:
+              sangaku:
+                title: test_title
+                description: test_description
+                difficulty: easy
+              code_blocks:
+              - content: puts 1
+                correct_position: 1
+              - content: puts 2
+                correct_position: 2
+              - content: dummy
+                correct_position:
+      responses:
+        '200':
+          description: replaces all code_blocks with the given ones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description:
+                            type: string
+                          difficulty:
+                            type: string
+                          kind:
+                            type: string
+                          source:
+                            type: 'null'
+                          inputs:
+                            type: array
+                            items: {}
+                          author_name:
+                            type: string
+                          shrine_name:
+                            type: 'null'
+                          code_blocks:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                content:
+                                  type: string
+                                correct_position:
+                                  type:
+                                  - integer
+                                  - 'null'
+                              required:
+                              - id
+                              - content
+                              - correct_position
+                        required:
+                        - title
+                        - description
+                        - difficulty
+                        - kind
+                        - source
+                        - inputs
+                        - author_name
+                        - shrine_name
+                        - code_blocks
+                      relationships:
+                        type: object
+                        properties:
+                          user:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          shrine:
+                            type: object
+                            properties:
+                              data:
+                                type: 'null'
+                            required:
+                            - data
+                        required:
+                        - user
+                        - shrine
+                    required:
+                    - id
+                    - type
+                    - attributes
+                    - relationships
+                required:
+                - data
+              example:
+                data:
+                  id: '17466'
+                  type: sangaku
+                  attributes:
+                    title: test_title
+                    description: test_description
+                    difficulty: easy
+                    kind: reorder
+                    source:
+                    inputs: []
+                    author_name: test nickname
+                    shrine_name:
+                    code_blocks:
+                    - id: 14084
+                      content: puts 1
+                      correct_position: 1
+                    - id: 14083
+                      content: puts 2
+                      correct_position: 2
+                    - id: 14082
+                      content: dummy
+                      correct_position:
+                  relationships:
+                    user:
+                      data:
+                        id: '33120'
+                        type: user
+                    shrine:
+                      data:

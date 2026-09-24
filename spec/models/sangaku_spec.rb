@@ -13,17 +13,85 @@ RSpec.describe Sangaku, type: :model do
       expect(sangaku).to be_invalid
       expect(sangaku.errors[:title]).to eq [ 'を入力してください' ]
     end
+  end
 
-    it 'is invalid without description' do
-      sangaku = build(:sangaku, description: "")
-      expect(sangaku).to be_invalid
-      expect(sangaku.errors[:description]).to eq [ 'を入力してください' ]
+  # 形式固有のカラムは sangakuable が持つ（issue #278）
+  # 形式を追加して KINDS を更新し忘れると、レスポンスの kind が null になり、kind フィルターも効かない
+  describe 'KINDS' do
+    it 'covers every sangakuable type registered in delegated_type' do
+      expect(Sangaku::KINDS.values).to match_array(Sangaku.sangakuable_types)
+    end
+  end
+
+  describe 'delegated_type' do
+    it 'has a code_sangaku as its sangakuable' do
+      sangaku = create(:sangaku)
+
+      expect(sangaku.code_sangaku?).to eq true
+      expect(sangaku.sangakuable).to be_a CodeSangaku
     end
 
-    it 'is invalid without source' do
-      sangaku = build(:sangaku, source: "")
-      expect(sangaku).to be_invalid
-      expect(sangaku.errors[:source]).to eq [ 'を入力してください' ]
+    it 'delegates description and difficulty to the sangakuable' do
+      sangaku = create(:sangaku, description: "delegated_description", difficulty: "normal")
+
+      expect(sangaku.description).to eq "delegated_description"
+      expect(sangaku.difficulty).to eq "normal"
+    end
+
+    it 'destroys the sangakuable when it is destroyed' do
+      sangaku = create(:sangaku)
+      code_sangaku = sangaku.sangakuable
+
+      sangaku.destroy!
+
+      expect(CodeSangaku.exists?(code_sangaku.id)).to eq false
+    end
+
+    context 'when the sangakuable is a reorder_sangaku' do
+      it 'has a reorder_sangaku as its sangakuable' do
+        sangaku = create(:sangaku, :reorder)
+
+        expect(sangaku.reorder_sangaku?).to eq true
+        expect(sangaku.code_sangaku?).to eq false
+        expect(sangaku.sangakuable).to be_a ReorderSangaku
+      end
+
+      it 'delegates description and difficulty to the sangakuable' do
+        sangaku = create(:sangaku, :reorder, description: "delegated_description", difficulty: "normal")
+
+        expect(sangaku.description).to eq "delegated_description"
+        expect(sangaku.difficulty).to eq "normal"
+      end
+
+      it 'destroys the sangakuable when it is destroyed' do
+        sangaku = create(:sangaku, :reorder)
+        reorder_sangaku = sangaku.sangakuable
+
+        sangaku.destroy!
+
+        expect(ReorderSangaku.exists?(reorder_sangaku.id)).to eq false
+      end
+    end
+  end
+
+  describe '.search' do
+    it 'filters by difficulty even though the column lives on the sangakuable' do
+      easy_sangaku = create(:sangaku, difficulty: "easy")
+      normal_sangaku = create(:sangaku, difficulty: "normal")
+
+      result = Sangaku.search({ difficulty: "normal" })
+
+      expect(result).to include normal_sangaku
+      expect(result).not_to include easy_sangaku
+    end
+
+    it 'ignores an unknown difficulty value' do
+      easy_sangaku = create(:sangaku, difficulty: "easy")
+      normal_sangaku = create(:sangaku, difficulty: "normal")
+
+      result = Sangaku.search({ difficulty: "unknown" })
+
+      expect(result).to include easy_sangaku, normal_sangaku
     end
   end
 
@@ -38,39 +106,39 @@ RSpec.describe Sangaku, type: :model do
       expect { sangaku.destroy! }.not_to raise_error
       expect(FixedInput.exists?(fixed_input.id)).to eq false
     end
-  end
 
-  describe '#save_with_inputs' do
-    it 'removes a fixed_input that has answer_results without raising a foreign key violation' do
-      sangaku = create(:sangaku)
-      fixed_input = create(:fixed_input, sangaku: sangaku, content: "old_input")
-      sangaku.reload
-      user_sangaku_save = create(:user_sangaku_save, sangaku: sangaku)
-      create(:answer, user_sangaku_save: user_sangaku_save)
+    it 'destroys associated code_blocks without raising a foreign key violation when the sangakuable is a reorder_sangaku' do
+      sangaku = create(:sangaku, :reorder)
+      # :reorder trait 側で correct_position 1, 2 の code_block が既に存在するため、
+      # 衝突を避けるためダミーブロック（correct_position: nil）を追加する
+      code_block = create(:code_block, :dummy, reorder_sangaku: sangaku.sangakuable)
 
-      expect(sangaku.save_with_inputs([])).to eq true
-      expect(FixedInput.exists?(fixed_input.id)).to eq false
+      expect { sangaku.destroy! }.not_to raise_error
+      expect(CodeBlock.exists?(code_block.id)).to eq false
     end
 
-    it 'returns false when save! raises ActiveRecord::RecordInvalid' do
-      sangaku = create(:sangaku)
-      allow(sangaku).to receive(:save!).and_raise(ActiveRecord::RecordInvalid.new(sangaku))
+    it 'destroys the sangaku and its associated saves and answers without raising a foreign key violation when it is a reorder_sangaku saved and answered by another user' do
+      sangaku = create(:sangaku, :reorder)
+      reorder_sangaku_id = sangaku.sangakuable.id
+      # 生成直後の code_blocks は :reorder trait 側のキャッシュが残る可能性があるため pluck で取り直す
+      code_block_ids = sangaku.sangakuable.code_blocks.pluck(:id)
+      other_user = create(:user)
+      user_sangaku_save = create(:user_sangaku_save, user: other_user, sangaku: sangaku)
+      answer = create(:answer, :reorder, user_sangaku_save: user_sangaku_save)
 
-      expect(sangaku.save_with_inputs([])).to eq false
-    end
+      sangaku_id = sangaku.id
+      user_sangaku_save_id = user_sangaku_save.id
+      answer_id = answer.id
+      reorder_answer_id = answer.answerable.id
 
-    it 'returns false when save! raises ActiveRecord::RecordNotUnique' do
-      sangaku = create(:sangaku)
-      allow(sangaku).to receive(:save!).and_raise(ActiveRecord::RecordNotUnique.new("duplicate key"))
+      expect { sangaku.destroy! }.not_to raise_error
 
-      expect(sangaku.save_with_inputs([])).to eq false
-    end
-
-    it 'raises when an unexpected error occurs' do
-      sangaku = create(:sangaku)
-      allow(sangaku).to receive(:save!).and_raise(StandardError, "unexpected error")
-
-      expect { sangaku.save_with_inputs([]) }.to raise_error(StandardError, "unexpected error")
+      expect(Sangaku.exists?(sangaku_id)).to eq false
+      expect(ReorderSangaku.exists?(reorder_sangaku_id)).to eq false
+      expect(CodeBlock.where(id: code_block_ids).exists?).to eq false
+      expect(UserSangakuSave.exists?(user_sangaku_save_id)).to eq false
+      expect(Answer.exists?(answer_id)).to eq false
+      expect(ReorderAnswer.exists?(reorder_answer_id)).to eq false
     end
   end
 

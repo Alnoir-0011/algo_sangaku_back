@@ -12,7 +12,7 @@ paths:
       - Api::V1::User::Sangaku
       responses:
         '200':
-          description: return search result in json format
+          description: returns only code sangakus
           content:
             application/json:
               schema:
@@ -47,11 +47,13 @@ paths:
                               type:
                               - string
                               - 'null'
+                            kind:
+                              type: string
                           required:
                           - title
                           - description
-                          - source
                           - difficulty
+                          - source
                           - inputs
                           - author_name
                         relationships:
@@ -101,26 +103,33 @@ paths:
                 - data
               example:
                 data:
-                - id: '263'
+                - id: '17507'
                   type: sangaku
                   attributes:
                     title: test_title
                     description: test_description
-                    source: puts 'Hello world'
                     difficulty: easy
+                    kind: code
+                    source: puts 'Hello world'
                     inputs: []
                     author_name: test nickname
                     shrine_name: test_shrine
                   relationships:
                     user:
                       data:
-                        id: '626'
+                        id: '33171'
                         type: user
                     shrine:
                       data:
-                        id: '173'
+                        id: '6834'
                         type: shrine
       parameters:
+      - name: kind
+        in: query
+        required: false
+        schema:
+          type: string
+        example: code
       - name: shrine_id
         in: query
         required: false
@@ -135,238 +144,6 @@ paths:
         schema:
           type: string
         example: another
-    post:
-      summary: create
-      tags:
-      - Api::V1::User::Sangaku
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                sangaku:
-                  type: object
-                  properties:
-                    title:
-                      type: string
-                    description:
-                      type: string
-                    source:
-                      type: string
-                    difficulty:
-                      type: string
-                  required:
-                  - title
-                  - description
-                  - source
-                  - difficulty
-                fixed_inputs:
-                  type: array
-                  items:
-                    type: string
-              required:
-              - sangaku
-              - fixed_inputs
-            example:
-              sangaku:
-                title: test_title
-                description: test_description
-                source: puts 'Hello world'
-                difficulty: easy
-              fixed_inputs:
-              - test_input_2
-      responses:
-        '200':
-          description: success to create sangaku
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      type:
-                        type: string
-                      attributes:
-                        type: object
-                        properties:
-                          title:
-                            type: string
-                          description:
-                            type: string
-                          source:
-                            type: string
-                          difficulty:
-                            type: string
-                          inputs:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                id:
-                                  type: integer
-                                content:
-                                  type: string
-                              required:
-                              - id
-                              - content
-                          author_name:
-                            type: string
-                          shrine_name:
-                            type: 'null'
-                        required:
-                        - title
-                        - description
-                        - source
-                        - difficulty
-                        - inputs
-                        - author_name
-                      relationships:
-                        type: object
-                        properties:
-                          user:
-                            type: object
-                            properties:
-                              data:
-                                type: object
-                                properties:
-                                  id:
-                                    type: string
-                                  type:
-                                    type: string
-                                required:
-                                - id
-                                - type
-                            required:
-                            - data
-                          shrine:
-                            type: object
-                            properties:
-                              data:
-                                type: 'null'
-                            required:
-                            - data
-                        required:
-                        - user
-                        - shrine
-                    required:
-                    - id
-                    - type
-                    - attributes
-                    - relationships
-                required:
-                - data
-              example:
-                data:
-                  id: '268'
-                  type: sangaku
-                  attributes:
-                    title: test_title
-                    description: test_description
-                    source: puts 'Hello world'
-                    difficulty: easy
-                    inputs:
-                    - id: 7
-                      content: test_input_2
-                    author_name: test nickname
-                    shrine_name:
-                  relationships:
-                    user:
-                      data:
-                        id: '630'
-                        type: user
-                    shrine:
-                      data:
-  "/api/v1/user/sangakus/generate_source":
-    post:
-      summary: generate_source
-      tags:
-      - Api::V1::User::Sangaku
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                description:
-                  type: string
-              required:
-              - description
-            example:
-              description: 1からnまでの合計を計算して出力してください
-      responses:
-        '200':
-          description: calls OpenAI API with wrapped description
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  source:
-                    type: string
-                  usage:
-                    type: object
-                    properties:
-                      used:
-                        type: integer
-                      limit:
-                        type: integer
-                      remaining:
-                        type: integer
-                      reset_at:
-                        type: string
-                    required:
-                    - used
-                    - limit
-                    - remaining
-                    - reset_at
-                required:
-                - source
-              example:
-                source: |-
-                  # 対応言語: Ruby
-                  n = gets.chomp.to_i
-                  puts (1..n).sum
-                usage:
-                  used: 1
-                  limit: 5
-                  remaining: 4
-                  reset_at: '2026-09-01T03:00:00+09:00'
-  "/api/v1/user/sangakus/generate_source_usage":
-    get:
-      summary: generate_source_usage
-      tags:
-      - Api::V1::User::Sangaku
-      responses:
-        '200':
-          description: does not count other users' logs
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  used:
-                    type: integer
-                  limit:
-                    type: integer
-                  remaining:
-                    type: integer
-                  reset_at:
-                    type: string
-                required:
-                - used
-                - limit
-                - remaining
-                - reset_at
-              example:
-                used: 0
-                limit: 5
-                remaining: 5
-                reset_at: '2026-09-01T03:00:00+09:00'
   "/api/v1/user/sangakus/{id}":
     delete:
       summary: destroy
@@ -378,7 +155,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 278
+        example: 17535
       responses:
         '200':
           description: return sangaku in json format
@@ -412,11 +189,16 @@ paths:
                             type: string
                           shrine_name:
                             type: 'null'
+                          kind:
+                            type: string
+                          code_blocks:
+                            type: array
+                            items: {}
                         required:
                         - title
                         - description
-                        - source
                         - difficulty
+                        - source
                         - inputs
                         - author_name
                       relationships:
@@ -456,7 +238,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '278'
+                  id: '17535'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -466,10 +248,12 @@ paths:
                     inputs: []
                     author_name: test nickname
                     shrine_name:
+                    kind: code
+                    code_blocks: []
                   relationships:
                     user:
                       data:
-                        id: '645'
+                        id: '33192'
                         type: user
                     shrine:
                       data:
@@ -483,7 +267,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 269
+        example: 17527
       responses:
         '200':
           description: return sangaku in json formata
@@ -517,11 +301,16 @@ paths:
                             type: string
                           shrine_name:
                             type: 'null'
+                          kind:
+                            type: string
+                          code_blocks:
+                            type: array
+                            items: {}
                         required:
                         - title
                         - description
-                        - source
                         - difficulty
+                        - source
                         - inputs
                         - author_name
                       relationships:
@@ -561,7 +350,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '269'
+                  id: '17527'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -571,163 +360,12 @@ paths:
                     inputs: []
                     author_name: test nickname
                     shrine_name:
+                    kind: code
+                    code_blocks: []
                   relationships:
                     user:
                       data:
-                        id: '632'
-                        type: user
-                    shrine:
-                      data:
-    patch:
-      summary: update
-      tags:
-      - Api::V1::User::Sangaku
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-        example: 273
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                sangaku:
-                  type: object
-                  properties:
-                    title:
-                      type: string
-                    description:
-                      type: string
-                    source:
-                      type: string
-                    difficulty:
-                      type: string
-                  required:
-                  - title
-                  - description
-                  - source
-                  - difficulty
-                fixed_inputs:
-                  type: array
-                  items:
-                    type: string
-              required:
-              - sangaku
-              - fixed_inputs
-            example:
-              sangaku:
-                title: changed_title
-                description: test_description
-                source: puts 'Hello world'
-                difficulty: easy
-              fixed_inputs:
-              - a
-      responses:
-        '200':
-          description: success to update sangaku
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      type:
-                        type: string
-                      attributes:
-                        type: object
-                        properties:
-                          title:
-                            type: string
-                          description:
-                            type: string
-                          source:
-                            type: string
-                          difficulty:
-                            type: string
-                          inputs:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                id:
-                                  type: integer
-                                content:
-                                  type: string
-                              required:
-                              - id
-                              - content
-                          author_name:
-                            type: string
-                          shrine_name:
-                            type: 'null'
-                        required:
-                        - title
-                        - description
-                        - source
-                        - difficulty
-                        - inputs
-                        - author_name
-                      relationships:
-                        type: object
-                        properties:
-                          user:
-                            type: object
-                            properties:
-                              data:
-                                type: object
-                                properties:
-                                  id:
-                                    type: string
-                                  type:
-                                    type: string
-                                required:
-                                - id
-                                - type
-                            required:
-                            - data
-                          shrine:
-                            type: object
-                            properties:
-                              data:
-                                type: 'null'
-                            required:
-                            - data
-                        required:
-                        - user
-                        - shrine
-                    required:
-                    - id
-                    - type
-                    - attributes
-                    - relationships
-                required:
-                - data
-              example:
-                data:
-                  id: '273'
-                  type: sangaku
-                  attributes:
-                    title: changed_title
-                    description: test_description
-                    source: puts 'Hello world'
-                    difficulty: easy
-                    inputs:
-                    - id: 8
-                      content: a
-                    author_name: test nickname
-                    shrine_name:
-                  relationships:
-                    user:
-                      data:
-                        id: '637'
+                        id: '33183'
                         type: user
                     shrine:
                       data:

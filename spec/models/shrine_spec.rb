@@ -67,6 +67,34 @@ RSpec.describe Shrine, type: :model do
     end
   end
 
+  describe '#destroy' do
+    it 'destroys a dedicated reorder-format sangaku along with its save and answer without raising a foreign key violation' do
+      shrine = create(:shrine)
+      sangaku = create(:sangaku, :reorder, shrine:)
+      reorder_sangaku_id = sangaku.sangakuable.id
+      code_block_ids = sangaku.sangakuable.code_blocks.pluck(:id)
+      other_user = create(:user)
+      user_sangaku_save = create(:user_sangaku_save, user: other_user, sangaku:)
+      answer = create(:answer, :reorder, user_sangaku_save:)
+
+      shrine_id = shrine.id
+      sangaku_id = sangaku.id
+      user_sangaku_save_id = user_sangaku_save.id
+      answer_id = answer.id
+      reorder_answer_id = answer.answerable.id
+
+      expect { shrine.destroy! }.not_to raise_error
+
+      expect(Shrine.exists?(shrine_id)).to eq false
+      expect(Sangaku.exists?(sangaku_id)).to eq false
+      expect(ReorderSangaku.exists?(reorder_sangaku_id)).to eq false
+      expect(CodeBlock.where(id: code_block_ids).exists?).to eq false
+      expect(UserSangakuSave.exists?(user_sangaku_save_id)).to eq false
+      expect(Answer.exists?(answer_id)).to eq false
+      expect(ReorderAnswer.exists?(reorder_answer_id)).to eq false
+    end
+  end
+
   describe '.search_by_bounds' do
     it 'returns false when text search returns nil' do
       allow(Shrine).to receive(:text_search_by_location_restriction).and_return(nil)

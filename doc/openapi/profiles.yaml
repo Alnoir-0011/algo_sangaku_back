@@ -16,7 +16,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 546
+        example: 32948
       responses:
         '200':
           description: 奉納済み算額一覧を返す（タイトル・神社名を含む）
@@ -75,15 +75,15 @@ paths:
                 - data
               example:
                 data:
-                  id: '546'
+                  id: '32948'
                   type: profile
                   attributes:
                     nickname: test nickname
-                    created_at: '2026-09-01T00:01:42.113+09:00'
+                    created_at: '2026-09-14T17:28:54.460+09:00'
                     sangaku_count: 2
                     dedicated_sangaku_count: 1
                     answer_count:
                     dedicated_sangakus:
-                    - id: 201
+                    - id: 17340
                       title: test_title
                       shrine_name: test_shrine

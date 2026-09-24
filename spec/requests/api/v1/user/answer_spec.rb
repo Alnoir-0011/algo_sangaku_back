@@ -32,7 +32,7 @@ RSpec.describe "Api::V1::User::Answers", type: :request do
     end
 
     context "when all answer_results have error status", openapi: false do
-      before { answer.answer_results.update_all(status: "error") }
+      before { answer.answerable.answer_results.update_all(status: "error") }
 
       it "returns incorrect status instead of correct" do
         authenticate_stub(user)

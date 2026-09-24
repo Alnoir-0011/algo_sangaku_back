@@ -23,6 +23,52 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       end
     end
 
+    context "with multiple sangakus created out of id order", openapi: false do
+      let(:params) { {} }
+
+      it "returns sangakus ordered by creation time descending regardless of id order" do
+        authenticate_stub(user)
+        oldest = create(:sangaku, id: sangaku.id + 100, user:, created_at: 3.days.ago)
+        newest = create(:sangaku, id: sangaku.id + 200, user:, created_at: 1.day.ago)
+        middle = create(:sangaku, id: sangaku.id + 300, user:, created_at: 2.days.ago)
+
+        http_request
+
+        returned_ids = body["data"].map { |d| d["id"].to_i }
+        target_ids = returned_ids & [ newest.id, middle.id, oldest.id ]
+        expect(target_ids).to eq([ newest.id, middle.id, oldest.id ])
+      end
+
+      it "returns sangakus ordered by id descending when created_at is the same" do
+        authenticate_stub(user)
+        same_time = 1.day.ago
+        first_created = create(:sangaku, id: sangaku.id + 100, user:, created_at: same_time)
+        second_created = create(:sangaku, id: sangaku.id + 200, user:, created_at: same_time)
+
+        http_request
+
+        returned_ids = body["data"].map { |d| d["id"].to_i }
+        target_ids = returned_ids & [ second_created.id, first_created.id ]
+        expect(target_ids).to eq([ second_created.id, first_created.id ])
+      end
+    end
+
+    # 一覧は件数分のブロックが乗って重くなるため code_blocks を返さない。
+    # 奉納確認モーダルなど、ブロックが必要な画面は詳細（GET /user/sangakus/:id）を取り直す（issue #278）
+    context "with a reorder sangaku in the list", openapi: false do
+      let(:params) { {} }
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user:) }
+
+      it "does not include code_blocks for any sangaku" do
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"].map { |d| d["id"] }).to include(reorder_sangaku.id.to_s)
+        expect(body["data"].map { |d| d["attributes"].key?("code_blocks") }.uniq).to eq [ false ]
+      end
+    end
+
     context "search by title" do
       let(:params) { { title: "another" } }
       let!(:another_sangaku) { create(:sangaku, title: 'another_title', user:) }
@@ -84,6 +130,83 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       end
     end
 
+    context "with kind=code" do
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user:) }
+      let(:params) { { kind: "code" } }
+
+      it "returns only code sangakus" do
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        returned_ids = body["data"].map { |d| d["id"] }
+        expect(returned_ids).to include(sangaku.id.to_s)
+        expect(returned_ids).not_to include(reorder_sangaku.id.to_s)
+      end
+    end
+
+    context "with kind=reorder", openapi: false do
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user:) }
+      let(:params) { { kind: "reorder" } }
+
+      it "returns only reorder sangakus" do
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        returned_ids = body["data"].map { |d| d["id"] }
+        expect(returned_ids).to include(reorder_sangaku.id.to_s)
+        expect(returned_ids).not_to include(sangaku.id.to_s)
+      end
+    end
+
+    context "without kind param", openapi: false do
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user:) }
+      let(:params) { {} }
+
+      it "returns both code and reorder sangakus" do
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        returned_ids = body["data"].map { |d| d["id"] }
+        expect(returned_ids).to include(sangaku.id.to_s, reorder_sangaku.id.to_s)
+      end
+    end
+
+    context "with an unknown kind value", openapi: false do
+      let!(:reorder_sangaku) { create(:sangaku, :reorder, user:) }
+      let(:params) { { kind: "unknown" } }
+
+      it "ignores the kind param and returns both code and reorder sangakus" do
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        returned_ids = body["data"].map { |d| d["id"] }
+        expect(returned_ids).to include(sangaku.id.to_s, reorder_sangaku.id.to_s)
+      end
+    end
+
+    context "with difficulty=normal", openapi: false do
+      let!(:code_normal) { create(:sangaku, difficulty: "normal", user:) }
+      let!(:code_easy) { create(:sangaku, difficulty: "easy", user:) }
+      let!(:reorder_normal) { create(:sangaku, :reorder, difficulty: "normal", user:) }
+      let!(:reorder_easy) { create(:sangaku, :reorder, difficulty: "easy", user:) }
+      let(:created_ids) { [ code_normal.id, code_easy.id, reorder_normal.id, reorder_easy.id ].map(&:to_s) }
+      let(:params) { { difficulty: "normal" } }
+
+      it "returns only the normal difficulty sangakus from both formats" do
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        returned_ids = body["data"].map { |d| d["id"] }
+        target_ids = returned_ids & created_ids
+        expect(target_ids.sort).to eq([ code_normal.id.to_s, reorder_normal.id.to_s ].sort)
+      end
+    end
+
     context "without access_token", openapi: false do
       let(:params) { {} }
 
@@ -91,52 +214,6 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
         http_request
 
         expect(response).to have_http_status(401)
-      end
-    end
-  end
-
-  describe "POST /user/sangakus" do
-    context "with_accesstoken" do
-      let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
-      let(:params) { { sangaku: attributes_for(:sangaku), fixed_inputs: [ attributes_for(:fixed_input)[:content] ] } }
-      let!(:user) { create(:user) }
-
-      it "success to create sangaku" do
-        authenticate_stub(user)
-
-        # post api_v1_sangakus_path, headers: headers, params: params.to_json
-        expect {
-          post api_v1_user_sangakus_path, headers: headers, params: params.to_json
-        }.to change(Sangaku, :count).by(1)
-        expect(response).to be_successful
-        expect(response).to have_http_status(:ok)
-      end
-    end
-
-    context "without access_token", openapi: false do
-      let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' } }
-      let(:params) { { sangaku: attributes_for(:sangaku) } }
-
-      it "return 401 errors" do
-        expect {
-          post api_v1_user_sangakus_path, headers: headers, params: params.to_json
-        }.not_to change(Sangaku, :count)
-        expect(response).to have_http_status(401)
-      end
-    end
-
-    context "with invalid params", openapi: false do
-      let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
-      let(:params) { { sangaku: attributes_for(:sangaku, title: "") } }
-      let!(:user) { create(:user) }
-
-      it "return 400 errors" do
-        authenticate_stub(user)
-
-        expect {
-          post api_v1_user_sangakus_path, headers: headers, params: params.to_json
-        }.not_to change(Sangaku, :count)
-        expect(response).to have_http_status(400)
       end
     end
   end
@@ -193,102 +270,69 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
         expect(response).to have_http_status(404)
       end
     end
-  end
 
-  describe "PATCH /user/sangakus/[id]" do
-    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
-    let!(:user) { create(:user) }
-    let(:http_request) { {} }
-
-    context "with_accesstoken" do
-      let!(:sangaku) { create(:sangaku, title: "before_changed",  user: user) }
-      let(:http_request) { patch api_v1_user_sangaku_path(sangaku.id), headers:, params: }
-      let(:params) { { sangaku: attributes_for(:sangaku, title: "changed_title"), fixed_inputs: [ "a" ] }.to_json }
-
-      it "success to update sangaku" do
+    context "with a code sangaku", openapi: false do
+      it "returns kind code and type sangaku in the response" do
         authenticate_stub(user)
 
         http_request
+
         expect(response).to have_http_status(:ok)
-        expect(response).to be_successful
-        expect(body["data"]["attributes"]["title"]).to eq "changed_title"
+        expect(body["data"]["type"]).to eq "sangaku"
+        expect(body["data"]["attributes"]["kind"]).to eq "code"
       end
     end
 
-    context "with nonexistent id", openapi: false do
-      let(:params) { { sangaku:  attributes_for(:sangaku, title: "changed_title")  }.to_json }
-      let(:http_request) { patch api_v1_user_sangaku_path(1000000), headers:, params: }
+    context "with a reorder sangaku", openapi: false do
+      let(:sangaku) { create(:sangaku, :reorder, user:) }
 
-      it "return 404" do
-        authenticate_stub(user)
-        http_request
-
-        expect(response).to have_http_status(:not_found)
-        expect(response).not_to be_successful
-      end
-    end
-
-    context "without access_token", openapi: false do
-      let!(:sangaku) { create(:sangaku, title: "before_changed", user: user) }
-      let(:params) { { sangaku: attributes_for(:sangaku, title: "changed_title") }.to_json }
-      let(:http_request) { patch api_v1_user_sangaku_path(sangaku.id), headers: { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' }, params: }
-
-      it "return 401 errors" do
-        http_request
-
-        expect(response).to have_http_status(401)
-        expect(sangaku.reload.title).to eq "before_changed"
-      end
-    end
-
-    context "with invalid params", openapi: false do
-      let!(:sangaku) { create(:sangaku, title: "before_changed", user: user) }
-      let(:params) { { sangaku: attributes_for(:sangaku, title: "") }.to_json }
-      let(:http_request) { patch api_v1_user_sangaku_path(sangaku.id), headers:, params: }
-
-      it "return 400 errors" do
+      it "returns kind reorder in the response" do
         authenticate_stub(user)
 
         http_request
 
-        expect(response).to have_http_status(400)
-        expect(sangaku.reload.title).to eq "before_changed"
-      end
-    end
-
-    context "with anotheruser's sangaku id", openapi: false do
-      let!(:another_user) { create(:user) }
-      let!(:another_sangaku) { create(:sangaku, user: another_user) }
-      let(:params) { { sangaku:  attributes_for(:sangaku, title: "changed_title") }.to_json }
-      let(:http_request) { patch api_v1_user_sangaku_path(another_sangaku.id), headers:, params: }
-
-      it "return 404" do
-        authenticate_stub(user)
-        http_request
-
-        expect(response).to have_http_status(:not_found)
-        expect(response).not_to be_successful
-      end
-    end
-
-    context "removing a fixed_input that has answer_results", openapi: false do
-      let!(:sangaku) { create(:sangaku, title: "before_changed", user: user) }
-      let!(:fixed_input) { create(:fixed_input, sangaku: sangaku, content: "old_input") }
-      # Answer#create_results が sangaku.fixed_inputs を参照するため、
-      # user_sangaku_save/answer を作る前に関連キャッシュを更新しておく必要がある
-      before { sangaku.reload }
-      let!(:user_sangaku_save) { create(:user_sangaku_save, sangaku: sangaku) }
-      let!(:answer) { create(:answer, user_sangaku_save: user_sangaku_save) }
-      let(:params) { { sangaku: attributes_for(:sangaku, title: "changed_title"), fixed_inputs: [] }.to_json }
-      let(:http_request) { patch api_v1_user_sangaku_path(sangaku.id), headers:, params: }
-
-      it "success to update sangaku" do
-        authenticate_stub(user)
-
-        http_request
         expect(response).to have_http_status(:ok)
-        expect(response).to be_successful
-        expect(FixedInput.exists?(fixed_input.id)).to eq false
+        expect(body["data"]["attributes"]["kind"]).to eq "reorder"
+      end
+    end
+
+    context "with a code sangaku, when checking code_blocks", openapi: false do
+      it "returns an empty array for code_blocks" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"]["code_blocks"]).to eq []
+      end
+    end
+
+    context "with a reorder sangaku that includes dummy blocks inserted out of correct_position order", openapi: false do
+      let(:sangaku) { create(:sangaku, :reorder, user:) }
+      let(:reorder_sangaku) { sangaku.sangakuable }
+
+      before { reorder_sangaku.code_blocks.destroy_all }
+
+      # id の昇順とは違う順序になるよう、正解順・ダミーを混ぜてINSERTする
+      let!(:dummy_first_inserted) { create(:code_block, reorder_sangaku:, content: "dummy_first_inserted", correct_position: nil) }
+      let!(:second) { create(:code_block, reorder_sangaku:, content: "second", correct_position: 2) }
+      let!(:dummy_second_inserted) { create(:code_block, reorder_sangaku:, content: "dummy_second_inserted", correct_position: nil) }
+      let!(:first) { create(:code_block, reorder_sangaku:, content: "first", correct_position: 1) }
+
+      it "returns code_blocks ordered by correct_position ascending then dummies by id ascending, each with id, content, and correct_position" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"]["code_blocks"]).to eq(
+          [
+            { "id" => first.id, "content" => "first", "correct_position" => 1 },
+            { "id" => second.id, "content" => "second", "correct_position" => 2 },
+            { "id" => dummy_first_inserted.id, "content" => "dummy_first_inserted", "correct_position" => nil },
+            { "id" => dummy_second_inserted.id, "content" => "dummy_second_inserted", "correct_position" => nil }
+          ]
+        )
       end
     end
   end
@@ -328,7 +372,7 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
     context "with a fixed_input that has answer_results", openapi: false do
       let!(:sangaku) { create(:sangaku, user:) }
       let!(:fixed_input) { create(:fixed_input, sangaku: sangaku) }
-      # Answer#create_results が sangaku.fixed_inputs を参照するため、
+      # CodeAnswer#create_results が code_sangaku.fixed_inputs を参照するため、
       # user_sangaku_save/answer を作る前に関連キャッシュを更新しておく必要がある
       before { sangaku.reload }
       let!(:user_sangaku_save) { create(:user_sangaku_save, sangaku: sangaku) }
@@ -367,204 +411,13 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
       let(:http_request) { delete api_v1_user_sangaku_path(another_user_sangaku), headers: }
 
       it "return 404" do
-         authenticate_stub(user)
+        authenticate_stub(user)
 
         expect {
           http_request
         }.to change(Sangaku, :count).by(0)
         expect(response).to have_http_status(:not_found)
         expect(response).not_to be_successful
-      end
-    end
-  end
-
-  describe "POST /user/sangakus/generate_source" do
-    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
-    let!(:user) { create(:user) }
-    let(:description) { "1からnまでの合計を計算して出力してください" }
-    let(:params) { { description: description }.to_json }
-    let(:http_request) { post generate_source_api_v1_user_sangakus_path, params: params, headers: headers }
-    let(:generated_source) { "# 対応言語: Ruby\nn = gets.chomp.to_i\nputs (1..n).sum" }
-    let(:openai_response) do
-      {
-        "choices" => [
-          {
-            "message" => {
-              "content" => generated_source
-            }
-          }
-        ]
-      }
-    end
-
-    before do
-      allow_any_instance_of(OpenAI::Client).to receive(:chat).and_return(openai_response)
-    end
-
-    context "with valid token" do
-      it "returns generated source code with usage" do
-        authenticate_stub(user)
-        expect {
-          http_request
-        }.to change(GenerateSourceCallLog, :count).by(1)
-        expect(response).to have_http_status(:ok)
-        expect(body["source"]).to eq generated_source
-        expect(body["usage"]["used"]).to eq 1
-        expect(body["usage"]["limit"]).to eq User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT
-        expect(body["usage"]["remaining"]).to eq User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT - 1
-        expect(body["usage"]["reset_at"]).to be_present
-      end
-
-      it "calls OpenAI API with wrapped description" do
-        authenticate_stub(user)
-        expect_any_instance_of(OpenAI::Client).to receive(:chat).with(
-          parameters: hash_including(
-            messages: array_including(
-              hash_including(role: "user", content: "---問題文開始---\n#{description}\n---問題文終了---")
-            )
-          )
-        ).and_return(openai_response)
-        http_request
-      end
-    end
-
-    context "when daily limit is reached", openapi: false do
-      before do
-        User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT.times do
-          create(:generate_source_call_log, user: user, called_at: Time.current)
-        end
-      end
-
-      it "returns 429 without creating a log" do
-        authenticate_stub(user)
-        expect {
-          http_request
-        }.not_to change(GenerateSourceCallLog, :count)
-        expect(response).to have_http_status(:too_many_requests)
-        expect(body["errors"].first).to be_present
-        expect(body["reset_at"]).to be_present
-      end
-    end
-
-    context "when description exceeds max length", openapi: false do
-      let(:description) { "a" * 2001 }
-
-      it "returns 422 without calling OpenAI API and without creating a log" do
-        authenticate_stub(user)
-        expect_any_instance_of(OpenAI::Client).not_to receive(:chat)
-        expect {
-          http_request
-        }.not_to change(GenerateSourceCallLog, :count)
-        expect(response).to have_http_status(:unprocessable_entity)
-      end
-    end
-
-    context "without token", openapi: false do
-      let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' } }
-
-      it "returns 401" do
-        http_request
-        expect(response).to have_http_status(:unauthorized)
-      end
-    end
-
-    context "when description is missing", openapi: false do
-      let(:params) { {}.to_json }
-
-      it "returns 400" do
-        authenticate_stub(user)
-        http_request
-        expect(response).to have_http_status(:bad_request)
-      end
-    end
-
-    context "when OpenAI API raises an error", openapi: false do
-      before do
-        allow_any_instance_of(OpenAI::Client).to receive(:chat).and_raise(OpenAI::Error)
-      end
-
-      it "returns 422 with an error message and still consumes the rate limit log" do
-        authenticate_stub(user)
-        expect {
-          http_request
-        }.to change(GenerateSourceCallLog, :count).by(1)
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(body["error"]).to be_present
-      end
-    end
-
-    context "when OpenAI API raises a network error", openapi: false do
-      before do
-        allow_any_instance_of(OpenAI::Client).to receive(:chat).and_raise(Faraday::TimeoutError)
-      end
-
-      it "returns 422 with an error message and still consumes the rate limit log" do
-        authenticate_stub(user)
-        expect {
-          http_request
-        }.to change(GenerateSourceCallLog, :count).by(1)
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(body["error"]).to be_present
-      end
-    end
-
-    context "JST 3:00 boundary behavior", openapi: false do
-      it "counts logs only within the current JST day window" do
-        authenticate_stub(user)
-        travel_to Time.zone.local(2026, 4, 10, 2, 59, 59) do
-          create(:generate_source_call_log, user: user, called_at: Time.current)
-        end
-
-        travel_to Time.zone.local(2026, 4, 10, 3, 0, 0) do
-          http_request
-          expect(response).to have_http_status(:ok)
-          expect(body["usage"]["used"]).to eq 1
-        end
-      end
-    end
-  end
-
-  describe "GET /user/sangakus/generate_source_usage" do
-    let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json', Authorization: "Bearer dummy_id_token" } }
-    let!(:user) { create(:user) }
-    let(:http_request) { get generate_source_usage_api_v1_user_sangakus_path, headers: headers }
-
-    context "with valid token" do
-      it "returns usage information" do
-        authenticate_stub(user)
-        http_request
-        expect(response).to have_http_status(:ok)
-        expect(body["used"]).to eq 0
-        expect(body["limit"]).to eq User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT
-        expect(body["remaining"]).to eq User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT
-        expect(body["reset_at"]).to be_present
-      end
-
-      it "reflects existing call logs" do
-        create(:generate_source_call_log, user: user, called_at: Time.current)
-        authenticate_stub(user)
-        http_request
-        expect(response).to have_http_status(:ok)
-        expect(body["used"]).to eq 1
-        expect(body["remaining"]).to eq User::GENERATE_SOURCE_DAILY_LIMIT_DEFAULT - 1
-      end
-
-      it "does not count other users' logs" do
-        another_user = create(:user)
-        create(:generate_source_call_log, user: another_user, called_at: Time.current)
-        authenticate_stub(user)
-        http_request
-        expect(response).to have_http_status(:ok)
-        expect(body["used"]).to eq 0
-      end
-    end
-
-    context "without token", openapi: false do
-      let(:headers) { { CONTENT_TYPE: 'application/json', ACCEPT: 'application/json' } }
-
-      it "returns 401" do
-        http_request
-        expect(response).to have_http_status(:unauthorized)
       end
     end
   end

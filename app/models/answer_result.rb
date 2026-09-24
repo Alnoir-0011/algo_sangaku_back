@@ -3,16 +3,19 @@ class AnswerResult < ApplicationRecord
 
   after_commit :check_later, on: :create
 
-  belongs_to :answer
+  belongs_to :code_answer
   belongs_to :fixed_input, optional: true
 
+  # レスポンス上の関連名は answer のまま保つ（front の型との互換のため）
+  delegate :answer, to: :code_answer
+
   validates :output, length: { maximum: 65_535 }
-  validates :fixed_input_id, uniqueness: { scope: :answer_id }
+  validates :fixed_input_id, uniqueness: { scope: :code_answer_id }
 
   enum :status, { pending: 0, correct: 10, incorrect: 20, error: 30 }, prefix: true
 
   def update_status
-    source = answer.source
+    source = code_answer.source
     input = fixed_input ? fixed_input.content : ""
 
     answer_result = run_source(source, input)
@@ -39,7 +42,7 @@ class AnswerResult < ApplicationRecord
     if fixed_input&.expected_output.present?
       fixed_input.expected_output
     else
-      sangaku_source = answer.user_sangaku_save.sangaku.source
+      sangaku_source = code_answer.answer.user_sangaku_save.sangaku.sangakuable.source
       run_source(sangaku_source, input)["stdout"]
     end
   end

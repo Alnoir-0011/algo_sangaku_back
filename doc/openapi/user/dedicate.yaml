@@ -16,7 +16,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 237
+        example: 17436
       requestBody:
         content:
           application/json:
@@ -36,7 +36,7 @@ paths:
               - lat
               - lng
             example:
-              shrine_id: 154
+              shrine_id: 6806
               lat: 35.70204829610801
               lng: 139.76789333814216
       responses:
@@ -72,11 +72,16 @@ paths:
                             type: string
                           shrine_name:
                             type: string
+                          kind:
+                            type: string
+                          code_blocks:
+                            type: array
+                            items: {}
                         required:
                         - title
                         - description
-                        - source
                         - difficulty
+                        - source
                         - inputs
                         - author_name
                       relationships:
@@ -124,7 +129,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '237'
+                  id: '17436'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -134,12 +139,14 @@ paths:
                     inputs: []
                     author_name: test nickname
                     shrine_name: test_shrine
+                    kind: code
+                    code_blocks: []
                   relationships:
                     user:
                       data:
-                        id: '593'
+                        id: '33081'
                         type: user
                     shrine:
                       data:
-                        id: '154'
+                        id: '6806'
                         type: shrine

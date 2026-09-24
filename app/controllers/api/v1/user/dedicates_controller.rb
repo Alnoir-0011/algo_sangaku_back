@@ -7,7 +7,7 @@ module Api
 
 
         if sangaku.dedicate(shrine, params[:lat], params[:lng])
-          render json: SangakuSerializer.new(sangaku).serializable_hash.to_json, status: :ok
+          render json: SangakuDetailSerializer.new(sangaku).serializable_hash.to_json, status: :ok
         else
           render_400(nil, "算額を奉納できませんでした")
         end

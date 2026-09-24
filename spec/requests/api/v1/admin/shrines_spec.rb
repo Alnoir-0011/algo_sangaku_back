@@ -64,6 +64,19 @@ RSpec.describe "Api::V1::Admin::Shrines", type: :request do
 
         expect(response).to have_http_status(:not_found)
       end
+
+      context "when the shrine has dedicated sangakus in both code and reorder format", openapi: false do
+        let!(:target_shrine) { create(:shrine) }
+        let!(:code_sangaku) { create(:sangaku, shrine: target_shrine) }
+        let!(:reorder_sangaku) { create(:sangaku, :reorder, shrine: target_shrine) }
+
+        it "sums sangaku_count across both formats" do
+          authenticate_stub(admin_user)
+          get api_v1_admin_shrine_path(target_shrine.id), headers: headers
+
+          expect(body["data"]["attributes"]["sangaku_count"]).to eq(2)
+        end
+      end
     end
 
     context "as general user" do

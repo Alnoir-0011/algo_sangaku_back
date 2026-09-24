@@ -60,44 +60,44 @@ paths:
                 - data
               example:
                 data:
-                - id: '496'
+                - id: '32895'
                   type: user
                   attributes:
                     name: test user
-                    email: user_114@example.com
+                    email: user_154@example.com
                     nickname: test nickname
                     role: general
-                    created_at: '2026-09-01T00:01:41.779+09:00'
+                    created_at: '2026-09-14T17:28:54.093+09:00'
                     sangaku_count: 0
                     answer_count: 0
-                - id: '495'
+                - id: '32894'
                   type: user
                   attributes:
                     name: test user
-                    email: user_113@example.com
+                    email: user_153@example.com
                     nickname: test nickname
                     role: admin
-                    created_at: '2026-09-01T00:01:41.777+09:00'
+                    created_at: '2026-09-14T17:28:54.091+09:00'
                     sangaku_count: 0
                     answer_count: 0
-                - id: '498'
+                - id: '32897'
                   type: user
                   attributes:
                     name: test user
-                    email: user_116@example.com
+                    email: user_156@example.com
                     nickname: test nickname
                     role: general
-                    created_at: '2026-08-31T00:01:41.781+09:00'
+                    created_at: '2026-09-13T17:28:54.096+09:00'
                     sangaku_count: 0
                     answer_count: 0
-                - id: '497'
+                - id: '32896'
                   type: user
                   attributes:
                     name: test user
-                    email: user_115@example.com
+                    email: user_155@example.com
                     nickname: test nickname
                     role: general
-                    created_at: '2026-08-30T00:01:41.779+09:00'
+                    created_at: '2026-09-12T17:28:54.094+09:00'
                     sangaku_count: 0
                     answer_count: 0
         '401':
@@ -151,7 +151,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 514
+        example: 32916
       responses:
         '200':
           description: returns 200 with user attributes
@@ -200,14 +200,14 @@ paths:
                 - data
               example:
                 data:
-                  id: '508'
+                  id: '32907'
                   type: user
                   attributes:
                     name: test user
-                    email: user_126@example.com
+                    email: user_166@example.com
                     nickname: test nickname
                     role: general
-                    created_at: '2026-09-01T00:01:41.827+09:00'
+                    created_at: '2026-09-14T17:28:54.145+09:00'
                     sangaku_count: 0
                     answer_count: 0
         '401':
@@ -247,7 +247,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 535
+        example: 32937
       requestBody:
         content:
           application/json:
@@ -320,14 +320,14 @@ paths:
                 - data
               example:
                 data:
-                  id: '523'
+                  id: '32925'
                   type: user
                   attributes:
                     name: test user
-                    email: user_141@example.com
+                    email: user_184@example.com
                     nickname: test nickname
                     role: admin
-                    created_at: '2026-09-01T00:01:41.897+09:00'
+                    created_at: '2026-09-14T17:28:54.242+09:00'
                     sangaku_count: 0
                     answer_count: 0
         '401':

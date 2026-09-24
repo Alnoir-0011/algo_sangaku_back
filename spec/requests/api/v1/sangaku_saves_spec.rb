@@ -25,7 +25,7 @@ RSpec.describe "Api::V1::Sangakus", type: :request do
 
         json = JSON.parse(response.body)
         expect(json["data"]["attributes"]).not_to have_key("source")
-        expect(response.body).not_to include(sangaku.source)
+        expect(response.body).not_to include(sangaku.sangakuable.source)
       end
 
       it "returns 409 when the sangaku is already saved" do
@@ -36,6 +36,33 @@ RSpec.describe "Api::V1::Sangakus", type: :request do
           post api_v1_sangaku_save_path(sangaku.id), headers:
         }.not_to change(user.saved_sangakus, :count)
         expect(response).to have_http_status(:conflict)
+      end
+    end
+
+    context "with a reorder sangaku", openapi: false do
+      let!(:sangaku) { create(:sangaku, :reorder) }
+
+      it "saves the sangaku and returns it" do
+        authenticate_stub(user)
+
+        expect {
+          http_request
+        }.to change(user.saved_sangakus, :count).by(1)
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"]["title"]).to eq sangaku.title
+      end
+    end
+
+    context "with a reorder sangaku, when checking code_blocks", openapi: false do
+      let!(:sangaku) { create(:sangaku, :reorder) }
+
+      it "does not include code_blocks key in the response" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:ok)
+        expect(body["data"]["attributes"].key?("code_blocks")).to be false
       end
     end
 

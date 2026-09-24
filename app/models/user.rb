@@ -4,7 +4,9 @@ class User < ApplicationRecord
   has_many :user_sangaku_saves, dependent: :destroy, class_name: "UserSangakuSave"
   has_many :saved_sangakus, through: :user_sangaku_saves, source: :sangaku
   has_many :answers, through: :user_sangaku_saves
-  has_many :answer_results, through: :answers
+  # answer_results は code_answers 経由に張り替える（AnswerResult の FK 付け替えに伴う。issue #278）
+  has_many :code_answers, through: :answers, source: :answerable, source_type: "CodeAnswer"
+  has_many :answer_results, through: :code_answers
   has_many :generate_source_call_logs, dependent: :destroy
 
   enum :role, { general: 0, admin: 1 }
@@ -44,6 +46,17 @@ class User < ApplicationRecord
 
   def add_saved_sangakus(sangaku)
     saved_sangakus << sangaku
+  end
+
+  # その算額に自分の解答行があるか。
+  # 【重要】これを正解順の開示条件に使ってよいのは「1 算額 1 ユーザー 1 解答・やり直し不可」が
+  # 成り立つ間だけ。この前提は answers.user_sangaku_save_id の unique index、
+  # Answer#prevent_overwriting_existing_answer、解答 API の 409、そして保存・解答に
+  # destroy / update のルートが無いこと（spec/requests/api/v1/user/saved_sangakus_spec.rb で固定）
+  # に分散している。保存解除や再解答を足すと「わざと外して解答 → 正解順を取得 → やり直し」が
+  # 成立してしまうため、そのときは開示条件をここから見直すこと（issue #92）。
+  def answered?(sangaku)
+    user_sangaku_saves.answered.exists?(sangaku_id: sangaku.id)
   end
 
   def dedicated_sangakus_with_shrine

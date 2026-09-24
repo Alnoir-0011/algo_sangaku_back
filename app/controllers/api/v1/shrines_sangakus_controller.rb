@@ -5,14 +5,14 @@ module Api
 
       def index
         shrine = Shrine.find(params[:shrine_id])
-        @pagy, sangakus = pagy(shrine.sangakus.search(search_params).order(:id).includes(:fixed_inputs, :user, :shrine))
+        @pagy, sangakus = pagy(shrine.sangakus.search(search_params).order(created_at: :desc, id: :desc).includes(:user, :shrine, sangakuable: :fixed_inputs))
         render json: PublicSangakuSerializer.new(sangakus).serializable_hash.to_json, status: :ok
       end
 
       private
 
       def search_params
-        params.permit(:title, :difficulty)
+        params.permit(:title, :difficulty, :kind)
       end
     end
   end

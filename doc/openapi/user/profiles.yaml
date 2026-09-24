@@ -61,13 +61,13 @@ paths:
                 - data
               example:
                 data:
-                  id: '602'
+                  id: '33095'
                   type: my_profile
                   attributes:
-                    email: user_220@example.com
+                    email: user_354@example.com
                     nickname: test nickname
                     show_answer_count: false
-                    created_at: '2026-09-01T00:01:42.641+09:00'
+                    created_at: '2026-09-14T17:28:56.132+09:00'
                     sangaku_count: 0
                     dedicated_sangaku_count: 0
                     saved_sangaku_count: 0
@@ -148,12 +148,12 @@ paths:
                 - data
               example:
                 data:
-                  id: '605'
+                  id: '33098'
                   type: user
                   attributes:
                     provider: google
-                    uid: 36ba77a5-8fd3-4cd5-b939-6a856abdd3e4
+                    uid: e18c7a99-e12e-479d-bf16-d641b0562913
                     name: test user
-                    email: user_223@example.com
+                    email: user_357@example.com
                     nickname: test nickname
                     role: general

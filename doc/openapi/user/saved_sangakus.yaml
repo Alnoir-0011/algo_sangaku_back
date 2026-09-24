@@ -43,6 +43,10 @@ paths:
                             author_name:
                               type: string
                             shrine_name:
+                              type:
+                              - string
+                              - 'null'
+                            kind:
                               type: string
                           required:
                           - title
@@ -98,6 +102,12 @@ paths:
               example:
                 data: []
       parameters:
+      - name: kind
+        in: query
+        required: false
+        schema:
+          type: string
+        example: code
       - name: type
         in: query
         required: false
@@ -115,7 +125,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 343
+        example: 6497
       - name: type
         in: query
         required: false
@@ -153,6 +163,24 @@ paths:
                             type: string
                           shrine_name:
                             type: 'null'
+                          kind:
+                            type: string
+                          code_blocks:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                content:
+                                  type: string
+                                correct_position:
+                                  type:
+                                  - integer
+                                  - 'null'
+                              required:
+                              - id
+                              - content
                         required:
                         - title
                         - description
@@ -196,7 +224,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '342'
+                  id: '6496'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -205,10 +233,12 @@ paths:
                     inputs: []
                     author_name: author
                     shrine_name:
+                    kind: code
+                    code_blocks: []
                   relationships:
                     user:
                       data:
-                        id: '738'
+                        id: '11456'
                         type: user
                     shrine:
                       data:

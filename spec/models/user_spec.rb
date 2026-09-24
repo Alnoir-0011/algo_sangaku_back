@@ -199,6 +199,137 @@ RSpec.describe User, type: :model do
     end
   end
 
+  # 解答済みかどうかで、解答者に見せるレスポンスの中身が変わる（issue #92）
+  describe "#answered?" do
+    it "returns true when the user has answered the sangaku" do
+      user = create(:user)
+      sangaku = create(:sangaku, user: create(:user))
+      user_sangaku_save = create(:user_sangaku_save, user:, sangaku:)
+      create(:answer, user_sangaku_save:)
+
+      expect(user.answered?(sangaku)).to eq true
+    end
+
+    it "returns false when the user has saved the sangaku but has not answered it" do
+      user = create(:user)
+      sangaku = create(:sangaku, user: create(:user))
+      create(:user_sangaku_save, user:, sangaku:)
+
+      expect(user.answered?(sangaku)).to eq false
+    end
+
+    it "returns false when another user has answered the sangaku" do
+      user = create(:user)
+      another_user = create(:user)
+      sangaku = create(:sangaku, user: create(:user))
+      create(:user_sangaku_save, user:, sangaku:)
+      another_save = create(:user_sangaku_save, user: another_user, sangaku:)
+      create(:answer, user_sangaku_save: another_save)
+
+      expect(user.answered?(sangaku)).to eq false
+    end
+
+    it "returns false when the user has not saved the sangaku" do
+      user = create(:user)
+      sangaku = create(:sangaku, user: create(:user))
+
+      expect(user.answered?(sangaku)).to eq false
+    end
+
+    # sangaku_id の条件が抜けると、1 問でも解けば全問の正解順が見えてしまう
+    it "returns false when the user has answered a different sangaku" do
+      user = create(:user)
+      sangaku = create(:sangaku, user: create(:user))
+      other_sangaku = create(:sangaku, user: create(:user))
+      create(:user_sangaku_save, user:, sangaku:)
+      other_save = create(:user_sangaku_save, user:, sangaku: other_sangaku)
+      create(:answer, user_sangaku_save: other_save)
+
+      expect(user.answered?(sangaku)).to eq false
+    end
+  end
+
+  describe "#destroy" do
+    it "destroys the user's own reorder-format sangaku and their save/answer on another user's reorder-format sangaku without raising a foreign key violation, while leaving the other user's sangaku intact" do
+      user = create(:user)
+      other_user = create(:user)
+
+      own_sangaku = create(:sangaku, :reorder, user:)
+      own_sangakuable_id = own_sangaku.sangakuable.id
+      own_code_block_ids = own_sangaku.sangakuable.code_blocks.pluck(:id)
+
+      others_sangaku = create(:sangaku, :reorder, user: other_user)
+      others_sangaku_id = others_sangaku.id
+      others_sangakuable_id = others_sangaku.sangakuable.id
+
+      user_sangaku_save = create(:user_sangaku_save, user:, sangaku: others_sangaku)
+      answer = create(:answer, :reorder, user_sangaku_save:)
+
+      user_id = user.id
+      own_sangaku_id = own_sangaku.id
+      user_sangaku_save_id = user_sangaku_save.id
+      answer_id = answer.id
+      reorder_answer_id = answer.answerable.id
+
+      expect { user.destroy! }.not_to raise_error
+
+      expect(User.exists?(user_id)).to eq false
+      expect(Sangaku.exists?(own_sangaku_id)).to eq false
+      expect(ReorderSangaku.exists?(own_sangakuable_id)).to eq false
+      expect(CodeBlock.where(id: own_code_block_ids).exists?).to eq false
+      expect(UserSangakuSave.exists?(user_sangaku_save_id)).to eq false
+      expect(Answer.exists?(answer_id)).to eq false
+      expect(ReorderAnswer.exists?(reorder_answer_id)).to eq false
+
+      expect(Sangaku.exists?(others_sangaku_id)).to eq true
+      expect(ReorderSangaku.exists?(others_sangakuable_id)).to eq true
+    end
+
+    it "destroys both a code-format sangaku and a reorder-format sangaku created by the user, along with their answers from another user, without raising a foreign key violation" do
+      user = create(:user)
+      other_user = create(:user)
+
+      code_sangaku = create(:sangaku, user:)
+      fixed_input = create(:fixed_input, sangaku: code_sangaku)
+      code_sangaku.reload
+      reorder_sangaku = create(:sangaku, :reorder, user:)
+      reorder_code_block_ids = reorder_sangaku.sangakuable.code_blocks.pluck(:id)
+
+      code_save = create(:user_sangaku_save, user: other_user, sangaku: code_sangaku)
+      code_answer = create(:answer, user_sangaku_save: code_save)
+      answer_result_ids = AnswerResult.where(code_answer: code_answer.answerable).pluck(:id)
+
+      reorder_save = create(:user_sangaku_save, user: other_user, sangaku: reorder_sangaku)
+      reorder_answer = create(:answer, :reorder, user_sangaku_save: reorder_save)
+
+      code_sangaku_id = code_sangaku.id
+      code_sangakuable_id = code_sangaku.sangakuable.id
+      fixed_input_id = fixed_input.id
+      reorder_sangaku_id = reorder_sangaku.id
+      reorder_sangakuable_id = reorder_sangaku.sangakuable.id
+      code_save_id = code_save.id
+      reorder_save_id = reorder_save.id
+      code_answer_id = code_answer.id
+      reorder_answer_id = reorder_answer.id
+      reorder_answerable_id = reorder_answer.answerable.id
+
+      expect { user.destroy! }.not_to raise_error
+
+      expect(Sangaku.exists?(code_sangaku_id)).to eq false
+      expect(CodeSangaku.exists?(code_sangakuable_id)).to eq false
+      expect(FixedInput.exists?(fixed_input_id)).to eq false
+      expect(Sangaku.exists?(reorder_sangaku_id)).to eq false
+      expect(ReorderSangaku.exists?(reorder_sangakuable_id)).to eq false
+      expect(CodeBlock.where(id: reorder_code_block_ids).exists?).to eq false
+      expect(UserSangakuSave.exists?(code_save_id)).to eq false
+      expect(UserSangakuSave.exists?(reorder_save_id)).to eq false
+      expect(Answer.exists?(code_answer_id)).to eq false
+      expect(Answer.exists?(reorder_answer_id)).to eq false
+      expect(AnswerResult.where(id: answer_result_ids).exists?).to eq false
+      expect(ReorderAnswer.exists?(reorder_answerable_id)).to eq false
+    end
+  end
+
   describe ".search" do
     it "matches users whose email partially matches the query" do
       matching_user = create(:user, email: "taro@example.com")

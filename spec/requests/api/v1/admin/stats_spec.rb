@@ -45,6 +45,40 @@ RSpec.describe "Api::V1::Admin::Stats", type: :request do
         expect(data["shrines_count"]).to eq(Shrine.count)
         expect(data["answers_count"]).to eq(Answer.count)
       end
+
+      context "when sangakus and answers exist in both code and reorder format", openapi: false do
+        it "sums sangakus_count across both formats" do
+          # Arrange
+          create(:sangaku, user: general_user)
+          create(:sangaku, :reorder, user: general_user)
+
+          # Act
+          authenticate_stub(admin_user)
+          get api_v1_admin_stats_path, headers: headers
+
+          # Assert
+          expect(response).to have_http_status(:ok)
+          expect(body["data"]["sangakus_count"]).to eq(Sangaku.count)
+        end
+
+        it "sums answers_count across both formats" do
+          # Arrange
+          code_sangaku = create(:sangaku, user: general_user)
+          reorder_sangaku = create(:sangaku, :reorder, user: general_user)
+          code_save = create(:user_sangaku_save, user: general_user, sangaku: code_sangaku)
+          reorder_save = create(:user_sangaku_save, user: general_user, sangaku: reorder_sangaku)
+          create(:answer, user_sangaku_save: code_save)
+          create(:answer, :reorder, user_sangaku_save: reorder_save)
+
+          # Act
+          authenticate_stub(admin_user)
+          get api_v1_admin_stats_path, headers: headers
+
+          # Assert
+          expect(response).to have_http_status(:ok)
+          expect(body["data"]["answers_count"]).to eq(Answer.count)
+        end
+      end
     end
 
     context "as general user" do
