@@ -142,6 +142,89 @@ RSpec.describe Sangaku, type: :model do
     end
   end
 
+  describe '.representative_reorder_for' do
+    def create_answered_reorder_sangaku(shrine:, answers_count:, created_at: Time.current)
+      sangaku = create(:sangaku, :reorder, shrine: shrine, created_at: created_at)
+      answers_count.times do
+        user_sangaku_save = create(:user_sangaku_save, sangaku: sangaku)
+        create(:answer, :reorder, user_sangaku_save: user_sangaku_save)
+      end
+      sangaku
+    end
+
+    it 'returns the reorder sangaku with the most answers for the shrine' do
+      shrine = create(:shrine)
+      fewer_answers_sangaku = create_answered_reorder_sangaku(shrine: shrine, answers_count: 1)
+      most_answers_sangaku = create_answered_reorder_sangaku(shrine: shrine, answers_count: 3)
+
+      result = Sangaku.representative_reorder_for(shrine)
+
+      expect(result).to eq most_answers_sangaku
+      expect(result).not_to eq fewer_answers_sangaku
+    end
+
+    context 'when the answer counts are tied' do
+      # 同数のときに新しい算額を優先すると、後から量産した算額に代表の座を
+      # 奪われる手口が成立してしまうため、古い方を優先する（issue #359 セキュリティレビュー対応）。
+      it 'returns the sangaku with the older created_at' do
+        shrine = create(:shrine)
+        older_sangaku = create_answered_reorder_sangaku(shrine: shrine, answers_count: 2, created_at: 2.days.ago)
+        newer_sangaku = create_answered_reorder_sangaku(shrine: shrine, answers_count: 2, created_at: 1.day.ago)
+
+        result = Sangaku.representative_reorder_for(shrine)
+
+        expect(result).to eq older_sangaku
+        expect(result).not_to eq newer_sangaku
+      end
+    end
+
+    context 'when the shrine has no reorder sangaku' do
+      it 'returns nil even if the shrine has a code sangaku' do
+        shrine = create(:shrine)
+        create(:sangaku, shrine: shrine)
+
+        result = Sangaku.representative_reorder_for(shrine)
+
+        expect(result).to be_nil
+      end
+    end
+
+    context 'when a code sangaku has more answers than the reorder sangaku' do
+      it 'excludes the code sangaku from the candidates' do
+        shrine = create(:shrine)
+        code_sangaku = create(:sangaku, shrine: shrine)
+        3.times do
+          user_sangaku_save = create(:user_sangaku_save, sangaku: code_sangaku)
+          create(:answer, user_sangaku_save: user_sangaku_save)
+        end
+        reorder_sangaku = create_answered_reorder_sangaku(shrine: shrine, answers_count: 1)
+
+        result = Sangaku.representative_reorder_for(shrine)
+
+        expect(result).to eq reorder_sangaku
+      end
+    end
+
+    context 'when shrine is nil' do
+      it 'returns nil' do
+        result = Sangaku.representative_reorder_for(nil)
+
+        expect(result).to be_nil
+      end
+    end
+
+    context 'when the shrine has exactly one reorder sangaku with no answers' do
+      it 'returns that sangaku' do
+        shrine = create(:shrine)
+        only_sangaku = create_answered_reorder_sangaku(shrine: shrine, answers_count: 0)
+
+        result = Sangaku.representative_reorder_for(shrine)
+
+        expect(result).to eq only_sangaku
+      end
+    end
+  end
+
   # lat/lng はクライアント（HTTPリクエストパラメータ）からそのまま渡される申告値であり、
   # このテストはあくまで距離計算に基づく閾値判定ロジックの正しさを検証するもの。
   # サーバー側で位置情報の真正性を検証していないため、この距離チェックはUX上の制約であり

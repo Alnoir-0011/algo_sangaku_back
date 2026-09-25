@@ -1,0 +1,82 @@
+---
+openapi: 3.2.0
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/public/reorder_sangakus/{reorder_sangaku_id}/answer":
+    post:
+      summary: create
+      tags:
+      - Api::V1::Public::ReorderAnswer
+      parameters:
+      - name: reorder_sangaku_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 15263
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                answer:
+                  type: object
+                  properties:
+                    block_ids:
+                      type: array
+                      items:
+                        type: integer
+                  required:
+                  - block_ids
+              required:
+              - answer
+            example:
+              answer:
+                block_ids:
+                - 17411
+                - 17410
+      responses:
+        '200':
+          description: does not create an AnswerResult record
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                required:
+                - status
+              example:
+                status: incorrect
+        '400':
+          description: returns 400
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        oneOf:
+                        - type: string
+                        - type: array
+                          items:
+                            type: string
+                required:
+                - message
+                - errors
+              example:
+                message: Bad Request
+                errors:
+                - - block_ids
+                  - - が不正です
