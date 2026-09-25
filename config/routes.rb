@@ -33,6 +33,9 @@ Rails.application.routes.draw do
       end
 
       namespace :public do
+        resources :shrines, only: [], constraints: { shrine_id: /\d+/ } do
+          resource :representative_reorder_sangaku, only: %i[show]
+        end
         resources :reorder_sangakus, only: %i[show], constraints: { id: /\d+/, reorder_sangaku_id: /\d+/ } do
           resource :answer, only: %i[create], controller: "reorder_answers"
         end

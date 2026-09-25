@@ -1,0 +1,143 @@
+---
+openapi: 3.2.0
+info:
+  title: Algo Sangaku Documentation
+  version: 1.0.0
+servers: []
+paths:
+  "/api/v1/public/shrines/{shrine_id}/representative_reorder_sangaku":
+    get:
+      summary: show
+      tags:
+      - Api::V1::Public::RepresentativeReorderSangaku
+      parameters:
+      - name: shrine_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 5484
+      responses:
+        '200':
+          description: returns the most answered reorder sangaku when the shrine has
+            multiple
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      attributes:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          description:
+                            type: string
+                          difficulty:
+                            type: string
+                          kind:
+                            type: string
+                          inputs:
+                            type: array
+                            items: {}
+                          author_name:
+                            type: string
+                          shrine_name:
+                            type: string
+                          code_blocks:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                content:
+                                  type: string
+                              required:
+                              - id
+                              - content
+                        required:
+                        - title
+                        - description
+                        - difficulty
+                        - kind
+                        - inputs
+                        - author_name
+                        - shrine_name
+                        - code_blocks
+                      relationships:
+                        type: object
+                        properties:
+                          user:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                          shrine:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  type:
+                                    type: string
+                                required:
+                                - id
+                                - type
+                            required:
+                            - data
+                        required:
+                        - user
+                        - shrine
+                    required:
+                    - id
+                    - type
+                    - attributes
+                    - relationships
+                required:
+                - data
+              example:
+                data:
+                  id: '15855'
+                  type: sangaku
+                  attributes:
+                    title: test_title
+                    description: test_description
+                    difficulty: easy
+                    kind: reorder
+                    inputs: []
+                    author_name: test nickname
+                    shrine_name: test_shrine
+                    code_blocks:
+                    - id: 18154
+                      content: code_block_2
+                    - id: 18153
+                      content: code_block_1
+                  relationships:
+                    user:
+                      data:
+                        id: '26962'
+                        type: user
+                    shrine:
+                      data:
+                        id: '5484'
+                        type: shrine
