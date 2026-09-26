@@ -33,11 +33,9 @@ module Api
       end
 
       def create_reorder_answer
-        block_ids = answer_params[:block_ids]
+        result = sangaku_save.sangaku.sangakuable.judge(answer_params[:block_ids])
+        return render_400(nil, { block_ids: [ "が不正です" ] }) if result.nil?
 
-        return render_400(nil, { block_ids: [ "が不正です" ] }) unless ReorderSangaku.valid_block_ids?(block_ids)
-
-        result = sangaku_save.sangaku.sangakuable.correct?(block_ids) ? :correct : :incorrect
         save_and_render_answer(ReorderAnswer.new(result:))
       end
 

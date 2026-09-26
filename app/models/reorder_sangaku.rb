@@ -3,6 +3,9 @@ class ReorderSangaku < ApplicationRecord
   include Sangakuable
 
   MAX_CODE_BLOCKS = 100
+  # code_blocks.id（bigint）の取りうる最大値。この範囲外の id は必ず該当レコードが
+  # 存在しないため、DB に問い合わせる前に弾く（issue #359 セキュリティレビュー対応）。
+  POSTGRES_BIGINT_MAX = 9_223_372_036_854_775_807
 
   has_many :code_blocks, dependent: :destroy
 
@@ -20,8 +23,18 @@ class ReorderSangaku < ApplicationRecord
     block_ids.is_a?(Array) &&
       block_ids.present? &&
       block_ids.size <= MAX_CODE_BLOCKS &&
-      block_ids.all?(Integer) &&
+      block_ids.all? { |id| id.is_a?(Integer) && id.between?(1, POSTGRES_BIGINT_MAX) } &&
       block_ids.uniq.size == block_ids.size
+  end
+
+  # block_ids の形式を検証したうえで判定する。形式が不正なら nil を返し、呼び出し側で
+  # 400 として扱う。検証と判定を1つの入り口にまとめることで、会員向け
+  # （User::SavedSangakusAnswersController）とゲスト向け（Public::ReorderAnswersController）の
+  # どちらかだけ検証や判定条件を直し忘れることを防ぐ（issue #359）。
+  def judge(block_ids)
+    return nil unless self.class.valid_block_ids?(block_ids)
+
+    correct?(block_ids) ? :correct : :incorrect
   end
 
   # 親 sangaku・自身・code_blocks をまとめて保存する（全置換）。

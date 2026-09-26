@@ -49,6 +49,25 @@ class Sangaku < ApplicationRecord
     sangakuable_types.flat_map { |type| type.constantize.difficulties.keys }.uniq
   end
 
+  # 神社に紐づく並べ替え算額のうち、回答数（正誤問わず）が最多のものを返す。
+  # 同数の場合は created_at が古い方を優先する（新しい算額を後から量産して
+  # 代表の座を奪う手口のコストを上げるため）。該当がなければ nil。
+  # shrine が nil の場合は「未奉納の算額」にマッチしてしまわないよう nil を返す
+  # （呼び出し側は sangaku.shrine（nil の可能性あり）をそのまま渡す想定のため）。
+  #
+  # 未認証で呼べる公開エンドポイント（Public::ReorderSangakusController 等）から
+  # リクエストのたびに呼ばれるため、候補をメモリに展開せず SQL 側で集計する。
+  def self.representative_reorder_for(shrine)
+    return nil if shrine.nil?
+
+    with_kind("reorder")
+      .where(shrine: shrine)
+      .left_joins(:answers)
+      .group(:id)
+      .order(Arel.sql("COUNT(answers.id) DESC, sangakus.created_at ASC"))
+      .first
+  end
+
   def self.search(params)
     relation = self.distinct
     return relation unless params

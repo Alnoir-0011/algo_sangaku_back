@@ -191,10 +191,45 @@ RSpec.describe ReorderSangaku, type: :model do
       'a numeric string element' => [ 1, "2" ],
       'a float element' => [ 1, 2.0 ],
       'duplicated ids' => [ 1, 1 ],
-      'more ids than MAX_CODE_BLOCKS' => (1..(ReorderSangaku::MAX_CODE_BLOCKS + 1)).to_a
+      'more ids than MAX_CODE_BLOCKS' => (1..(ReorderSangaku::MAX_CODE_BLOCKS + 1)).to_a,
+      'a zero element' => [ 0, 1 ],
+      'a negative element' => [ -1, 1 ],
+      'an element beyond the postgres bigint range' => [ ReorderSangaku::POSTGRES_BIGINT_MAX + 1, 1 ]
     }.each do |label, block_ids|
       it "returns false for #{label}" do
         expect(ReorderSangaku.valid_block_ids?(block_ids)).to eq false
+      end
+    end
+
+    it 'returns true for the boundary value of the postgres bigint range' do
+      expect(ReorderSangaku.valid_block_ids?([ ReorderSangaku::POSTGRES_BIGINT_MAX ])).to eq true
+    end
+  end
+
+  describe '#judge' do
+    context 'with valid and correct block_ids' do
+      it 'returns :correct' do
+        reorder_sangaku = create(:reorder_sangaku, :with_code_blocks)
+        correct_block_ids = reorder_sangaku.code_blocks.order(:correct_position).pluck(:id)
+
+        expect(reorder_sangaku.judge(correct_block_ids)).to eq :correct
+      end
+    end
+
+    context 'with valid but incorrect block_ids' do
+      it 'returns :incorrect' do
+        reorder_sangaku = create(:reorder_sangaku, :with_code_blocks)
+        correct_block_ids = reorder_sangaku.code_blocks.order(:correct_position).pluck(:id)
+
+        expect(reorder_sangaku.judge(correct_block_ids.reverse)).to eq :incorrect
+      end
+    end
+
+    context 'with malformed block_ids' do
+      it 'returns nil without raising' do
+        reorder_sangaku = create(:reorder_sangaku, :with_code_blocks)
+
+        expect(reorder_sangaku.judge("invalid")).to be_nil
       end
     end
   end

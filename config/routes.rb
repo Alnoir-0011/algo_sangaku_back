@@ -32,6 +32,15 @@ Rails.application.routes.draw do
         get :stats, to: "stats#show"
       end
 
+      namespace :public do
+        resources :shrines, only: [], constraints: { shrine_id: /\d+/ } do
+          resource :representative_reorder_sangaku, only: %i[show]
+        end
+        resources :reorder_sangakus, only: %i[show], constraints: { id: /\d+/, reorder_sangaku_id: /\d+/ } do
+          resource :answer, only: %i[create], controller: "reorder_answers"
+        end
+      end
+
       namespace :user do
         resources :sangakus, only: %i[index show destroy], shallow: true do
           resource :result, only: %i[show]
