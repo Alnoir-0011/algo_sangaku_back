@@ -253,6 +253,25 @@ RSpec.describe "Api::V1::Admin::Sangakus", type: :request do
         expect(response).to have_http_status(:bad_request)
       end
 
+      # 一般ユーザー向け更新API（Api::V1::User::CodeSangakusController 等）は奉納済み算額の更新を
+      # 403 で拒否するが、管理画面向けAPIは対象外で現状維持（issue #365）。将来 forbid_dedicated_update
+      # を誤って admin 側にもコピーしてしまう変更に気づけるよう、回帰として固定する
+      it "returns 200 and updates a dedicated sangaku", openapi: false do
+        # Arrange
+        shrine = create(:shrine)
+        dedicated_sangaku = create(:sangaku, user: general_user, shrine: shrine)
+        authenticate_stub(admin_user)
+
+        # Act
+        patch api_v1_admin_sangaku_path(dedicated_sangaku.id),
+              params: new_params.to_json,
+              headers: headers
+
+        # Assert
+        expect(response).to have_http_status(:ok)
+        expect(dedicated_sangaku.reload.title).to eq("更新タイトル")
+      end
+
       # ブロックの編集は後続の対応で追加する。形式に合わない source は受け付けず無視する
       it "updates a reorder sangaku and ignores the source param", openapi: false do
         # Arrange
@@ -523,6 +542,21 @@ RSpec.describe "Api::V1::Admin::Sangakus", type: :request do
 
         expect(response).to have_http_status(:ok)
         expect(FixedInput.exists?(fixed_input.id)).to eq false
+      end
+
+      # 一般ユーザー向け削除API（Api::V1::User::SangakusController#destroy）は奉納済み算額の削除を
+      # 403 で拒否するが、管理画面向けAPIは対象外で現状維持（issue #365）。将来 forbid_dedicated_destroy
+      # を誤って admin 側にもコピーしてしまう変更に気づけるよう、回帰として固定する
+      it "returns 200 and deletes a dedicated sangaku", openapi: false do
+        shrine = create(:shrine)
+        dedicated_sangaku = create(:sangaku, user: general_user, shrine: shrine)
+
+        authenticate_stub(admin_user)
+        expect {
+          delete api_v1_admin_sangaku_path(dedicated_sangaku.id), headers: headers
+        }.to change(Sangaku, :count).by(-1)
+
+        expect(response).to have_http_status(:ok)
       end
     end
 

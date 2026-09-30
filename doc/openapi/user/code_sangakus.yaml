@@ -46,7 +46,7 @@ paths:
                 source: puts 'Hello world'
                 difficulty: easy
               fixed_inputs:
-              - test_input_2
+              - test_input_1
       responses:
         '200':
           description: success to create sangaku
@@ -141,7 +141,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '17425'
+                  id: '16782'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -150,15 +150,15 @@ paths:
                     kind: code
                     source: puts 'Hello world'
                     inputs:
-                    - id: 3249
-                      content: test_input_2
+                    - id: 2190
+                      content: test_input_1
                     author_name: test nickname
                     shrine_name:
                     code_blocks: []
                   relationships:
                     user:
                       data:
-                        id: '33046'
+                        id: '28375'
                         type: user
                     shrine:
                       data:
@@ -217,7 +217,7 @@ paths:
                   used: 1
                   limit: 5
                   remaining: 4
-                  reset_at: '2026-09-15T03:00:00+09:00'
+                  reset_at: '2026-10-01T03:00:00+09:00'
   "/api/v1/user/code_sangakus/generate_source_usage":
     get:
       summary: generate_source_usage
@@ -248,7 +248,7 @@ paths:
                 used: 0
                 limit: 5
                 remaining: 5
-                reset_at: '2026-09-15T03:00:00+09:00'
+                reset_at: '2026-10-01T03:00:00+09:00'
   "/api/v1/user/code_sangakus/{id}":
     patch:
       summary: update
@@ -260,7 +260,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 17426
+        example: 16792
       requestBody:
         content:
           application/json:
@@ -392,7 +392,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '17426'
+                  id: '16783'
                   type: sangaku
                   attributes:
                     title: changed_title
@@ -401,7 +401,7 @@ paths:
                     kind: code
                     source: puts 'Hello world'
                     inputs:
-                    - id: 3250
+                    - id: 2191
                       content: a
                     author_name: test nickname
                     shrine_name:
@@ -409,7 +409,27 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '33054'
+                        id: '28383'
                         type: user
                     shrine:
                       data:
+        '403':
+          description: return 403 and does not update the sangaku
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors:
+                - この算額は奉納済みのため更新できません

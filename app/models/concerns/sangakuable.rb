@@ -5,7 +5,7 @@ module Sangakuable
 
   included do
     has_one :sangaku, as: :sangakuable, touch: true
-    delegate :title, :user, :shrine, :user_id, :shrine_id, :created_at, :dedicate, to: :sangaku
+    delegate :title, :user, :shrine, :user_id, :shrine_id, :created_at, :dedicate, :dedicated?, to: :sangaku
 
     # validate を付けないと、不正な値の代入で ArgumentError が起き 500 になる。
     # allow_nil は、未入力のときのエラーを presence の「を入力してください」だけにするため。

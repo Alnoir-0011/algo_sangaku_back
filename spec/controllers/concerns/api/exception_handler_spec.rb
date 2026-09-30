@@ -28,6 +28,14 @@ RSpec.describe Api::ExceptionHandler, type: :request, openapi: false do
       def too_many_requests
         raise TooManyRequestsError.new(reset_at: Time.zone.local(2026, 1, 1, 3, 0, 0))
       end
+
+      def dedicated_sangaku
+        raise DedicatedSangakuError, "この算額は奉納済みのため更新できません"
+      end
+
+      def dedicated_sangaku_without_message
+        raise DedicatedSangakuError
+      end
     end)
 
     Rails.application.routes.draw do
@@ -37,6 +45,8 @@ RSpec.describe Api::ExceptionHandler, type: :request, openapi: false do
       get "exception_handler_test/not_unique", to: "exception_handler_test#not_unique"
       get "exception_handler_test/invalid", to: "exception_handler_test#invalid"
       get "exception_handler_test/too_many_requests", to: "exception_handler_test#too_many_requests"
+      get "exception_handler_test/dedicated_sangaku", to: "exception_handler_test#dedicated_sangaku"
+      get "exception_handler_test/dedicated_sangaku_without_message", to: "exception_handler_test#dedicated_sangaku_without_message"
     end
   end
 
@@ -112,5 +122,31 @@ RSpec.describe Api::ExceptionHandler, type: :request, openapi: false do
 
     expect(response).to have_http_status(:too_many_requests)
     expect(JSON.parse(response.body)["reset_at"]).to eq Time.zone.local(2026, 1, 1, 3, 0, 0).iso8601
+  end
+
+  it "returns 403 when DedicatedSangakuError occurs" do
+    get "/exception_handler_test/dedicated_sangaku"
+
+    expect(response).to have_http_status(:forbidden)
+  end
+
+  it "returns the standard forbidden message when DedicatedSangakuError occurs" do
+    get "/exception_handler_test/dedicated_sangaku"
+
+    expect(JSON.parse(response.body)["message"]).to eq "Forbidden"
+  end
+
+  it "includes the given error message in errors when DedicatedSangakuError occurs" do
+    get "/exception_handler_test/dedicated_sangaku"
+
+    expect(JSON.parse(response.body)["errors"]).to include("この算額は奉納済みのため更新できません")
+  end
+
+  # メッセージを渡し忘れて raise された場合に、StandardError の既定挙動（クラス名がそのまま
+  # message になる）で内部クラス名が漏れないことを保証する安全網（issue #365 コードレビュー指摘）
+  it "includes the default forbidden message in errors when DedicatedSangakuError is raised without a message" do
+    get "/exception_handler_test/dedicated_sangaku_without_message"
+
+    expect(JSON.parse(response.body)["errors"]).to include("この算額は奉納済みのため操作できません")
   end
 end

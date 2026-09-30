@@ -103,7 +103,7 @@ paths:
                 - data
               example:
                 data:
-                - id: '17507'
+                - id: '16842'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -117,11 +117,11 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '33171'
+                        id: '28464'
                         type: user
                     shrine:
                       data:
-                        id: '6834'
+                        id: '5790'
                         type: shrine
       parameters:
       - name: kind
@@ -155,7 +155,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 17535
+        example: 16875
       responses:
         '200':
           description: return sangaku in json format
@@ -238,7 +238,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '17535'
+                  id: '16870'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -253,10 +253,30 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '33192'
+                        id: '28485'
                         type: user
                     shrine:
                       data:
+        '403':
+          description: return 403 and does not delete the sangaku
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors:
+                - この算額は奉納済みのため削除できません
     get:
       summary: show
       tags:
@@ -267,7 +287,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 17527
+        example: 16862
       responses:
         '200':
           description: return sangaku in json formata
@@ -350,7 +370,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '17527'
+                  id: '16862'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -365,7 +385,7 @@ paths:
                   relationships:
                     user:
                       data:
-                        id: '33183'
+                        id: '28476'
                         type: user
                     shrine:
                       data:

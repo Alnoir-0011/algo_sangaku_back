@@ -157,7 +157,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '17458'
+                  id: '16798'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -169,19 +169,19 @@ paths:
                     author_name: test nickname
                     shrine_name:
                     code_blocks:
-                    - id: 14007
+                    - id: 19357
                       content: puts 1
                       correct_position: 1
-                    - id: 14006
+                    - id: 19358
                       content: puts 2
                       correct_position: 2
-                    - id: 14008
+                    - id: 19359
                       content: dummy
                       correct_position:
                   relationships:
                     user:
                       data:
-                        id: '33105'
+                        id: '28415'
                         type: user
                     shrine:
                       data:
@@ -196,7 +196,7 @@ paths:
         required: true
         schema:
           type: integer
-        example: 17466
+        example: 16811
       requestBody:
         content:
           application/json:
@@ -344,7 +344,7 @@ paths:
                 - data
               example:
                 data:
-                  id: '17466'
+                  id: '16806'
                   type: sangaku
                   attributes:
                     title: test_title
@@ -356,19 +356,39 @@ paths:
                     author_name: test nickname
                     shrine_name:
                     code_blocks:
-                    - id: 14084
+                    - id: 19434
                       content: puts 1
                       correct_position: 1
-                    - id: 14083
+                    - id: 19435
                       content: puts 2
                       correct_position: 2
-                    - id: 14082
+                    - id: 19433
                       content: dummy
                       correct_position:
                   relationships:
                     user:
                       data:
-                        id: '33120'
+                        id: '28432'
                         type: user
                     shrine:
                       data:
+        '403':
+          description: returns 403 and does not update the sangaku
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                required:
+                - message
+                - errors
+              example:
+                message: Forbidden
+                errors:
+                - この算額は奉納済みのため更新できません
