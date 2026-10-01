@@ -4,6 +4,8 @@ module Api
     # コード記述形式に固有の作成・更新・模範解答生成は User::CodeSangakusController へ移した。
     class User::SangakusController < BaseController
       before_action :set_sangaku, only: %i[show destroy]
+      # set_sangaku より後段である前提（@sangaku を参照するため）
+      before_action :forbid_dedicated_destroy, only: %i[destroy]
 
       def index
         @pagy, sangakus = pagy(current_user.sangakus.search(search_params).order(created_at: :desc, id: :desc).includes(:user, :shrine, sangakuable: :fixed_inputs))
@@ -27,6 +29,10 @@ module Api
 
       def set_sangaku
         @sangaku = current_user.sangakus.find(params[:id])
+      end
+
+      def forbid_dedicated_destroy
+        raise DedicatedSangakuError, "この算額は奉納済みのため削除できません" if @sangaku.dedicated?
       end
     end
   end

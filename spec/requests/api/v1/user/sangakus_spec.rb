@@ -420,5 +420,39 @@ RSpec.describe "Api::V1::User::Sangakus", type: :request do
         expect(response).not_to be_successful
       end
     end
+
+    # 所有者チェック（404）が奉納済みチェック（403）より先に働くことを確認する。
+    # 逆順だと「他人の算額が奉納済みかどうか」が403/404の違いから漏れてしまう（issue #365 セキュリティレビュー指摘）
+    context "with another user's dedicated sangaku", openapi: false do
+      let!(:another_user) { create(:user, name: "another_user") }
+      let!(:shrine) { create(:shrine) }
+      let!(:another_user_sangaku) { create(:sangaku, user: another_user, shrine:) }
+      let(:http_request) { delete api_v1_user_sangaku_path(another_user_sangaku), headers: }
+
+      it "returns 404, not 403" do
+        authenticate_stub(user)
+
+        expect {
+          http_request
+        }.not_to change(Sangaku, :count)
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "with a dedicated sangaku" do
+      let!(:shrine) { create(:shrine) }
+      let!(:sangaku) { create(:sangaku, user:, shrine:) }
+      let(:http_request) { delete api_v1_user_sangaku_path(sangaku.id), headers: }
+
+      it "return 403 and does not delete the sangaku" do
+        authenticate_stub(user)
+
+        expect {
+          http_request
+        }.not_to change(Sangaku, :count)
+        expect(response).to have_http_status(:forbidden)
+        expect(response).not_to be_successful
+      end
+    end
   end
 end

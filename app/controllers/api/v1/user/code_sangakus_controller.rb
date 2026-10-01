@@ -6,6 +6,8 @@ module Api
       include Api::SangakuableForm
 
       before_action :set_code_sangaku, only: %i[update]
+      # set_code_sangaku より後段である前提（@code_sangaku を参照するため）
+      before_action :forbid_dedicated_update, only: %i[update]
 
       def create
         code_sangaku = CodeSangaku.new(sangakuable_params)
@@ -107,6 +109,10 @@ module Api
 
       def set_code_sangaku
         @code_sangaku = find_own_sangakuable!(:code_sangaku)
+      end
+
+      def forbid_dedicated_update
+        raise DedicatedSangakuError, "この算額は奉納済みのため更新できません" if @code_sangaku.dedicated?
       end
 
       def check_generate_source_rate_limit!

@@ -8,6 +8,7 @@ module Api::ExceptionHandler
     rescue_from ActiveRecord::RecordNotUnique, with: :render_409
     rescue_from ActiveRecord::RecordInvalid, with: :render_409
     rescue_from TooManyRequestsError, with: :render_429
+    rescue_from DedicatedSangakuError, with: :render_403
   end
 
   private
@@ -33,6 +34,10 @@ module Api::ExceptionHandler
   def render_429(exception = nil, messages = nil)
     render_error(429, "Too Many Requests", exception&.message,
                  reset_at: exception&.reset_at&.iso8601)
+  end
+
+  def render_403(exception = nil, messages = nil)
+    render_error(403, "Forbidden", exception&.message, *messages)
   end
 
   def render_error(code, message, *error_messages, **extra)

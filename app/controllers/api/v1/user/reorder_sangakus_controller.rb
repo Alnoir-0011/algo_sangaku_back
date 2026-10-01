@@ -7,6 +7,8 @@ module Api
       include Api::CodeBlocksParams
 
       before_action :set_reorder_sangaku, only: %i[update]
+      # set_reorder_sangaku より後段である前提（@reorder_sangaku を参照するため）
+      before_action :forbid_dedicated_update, only: %i[update]
 
       def create
         return render_too_many_code_blocks if too_many_code_blocks?
@@ -41,6 +43,10 @@ module Api
 
       def set_reorder_sangaku
         @reorder_sangaku = find_own_sangakuable!(:reorder_sangaku)
+      end
+
+      def forbid_dedicated_update
+        raise DedicatedSangakuError, "この算額は奉納済みのため更新できません" if @reorder_sangaku.dedicated?
       end
 
       def sangaku_params

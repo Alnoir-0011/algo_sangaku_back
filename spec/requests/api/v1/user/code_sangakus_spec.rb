@@ -252,6 +252,23 @@ RSpec.describe "Api::V1::User::CodeSangakus", type: :request do
       end
     end
 
+    # 所有者チェック（404）が奉納済みチェック（403）より先に働くことを確認する。
+    # 逆順だと「他人の算額が奉納済みかどうか」が403/404の違いから漏れてしまう（issue #365 セキュリティレビュー指摘）
+    context "with another user's dedicated sangaku id", openapi: false do
+      let!(:another_user) { create(:user) }
+      let!(:shrine) { create(:shrine) }
+      let!(:another_sangaku) { create(:sangaku, user: another_user, shrine: shrine) }
+      let(:params) { { sangaku: attributes_for(:sangaku_params, title: "changed_title") }.to_json }
+      let(:http_request) { patch api_v1_user_code_sangaku_path(another_sangaku.id), headers:, params: }
+
+      it "returns 404, not 403" do
+        authenticate_stub(user)
+        http_request
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
     context "removing a fixed_input that has answer_results", openapi: false do
       let!(:sangaku) { create(:sangaku, title: "before_changed", user: user) }
       let!(:fixed_input) { create(:fixed_input, sangaku: sangaku, content: "old_input") }
@@ -270,6 +287,23 @@ RSpec.describe "Api::V1::User::CodeSangakus", type: :request do
         expect(response).to have_http_status(:ok)
         expect(response).to be_successful
         expect(FixedInput.exists?(fixed_input.id)).to eq false
+      end
+    end
+
+    context "with a dedicated sangaku" do
+      let!(:shrine) { create(:shrine) }
+      let!(:sangaku) { create(:sangaku, title: "before_changed", user: user, shrine: shrine) }
+      let(:params) { { sangaku: attributes_for(:sangaku_params, title: "changed_title") }.to_json }
+      let(:http_request) { patch api_v1_user_code_sangaku_path(sangaku.id), headers:, params: }
+
+      it "return 403 and does not update the sangaku" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:forbidden)
+        expect(body["message"]).to eq "Forbidden"
+        expect(sangaku.reload.title).to eq "before_changed"
       end
     end
 

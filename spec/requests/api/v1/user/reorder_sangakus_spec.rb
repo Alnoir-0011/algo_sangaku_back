@@ -364,6 +364,23 @@ RSpec.describe "Api::V1::User::ReorderSangakus", type: :request do
       end
     end
 
+    # 所有者チェック（404）が奉納済みチェック（403）より先に働くことを確認する。
+    # 逆順だと「他人の算額が奉納済みかどうか」が403/404の違いから漏れてしまう（issue #365 セキュリティレビュー指摘）
+    context "with another user's dedicated reorder_sangaku id", openapi: false do
+      let!(:another_user) { create(:user) }
+      let!(:shrine) { create(:shrine) }
+      let!(:sangaku) { create(:sangaku, :reorder, user: another_user, shrine: shrine) }
+      let(:params) { { sangaku: attributes_for(:reorder_sangaku_params, title: "changed_title"), code_blocks: code_blocks_params }.to_json }
+
+      it "returns 404, not 403" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
     context "with a code_sangaku's id", openapi: false do
       let!(:sangaku) { create(:sangaku, user: user) }
       let(:params) { { sangaku: attributes_for(:reorder_sangaku_params, title: "changed_title"), code_blocks: code_blocks_params }.to_json }
@@ -374,6 +391,22 @@ RSpec.describe "Api::V1::User::ReorderSangakus", type: :request do
         http_request
 
         expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "with a dedicated sangaku" do
+      let!(:shrine) { create(:shrine) }
+      let!(:sangaku) { create(:sangaku, :reorder, title: "before_changed", user: user, shrine: shrine) }
+      let(:params) { { sangaku: attributes_for(:reorder_sangaku_params, title: "changed_title"), code_blocks: code_blocks_params }.to_json }
+
+      it "returns 403 and does not update the sangaku" do
+        authenticate_stub(user)
+
+        http_request
+
+        expect(response).to have_http_status(:forbidden)
+        expect(body["message"]).to eq "Forbidden"
+        expect(sangaku.reload.title).to eq "before_changed"
       end
     end
 

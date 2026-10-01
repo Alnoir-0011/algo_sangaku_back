@@ -101,12 +101,22 @@ class Sangaku < ApplicationRecord
   # lat/lng はクライアント申告値であり、位置偽装のセキュリティ境界にはならない。
   # 個人開発規模のなりすましリスクを踏まえ、署名済み位置情報やレート制限の追加対応は不要と判断した（issue #312）。
   def dedicate(new_shrine, lat, lng)
-    return false if shrine.present? || distance(new_shrine, lat, lng) > DEFAULT_DEDICATE_DISTANCE
+    return false if dedicated? || distance(new_shrine, lat, lng) > DEFAULT_DEDICATE_DISTANCE
 
     self.shrine = new_shrine
     save!
     true
   rescue ActiveRecord::RecordInvalid
     false
+  end
+
+  # 判定から呼び出し側の保存・削除までの間にロックを取っていないため、
+  # 更新/削除リクエストと奉納リクエストがほぼ同時に来た場合、奉納直後に内容が
+  # 書き換わる・奉納済み算額が削除されるTOCTOUの余地がある。作者本人の操作に
+  # 限られミリ秒単位の窓のため実害は小さいと判断し、現状は対応を見送っている
+  # （issue #365 コードレビュー指摘、対応する場合は with_lock で判定と保存を
+  # 同じトランザクションに包む）。
+  def dedicated?
+    shrine_id.present?
   end
 end

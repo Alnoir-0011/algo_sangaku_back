@@ -273,4 +273,18 @@ RSpec.describe Sangaku, type: :model do
       expect { sangaku.dedicate(shrine, shrine.latitude, shrine.longitude) }.to raise_error(StandardError, "unexpected error")
     end
   end
+
+  describe '#dedicated?' do
+    it 'returns true when the sangaku has a shrine' do
+      sangaku = create(:sangaku, shrine: create(:shrine))
+
+      expect(sangaku.dedicated?).to eq true
+    end
+
+    it 'returns false when the sangaku has no shrine' do
+      sangaku = create(:sangaku, shrine: nil)
+
+      expect(sangaku.dedicated?).to eq false
+    end
+  end
 end
