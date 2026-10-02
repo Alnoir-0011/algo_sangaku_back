@@ -24,14 +24,45 @@ RSpec.describe CorrectnessCheckJob, type: :job do
       expect(answer_result.reload.status).to eq("incorrect")
     end
 
-    it 'sets status to error after exhausting retries' do
-      allow_any_instance_of(AnswerResult).to receive(:update_status).and_raise(StandardError, "PaizaIO error")
+    context 'when update_status raises an error' do
+      before do
+        allow_any_instance_of(AnswerResult).to receive(:update_status).and_raise(StandardError, "PaizaIO error")
+      end
 
-      job = CorrectnessCheckJob.new
-      allow(job).to receive(:executions).and_return(3)
+      let(:job) { CorrectnessCheckJob.new }
 
-      expect { job.perform(answer_result) }.to raise_error(StandardError)
-      expect(answer_result.reload.status).to eq("error")
+      it 'sets status to error after exhausting retries' do
+        allow(job).to receive(:executions).and_return(3)
+
+        expect { job.perform(answer_result) }.to raise_error(StandardError)
+        expect(answer_result.reload.status).to eq("error")
+      end
+
+      it 'logs an error after exhausting retries' do
+        allow(job).to receive(:executions).and_return(3)
+
+        expect(Rails.logger).to receive(:error) do |message|
+          expect(message).to start_with("[CorrectnessCheckJob] answer_result_id=#{answer_result.id} failed:")
+          expect(message).to include("StandardError", "PaizaIO error")
+        end
+        expect { job.perform(answer_result) }.to raise_error(StandardError)
+      end
+
+      it 'does not log or update status while retries remain' do
+        allow(job).to receive(:executions).and_return(1)
+
+        expect(Rails.logger).not_to receive(:error)
+        expect { job.perform(answer_result) }.to raise_error(StandardError)
+        expect(answer_result.reload.status).to eq("pending")
+      end
+
+      it 'does not log or update status on the second attempt' do
+        allow(job).to receive(:executions).and_return(2)
+
+        expect(Rails.logger).not_to receive(:error)
+        expect { job.perform(answer_result) }.to raise_error(StandardError)
+        expect(answer_result.reload.status).to eq("pending")
+      end
     end
   end
 end
