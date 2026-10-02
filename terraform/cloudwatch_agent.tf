@@ -55,12 +55,53 @@ data "aws_iam_policy_document" "ecs_instance_cloudwatch_agent" {
       values   = ["CWAgent"]
     }
   }
+
+  # AWS-ConfigureAWSPackage (Distributor) 経由での CloudWatch Agent 本体のインストールに
+  # 必要な権限。ECS-optimized AMI には Agent が標準導入されていないため別途インストールが
+  # 要る。SSM Agent バージョン 2.2.45.0 以降は <region>-birdwatcher-prod バケットを、
+  # それより前のバージョンは amazon-ssm-packages-<region> バケットを参照するため両方許可する。
+  statement {
+    effect = "Allow"
+    actions = [
+      "ssm:GetManifest",
+      "ssm:PutInventory",
+      "ssm:PutConfigurePackageResult",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    effect  = "Allow"
+    actions = ["s3:GetObject"]
+    resources = [
+      "arn:aws:s3:::${var.aws_region}-birdwatcher-prod/*",
+      "arn:aws:s3:::amazon-ssm-packages-${var.aws_region}/*",
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "ecs_instance_cloudwatch_agent" {
   name   = "${var.app_name}-ecs-instance-cloudwatch-agent"
   role   = aws_iam_role.ecs_instance.id
   policy = data.aws_iam_policy_document.ecs_instance_cloudwatch_agent.json
+}
+
+# ECS-optimized AMI (Amazon Linux 2023) には CloudWatch Agent が標準導入されていないため、
+# AmazonCloudWatch-ManageAgent (設定適用) の前提として Distributor 経由でインストールする。
+resource "aws_ssm_association" "cloudwatch_agent_install" {
+  name = "AWS-ConfigureAWSPackage"
+
+  targets {
+    key    = "InstanceIds"
+    values = [aws_instance.main.id]
+  }
+
+  parameters = {
+    action = "Install"
+    name   = "AmazonCloudWatchAgent"
+  }
+
+  depends_on = [aws_iam_role_policy.ecs_instance_cloudwatch_agent]
 }
 
 resource "aws_ssm_association" "cloudwatch_agent" {
@@ -83,7 +124,10 @@ resource "aws_ssm_association" "cloudwatch_agent" {
     optionalRestart               = "yes"
   }
 
-  depends_on = [aws_iam_role_policy.ecs_instance_cloudwatch_agent]
+  depends_on = [
+    aws_iam_role_policy.ecs_instance_cloudwatch_agent,
+    aws_ssm_association.cloudwatch_agent_install,
+  ]
 }
 
 resource "aws_cloudwatch_metric_alarm" "ec2_disk_used_percent" {
