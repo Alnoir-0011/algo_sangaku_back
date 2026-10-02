@@ -135,9 +135,14 @@ resource "aws_cloudwatch_metric_alarm" "ec2_disk_used_percent" {
   alarm_description = "EC2 ${aws_instance.main.id} のディスク使用率 (/) が 80% を超えました"
   namespace         = "CWAgent"
   metric_name       = "disk_used_percent"
+  # drop_device は device dimension のみを除去し、fstype は残る。CloudWatch アラームは
+  # dimension の完全一致が必要なため、実際に発行されたメトリクス (本番 EC2 で確認した
+  # fstype=xfs, Amazon Linux 2023 の既定ファイルシステム) に合わせて指定する。AMI を
+  # 変更してファイルシステムが変わった場合はこの値も見直すこと。
   dimensions = {
     InstanceId = aws_instance.main.id
     path       = "/"
+    fstype     = "xfs"
   }
   statistic           = "Average"
   period              = 300
