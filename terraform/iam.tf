@@ -69,6 +69,22 @@ data "aws_iam_policy_document" "ecs_instance_ssm" {
     actions   = ["ssm:GetDocument", "ssm:DescribeDocument"]
     resources = ["*"]
   }
+
+  # State Manager (aws_ssm_association) の取得・適用結果の報告。
+  # これが無いと Association が Pending/Failed のまま進行せず、CloudWatch Agent の
+  # 配布 (terraform/cloudwatch_agent.tf) が機能しない。
+  statement {
+    effect = "Allow"
+    actions = [
+      "ssm:ListAssociations",
+      "ssm:ListInstanceAssociations",
+      "ssm:DescribeAssociation",
+      "ssm:UpdateAssociationStatus",
+      "ssm:UpdateInstanceAssociationStatus",
+      "ssm:PutComplianceItems",
+    ]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_role_policy" "ecs_instance_ssm" {

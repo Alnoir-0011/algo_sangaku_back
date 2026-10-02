@@ -6,8 +6,11 @@ class CorrectnessCheckJob < ApplicationJob
     return unless answer_result.status_pending?
 
     answer_result.update_status
-  rescue StandardError
-    answer_result.update(status: :error) if executions >= 3
+  rescue StandardError => e
+    if executions >= 3
+      Rails.logger.error("[CorrectnessCheckJob] answer_result_id=#{answer_result.id} failed:\n#{e.full_message}")
+      answer_result.update(status: :error)
+    end
     raise
   end
 end
