@@ -1,4 +1,4 @@
-FROM nginx:1.27-alpine
+FROM nginx:1.30-alpine
 
 # gettext: envsubst コマンドを提供 (nginx.conf への環境変数埋め込みに使用)
 RUN apk add --no-cache gettext
