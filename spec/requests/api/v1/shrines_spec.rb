@@ -18,6 +18,20 @@ RSpec.describe "Api::V1::Shrines", type: :request do
       .to_return(status: 200, body: dummy_body, headers: {})
     end
 
+    shared_examples "a search where Google responds 200 without places" do
+      before do
+        stub_request(:post, "https://places.googleapis.com/v1/places:searchText")
+          .to_return(status: 200, body: {}.to_json, headers: {})
+      end
+
+      it "returns 200 with an empty data array" do
+        expect { http_request }.not_to change(Shrine, :count)
+
+        expect(response).to have_http_status(:ok)
+        expect(body['data']).to eq([])
+      end
+    end
+
     describe "Map" do
       let(:params) { { "searchType" => "Map", "lowLat" => "35.4", "highLat" => "35.5", "lowLng" => "135.1", "highLng" => "135.2" } }
       let(:http_request) { get api_v1_shrines_path, params: params, headers: headers }
@@ -61,6 +75,10 @@ RSpec.describe "Api::V1::Shrines", type: :request do
 
           expect(body['data'][0]['attributes']['sangaku_count']).to eq(2)
         end
+      end
+
+      context "when Google responds 200 without places", openapi: false do
+        it_behaves_like "a search where Google responds 200 without places"
       end
 
       context "without params", openapi: false do
@@ -107,6 +125,10 @@ RSpec.describe "Api::V1::Shrines", type: :request do
 
           expect(body['data'][0]['attributes']['sangaku_count']).to eq(1)
         end
+      end
+
+      context "when Google responds 200 without places", openapi: false do
+        it_behaves_like "a search where Google responds 200 without places"
       end
 
       context "without params", openapi: false do

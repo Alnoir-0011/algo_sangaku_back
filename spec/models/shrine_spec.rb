@@ -102,6 +102,21 @@ RSpec.describe Shrine, type: :model do
       expect(Shrine.search_by_bounds(1, 2, 3, 4)).to eq false
     end
 
+    context 'when Google responds 200 without places' do
+      before do
+        stub_request(:post, "https://places.googleapis.com/v1/places:searchText")
+          .to_return(status: 200, body: {}.to_json, headers: {})
+      end
+
+      it 'returns an empty array' do
+        expect(Shrine.search_by_bounds(35.4, 35.5, 135.1, 135.2)).to eq []
+      end
+
+      it 'does not create shrines' do
+        expect { Shrine.search_by_bounds(35.4, 35.5, 135.1, 135.2) }.not_to change(Shrine, :count)
+      end
+    end
+
     it 'returns false when persist_places raises ActiveRecord::RecordInvalid' do
       allow(Shrine).to receive(:text_search_by_location_restriction).and_return([])
       allow(Shrine).to receive(:persist_places).and_raise(ActiveRecord::RecordInvalid.new(Shrine.new))
@@ -128,6 +143,21 @@ RSpec.describe Shrine, type: :model do
       allow(Shrine).to receive(:text_search_by_location_bias).and_return(nil)
 
       expect(Shrine.search_by_location(1, 2)).to eq false
+    end
+
+    context 'when Google responds 200 without places' do
+      before do
+        stub_request(:post, "https://places.googleapis.com/v1/places:searchText")
+          .to_return(status: 200, body: {}.to_json, headers: {})
+      end
+
+      it 'returns an empty array' do
+        expect(Shrine.search_by_location(35.4, 135.1)).to eq []
+      end
+
+      it 'does not create shrines' do
+        expect { Shrine.search_by_location(35.4, 135.1) }.not_to change(Shrine, :count)
+      end
     end
 
     it 'returns false when persist_places raises ActiveRecord::RecordInvalid' do

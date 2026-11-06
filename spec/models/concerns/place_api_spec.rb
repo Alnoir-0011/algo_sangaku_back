@@ -102,6 +102,32 @@ RSpec.describe PlaceApi, type: :model do
       end
     end
 
+    context "when Google Places API returns 200 OK without a places key" do
+      before do
+        stub_request(:post, search_text_uri)
+          .to_return(status: 200, body: {}.to_json, headers: {})
+      end
+
+      it "returns an empty array" do
+        result = Shrine.text_search_by_location_restriction(35.4, 35.5, 135.1, 135.2)
+
+        expect(result).to eq([])
+      end
+    end
+
+    context "when Google Places API returns 200 OK with places as null" do
+      before do
+        stub_request(:post, search_text_uri)
+          .to_return(status: 200, body: { "places" => nil }.to_json, headers: {})
+      end
+
+      it "returns an empty array" do
+        result = Shrine.text_search_by_location_restriction(35.4, 35.5, 135.1, 135.2)
+
+        expect(result).to eq([])
+      end
+    end
+
     context "when Google Places API returns a non-200 response" do
       it "raises PlaceApiRequestFailedError with status_code 500 when the API responds with 500" do
         # Arrange
@@ -178,6 +204,32 @@ RSpec.describe PlaceApi, type: :model do
 
         # Assert
         expect(result).to eq(dummy_places)
+      end
+    end
+
+    context "when Google Places API returns 200 OK without a places key" do
+      before do
+        stub_request(:post, search_text_uri)
+          .to_return(status: 200, body: {}.to_json, headers: {})
+      end
+
+      it "returns an empty array" do
+        result = Shrine.text_search_by_location_bias(35.4, 135.1)
+
+        expect(result).to eq([])
+      end
+    end
+
+    context "when Google Places API returns 200 OK with places as null" do
+      before do
+        stub_request(:post, search_text_uri)
+          .to_return(status: 200, body: { "places" => nil }.to_json, headers: {})
+      end
+
+      it "returns an empty array" do
+        result = Shrine.text_search_by_location_bias(35.4, 135.1)
+
+        expect(result).to eq([])
       end
     end
 
