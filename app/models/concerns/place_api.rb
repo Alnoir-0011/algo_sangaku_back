@@ -78,7 +78,7 @@ module PlaceApi
       case response
       when Net::HTTPOK
         data = JSON.parse(response.body)
-        data["places"]
+        data["places"] || []
       else
         raise PlaceApiRequestFailedError, response.code
       end
