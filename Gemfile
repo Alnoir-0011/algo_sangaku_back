@@ -49,7 +49,7 @@ group :development, :test do
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 
-  gem "rspec-rails", "~> 8.0"
+  gem "rspec-rails", "~> 8.1"
   gem "factory_bot_rails", "~> 6.5"
   gem "webmock", "~> 3.34"
   gem "pry-rails", "~> 0.3.11"
