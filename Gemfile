@@ -51,7 +51,7 @@ group :development, :test do
 
   gem "rspec-rails", "~> 8.1"
   gem "factory_bot_rails", "~> 6.5"
-  gem "webmock", "~> 3.36"
+  gem "webmock", "~> 3.39"
   gem "pry-rails", "~> 0.3.11"
   gem "pry-byebug", "~> 3.12"
   gem "pry-doc", "~> 1.7"
